@@ -3,25 +3,63 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import { formatDate } from '../../utils/format';
 
-const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+// 按开始时间从新到旧排（缺省退回 date），保证叠纸与日志顺序一致
+const projects = (await getCollection('projects')).sort(
+  (a, b) => (b.data.start ?? b.data.date).valueOf() - (a.data.start ?? a.data.date).valueOf()
+);
+
+// 叠纸区重点：古界 / 唤她 作为更拿得出手的代表作，放大并居中；其余常规小纸
+const spotlight = ['上元古界（开放世界 RPG）', '唤她真名（心理悬疑动画剧本）'];
+const inSpotlight = (p: { data: { title: string } }) => spotlight.includes(p.data.title);
+const tagsOf = (p: { data: { tags: string[] } }) => p.data.tags ?? [];
+const coverOf = (p: { data: { cover?: string } }) => p.data.cover;
+const roleOf = (p: { data: { role: string } }) => p.data.role;
 ---
 
 <Layout title="项目" description="我的游戏项目" theme="eb" panel={false}>
   <div class="flex flex-col gap-6">
+    <!-- 叠纸互动区：翻一张项目看看？ -->
+    <section class="paper-zone">
+      <h2 class="paper-zone__title px">▍翻一张项目看看？</h2>
+      <div class="paper-zone__stack">
+        {
+          projects.map((p, i) => (
+            <a
+              href={`/projects/${p.id}/`}
+              class:list={['note', `n${i + 1}`, inSpotlight(p) && 'note--spot']}
+            >
+              <em class="px">QUEST / {String(i + 1).padStart(2, '0')}</em>
+              <h3>{p.data.title}</h3>
+              <div class="meta px">
+                {new Date(p.data.date).getFullYear()} · {p.data.type} · {roleOf(p)}
+              </div>
+              <p>{p.data.summary}</p>
+              <span class="cta px">▶ 查看详情</span>
+            </a>
+          ))
+        }
+      </div>
+      <p class="paper-zone__hint px">悬停某张纸，把它抽出来翻看</p>
+    </section>
+
+    <!-- 常规任务日志：内容自适应，不额外放大某一款 -->
     <section class="eb-window">
-      <h1 class="eb-window__title">◆ 任务日志（项目）</h1>
-      <p class="eb-body mt-2">每一个任务，都有它的战利品。</p>
+      <h2 class="eb-window__title px">◆ 任务日志（项目）</h2>
+      <p class="eb-body mt-2">每一个任务，都有它的战利品。按项目内容多少自动贴合，刚好铺满。</p>
       <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {
           projects.map((p) => (
             <a href={`/projects/${p.id}/`} class="eb-stat block">
-              {
-                p.data.cover && (
-                  <img src={p.data.cover} alt={`${p.data.title} 封面`} class="mb-3 w-full border-2 border-[var(--eb-frame)]" style="image-rendering: pixelated;" />
-                )
-              }
+              {coverOf(p) && (
+                <img
+                  src={coverOf(p)}
+                  alt={`${p.data.title} 封面`}
+                  class="mb-3 w-full border-2 border-[var(--eb-frame)]"
+                  style="image-rendering: pixelated;"
+                />
+              )}
               <p class="eb-stat__name">{p.data.title}</p>
-              <p class="eb-ev mt-1">{formatDate(p.data.date)} · {p.data.role}</p>
+              <p class="eb-ev mt-1">{formatDate(p.data.date)} · {roleOf(p)}</p>
               <p class="eb-body mt-2" style="font-size:0.85rem;opacity:0.8">{p.data.summary}</p>
               <p class="eb-ev mt-2">▶ 查看详情</p>
             </a>
@@ -31,3 +69,117 @@ const projects = (await getCollection('projects')).sort((a, b) => b.data.date.va
     </section>
   </div>
 </Layout>
+
+<style>
+  /* 叠纸区：奶油纸垫动画，融入 eb-theme（panel 暖米黄 + 帧框） */
+  .paper-zone {
+    position: relative;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(90deg, rgba(120, 80, 40, 0.06) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(0deg, rgba(120, 80, 40, 0.06) 0 1px, transparent 1px 24px),
+      linear-gradient(#e8e0c8, #e8e0c8);
+    border: 4px solid #262016;
+    border-radius: 12px;
+    box-shadow: 0 0 0 3px var(--eb-frame), 10px 10px 0 rgba(0, 0, 0, 0.24);
+    padding: 30px 28px 34px;
+  }
+  .paper-zone__title {
+    text-align: center;
+    color: #262016;
+    font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+    letter-spacing: 0.04em;
+    margin-bottom: 26px;
+    text-shadow: none;
+  }
+  .paper-zone__hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #6b5a3e;
+    margin-top: 14px;
+    letter-spacing: 0.08em;
+  }
+  .paper-zone__stack {
+    position: relative;
+    max-width: 880px;
+    height: 470px;
+    margin: 0 auto;
+  }
+  /* 记录纸：横线纸 + 顶部折角，交叠露出一点 */
+  .note {
+    position: absolute;
+    width: min(440px, 72%);
+    padding: 26px 28px 22px;
+    border: 3px solid #262016;
+    border-radius: 3px;
+    background:
+      linear-gradient(transparent 0 28px, rgba(0, 0, 0, 0.05) 28px 29px),
+      repeating-linear-gradient(0deg, rgba(203, 184, 144, 0.6) 0 1px, transparent 1px 28px),
+      #f6efdb;
+    box-shadow: 0 0 0 2px var(--eb-frame), 12px 12px 0 rgba(0, 0, 0, 0.32);
+    transform: rotate(var(--r, 0deg));
+    transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.5s, z-index 0s;
+    z-index: calc(var(--z, 1));
+    cursor: pointer;
+  }
+  .note:after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #f6efdb 50%, rgba(0, 0, 0, 0.13) 50%);
+    border-left: 2px solid rgba(0, 0, 0, 0.12);
+  }
+  .note:hover {
+    transform: rotate(0deg) translateY(-12px) scale(1.05);
+    box-shadow: 0 0 0 2px var(--eb-frame), 28px 28px 0 rgba(0, 0, 0, 0.26);
+    z-index: 99;
+  }
+  .note em {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: #785028;
+  }
+  .note h3 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1.05;
+    margin: 0.5rem 0;
+  }
+  .note .meta {
+    font-size: 0.68rem;
+    color: #6b5a3e;
+    margin-bottom: 0.7rem;
+  }
+  .note p {
+    font-size: 0.84rem;
+    line-height: 1.65;
+    opacity: 0.94;
+  }
+  .note .cta {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: #e88858;
+  }
+  /* 交叠：每张露出约 25%，压住前一张大半 */
+  .n1 { --r: -4deg; top: 8px; left: 4%; --z: 1; }
+  .n2 { --r: 3deg; top: 52px; left: 27%; --z: 2; }
+  .n3 { --r: -2deg; top: 100px; left: 50%; --z: 3; }
+  .n4 { --r: 4deg; top: 150px; left: 36%; --z: 4; }
+  /* 重点卡片：古界/唤她 抬升压在表面，更醒目 */
+  .note--spot {
+    z-index: 60;
+    border-color: #785028;
+    box-shadow: 0 0 0 2px var(--eb-frame), 16px 16px 0 rgba(0, 0, 0, 0.3);
+  }
+  @media (max-width: 720px) {
+    .paper-zone__stack { height: 640px; }
+    .note { width: 82%; }
+    .n2 { left: 12%; }
+    .n3 { left: 14%; }
+    .n4 { left: 18%; }
+  }
+</style>

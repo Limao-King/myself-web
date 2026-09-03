@@ -25,7 +25,7 @@ const writingGroups = [
 ];
 ---
 
-<Layout title="策划文档" description="拆解案、策划案、剧本、对白与世界观文档">
+<Layout title="策划文档" description="拆解案、策划案、剧本、对白与世界观文档" theme="eb2">
   <div class="py-12">
     <Reveal>
       <SectionHeading
@@ -52,22 +52,6 @@ const writingGroups = [
           ))}
         </div>
       </div>
-    </Reveal>
-    <Reveal delay={40}>
-      <a
-        href={siteConfig.downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="mb-10 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-neutral-700 bg-neutral-900 p-5 transition-colors hover:border-violet-500/60"
-      >
-        <div>
-          <p class="font-pixel text-base text-neutral-100">全部文档 & Demo 打包下载</p>
-          <p class="mt-1 text-xs text-neutral-400">
-            单篇文档建议直接在线预览；网盘仅作全部资料打包的备用入口（提取码 {siteConfig.downloadPwd}）
-          </p>
-        </div>
-        <span class="btn-white">前往下载 →</span>
-      </a>
     </Reveal>
 
     <!-- 置顶：拆解案 + 策划案 -->
@@ -150,6 +134,26 @@ const writingGroups = [
         </p>
       )
     }
+
+    <!-- 次要入口：全部文档 & Demo 打包下载（放最底部，弱化处理） -->
+    <Reveal delay={80}>
+      <div class="mt-14 border-t border-neutral-800 pt-6">
+        <a
+          href={siteConfig.downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group inline-flex items-center gap-2 text-sm text-neutral-500 transition-colors hover:text-neutral-300"
+        >
+          <svg class="h-4 w-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>全部文档 &amp; Demo 打包下载</span>
+          <span class="text-neutral-700 transition-colors group-hover:text-neutral-400">（备用网盘入口 · 提取码 {siteConfig.downloadPwd}）</span>
+        </a>
+      </div>
+    </Reveal>
   </div>
 </Layout>
 

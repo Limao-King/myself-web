@@ -1,18 +1,17 @@
 ---
 // 成就系统彩蛋（v2 4.7）：
 // 下载简历 → 「获得了 简历.pdf ×1！」；看完三个项目 → 「成就解锁：尽职调查」；
-// EXP 满级（滚到底）→ 「明鑫 升到了 Lv.5！……好像学会了「独立制作」！」；
-// 剧本文档收集度 n/8（剧本 ×5 + 对白 ×3，看一篇算一篇）。
+// EXP 满级（滚到底）→ 「升到了 Lv.5！……好像学会了「钻研到底」！」；
+// 剧本文档收集度 n/5（剧本 ×5，看一篇算一篇）。
 // localStorage 键 eb-achv 持久记录；所有监听随 ClientRouter 切换存活。
 ---
 <div id="eb-toast" class="eb-toast" role="status" aria-live="polite"></div>
 
 <script>
   const STORE = 'eb-achv';
-  // 8 篇剧本文档：剧本 5 + 对白 3
+  // 5 篇剧本文档（对白 3 篇已并入/删除）
   const LIBRARY = [
     'huan-tazhenming', 'jinchuan', 'keluomi', 'nanliang', 'three-pigs',
-    'dialogue-fantasy-power', 'dialogue-home-outside', 'dialogue-prologue',
   ];
 
   const read = () => {
@@ -79,7 +78,7 @@
       const el = document.documentElement;
       const max = el.scrollHeight - el.clientHeight;
       if (max > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 8) {
-        fire('lv5', '明鑫 升到了 Lv.5！……好像学会了「独立制作」！');
+        fire('lv5', '升到了 Lv.5！……好像学会了「钻研到底」！');
         window.removeEventListener('scroll', check);
       }
     };

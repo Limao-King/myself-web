@@ -1,0 +1,89 @@
+---
+// 右侧导览条（Table of Contents）：收集正文 heading，高亮当前段，点击跳转。
+// 像素风：以现有 eb/eb2 主题的描边 + 方块角呼应。桌面右侧固定，移动端隐藏。
+// 客户端 JS 从 #main .prose-article 收集 h2/h3，构建层级列表并做 scrollspy。
+---
+<div id="eb-toc" class="eb-toc" aria-label="本文目录">
+  <button type="button" class="eb-toc__toggle" aria-expanded="false" aria-controls="eb-toc-list">
+    <span class="eb-toc__icon" aria-hidden="true">☰</span>
+    <span class="eb-toc__label">目录</span>
+  </button>
+  <nav id="eb-toc-list" class="eb-toc__list" aria-label="目录导航">
+    <p class="eb-toc__title">◆ 本页目录</p>
+    <ul class="eb-toc__items"></ul>
+  </nav>
+</div>
+
+<script>
+  (() => {
+    // after-swap 时 #eb-toc 会被换成全新 DOM 节点，因此每次 init 都要重新获取根引用，
+    // 不能缓存首屏的 root（否则切换后操作的是已分离的旧节点，导致 TOC 不更新/丢失）。
+    const getRoot = () => {
+      const r = document.getElementById('eb-toc');
+      if (!r) return null;
+      // 只绑定一次 toggle（根节点每次新换，直接绑在多处也无妨）
+      const toggle = r.querySelector('.eb-toc__toggle');
+      toggle?.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        r.classList.toggle('is-open', !expanded);
+      });
+      return r;
+    };
+    let root = getRoot();
+
+    const build = () => {
+      // 收集正文 heading（渲染出的 h2/h3/h4），要唯一 id
+      const headings = Array.from(
+        document.querySelectorAll('#main .prose-article h2, #main .prose-article h3, #main .prose-article h4')
+      ).filter((h) => h.id);
+
+      const items = root?.querySelector('.eb-toc__items');
+      if (!items) return;
+      items.innerHTML = '';
+
+      if (headings.length === 0) {
+        root.classList.add('is-empty');
+        return;
+      }
+      root.classList.remove('is-empty');
+
+      headings.forEach((h) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.className = 'eb-toc__link' + (h.tagName !== 'H2' ? ' eb-toc__link--sub' : '');
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        items.appendChild(li);
+      });
+    };
+
+    // scrollspy：当前观看的 heading 对应链接高亮
+    const spy = () => {
+      const links = root ? Array.from(root.querySelectorAll('.eb-toc__link')) : [];
+      if (!links.length) return;
+      let current = links[0];
+      const marks = links.map((a) => {
+        const el = document.getElementById(a.getAttribute('href').slice(1));
+        return { a, top: el ? el.getBoundingClientRect().top + window.scrollY : Infinity };
+      });
+      const scrollY = window.scrollY + 80;
+      for (const m of marks) {
+        if (m.top <= scrollY) current = m.a;
+      }
+      links.forEach((a) => a.classList.toggle('is-active', a === current));
+    };
+
+    const init = () => {
+      root = getRoot(); // 重新获取以拿到 after-swap 后的新节点
+      build();
+      spy();
+      window.removeEventListener('scroll', spy);
+      window.addEventListener('scroll', spy, { passive: true });
+    };
+
+    init();
+    document.addEventListener('astro:after-swap', init);
+  })();
+</script>

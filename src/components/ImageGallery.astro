@@ -1,0 +1,186 @@
+---
+/**
+ * 可切换截图图廊：一屏一张，左右切换 / 缩略图跳转 / 键盘左键←右键→。
+ * images: { src, caption }[]。无 caption 时只显示图片。
+ */
+interface Shot { src: string; caption?: string }
+const { images } = Astro.props;
+const total = images.length;
+const first = images[0];
+---
+<div class="gal" data-gal tabindex="0" role="region" aria-label="截图图廊">
+  <div class="gal__stage">
+    {
+      images.map((img, i) => (
+        <figure class="gal__slide" data-slide={i} data-active={i === 0 ? '1' : undefined}>
+          <img src={img.src} alt={img.caption || `截图 ${i + 1}`} loading="lazy" style="image-rendering: pixelated;" />
+          {
+            img.caption && (
+              <figcaption class="gal__cap">
+                <span class="gal__cap-idx">{i + 1}</span>
+                {img.caption}
+              </figcaption>
+            )
+          }
+        </figure>
+      ))
+    }
+    {
+      total > 1 && (
+        <>
+          <button type="button" class="gal__nav gal__nav--prev" data-prev aria-label="上一张">‹</button>
+          <button type="button" class="gal__nav gal__nav--next" data-next aria-label="下一张">›</button>
+          <span class="gal__count" aria-hidden="true"><span data-count>1</span> / {total}</span>
+        </>
+      )
+    }
+  </div>
+
+  {
+    total > 1 && (
+      <div class="gal__thumbs" role="list" aria-label="截图缩略图">
+        {images.map((img, i) => (
+          <button type="button" class="gal__thumb" data-thumb={i} aria-label={img.caption || `截图 ${i + 1}`} aria-current={i === 0 ? 'true' : undefined}>
+            <img src={img.src} alt="" loading="lazy" style="image-rendering: pixelated;" />
+          </button>
+        ))}
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .gal {
+    border: var(--eb-frame-w, 3px) solid var(--eb-frame, #f0d9a0);
+    border-radius: 10px;
+    background: #0f0a06;
+    box-shadow: 0 0 0 2px rgba(42, 26, 18, 0.35);
+    outline: none;
+  }
+  .gal:focus-visible { box-shadow: 0 0 0 3px var(--eb-red, #d0442c); }
+  .gal__stage { position: relative; }
+  .gal__slide { display: none; margin: 0; }
+  .gal__slide[data-active] { display: block; }
+  .gal__slide img {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    object-fit: contain;
+    background: #0f0a06;
+  }
+  .gal__cap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    color: #f8eed2;
+    font-size: 0.9rem;
+    background: rgba(24, 20, 16, 0.92);
+    border-top: 2px solid rgba(240, 217, 160, 0.25);
+  }
+  .gal__cap-idx {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 6px;
+    background: var(--eb-ink, #2a1a12);
+    color: var(--eb-frame, #f0d9a0);
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+  .gal__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--eb-frame, #f0d9a0);
+    background: rgba(24, 20, 16, 0.75);
+    color: #f8eed2;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, background 0.12s;
+  }
+  .gal__nav:hover { background: rgba(24, 20, 16, 0.95); transform: translateY(-50%) scale(1.08); }
+  .gal__nav--prev { left: 10px; }
+  .gal__nav--next { right: 10px; }
+  .gal__count {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    z-index: 2;
+    color: #f8eed2;
+    font-size: 0.8rem;
+    background: rgba(24, 20, 16, 0.65);
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+  }
+  .gal__thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    overflow-x: auto;
+    border-top: 2px solid rgba(240, 217, 160, 0.2);
+  }
+  .gal__thumb {
+    flex: none;
+    width: 76px;
+    height: 52px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.12s ease, border-color 0.12s;
+    background: #0f0a06;
+  }
+  .gal__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gal__thumb:hover { opacity: 1; }
+  .gal__thumb[aria-current='true'] { opacity: 1; border-color: var(--eb-red, #d0442c); }
+  @media (prefers-reduced-motion: reduce) {
+    .gal__nav, .gal__thumb { transition: none; }
+  }
+</style>
+
+<script>
+  // 支持页面存在多个图廊实例：遍历所有 [data-gal]，各自独立绑定。
+  // 关键：ClientRouter 切换（astro:after-swap）后，新页面注入的 .gal 元素没有事件绑定，
+  // 脚本只在页面首次 load 执行一次，导致切换后"点击无反应、需 F5"。因此用 initGal() 在
+  // 首屏 + 每次 after-swap 都重新绑定全部 [data-gal]（用 data-bound 防重复）。
+  function initGal() {
+    document.querySelectorAll('[data-gal]').forEach((gal) => {
+      if (gal.dataset.bound) return; // 已绑定的跳过（首屏已绑，after-swap 只绑新节点）
+      const slides = [...gal.querySelectorAll('.gal__slide')];
+      const thumbs = [...gal.querySelectorAll('.gal__thumb')];
+      const count = gal.querySelector('[data-count]');
+      if (!slides.length) return;
+      gal.dataset.bound = '1';
+      let cur = 0;
+      const show = (n) => {
+        cur = (n + slides.length) % slides.length;
+        slides.forEach((s, idx) => { if (idx === cur) s.dataset.active = '1'; else delete s.dataset.active; });
+        thumbs.forEach((t, idx) => t.setAttribute('aria-current', idx === cur ? 'true' : ''));
+        if (count) count.textContent = String(cur + 1);
+      };
+      gal.querySelector('[data-prev]')?.addEventListener('click', () => show(cur - 1));
+      gal.querySelector('[data-next]')?.addEventListener('click', () => show(cur + 1));
+      thumbs.forEach((t, idx) => t.addEventListener('click', () => show(idx)));
+      gal.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); show(cur + 1); }
+      });
+    });
+  }
+  initGal();
+  document.addEventListener('astro:after-swap', initGal);
+</script>

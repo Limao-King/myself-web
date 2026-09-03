@@ -12,8 +12,8 @@ interface Props {
   title?: string;
   description?: string;
   panel?: boolean;
-  /** 主题：paper（默认，暖纸）| eb（Onett 晴日 / EarthBound 气质） */
-  theme?: 'paper' | 'eb';
+  /** 主题：paper（默认，暖纸）| eb（Onett 晴日 / EarthBound 气质）| eb2（图2 浅蓝地砖 · 策划文档/关于我） */
+  theme?: 'paper' | 'eb' | 'eb2';
 }
 
 const { title, description, panel = true, theme = 'paper' } = Astro.props;
@@ -22,7 +22,7 @@ const pageDescription = description ?? siteConfig.description;
 ---
 
 <!doctype html>
-<html lang="zh-CN" class:list={theme === 'eb' ? 'eb-theme' : undefined}>
+<html lang="zh-CN" class:list={theme === 'eb' ? 'eb-theme' : theme === 'eb2' ? 'eb2-theme' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -52,9 +52,6 @@ const pageDescription = description ?? siteConfig.description;
     <a class="skip-link" href="#main">跳到主要内容</a>
     <div class="bg-pattern" aria-hidden="true"></div>
     <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
-    {theme === 'eb' && (
-      <div id="eb-level" class="eb-level" aria-hidden="true">Lv.<span id="eb-level-num">1</span><span class="eb-level__exp">EXP</span></div>
-    )}
     <Nav eb={theme === 'eb'} />
     <main id="main" class:list={['mx-auto w-full max-w-5xl px-6 py-8', panel ? 'page-panel' : '']}>
       <slot />
@@ -84,8 +81,7 @@ const pageDescription = description ?? siteConfig.description;
         els.forEach((el) => io.observe(el));
       }
 
-      // 顶部阅读进度条 + EXP 等级徽章（Lv.1→5 随滚动升级）
-      let ebLv = 1;
+      // 顶部阅读进度条
       function onScrollProgress() {
         const bar = document.getElementById('scroll-progress');
         if (!bar) return;
@@ -93,22 +89,6 @@ const pageDescription = description ?? siteConfig.description;
         const max = el.scrollHeight - el.clientHeight;
         const ratio = max > 0 ? el.scrollTop / max : 0;
         bar.style.transform = `scaleX(${ratio})`;
-
-        const lvEl = document.getElementById('eb-level');
-        const numEl = document.getElementById('eb-level-num');
-        if (lvEl && numEl) {
-          const lv = 1 + Math.min(4, Math.floor(ratio * 5));
-          if (lv !== ebLv) {
-            const up = lv > ebLv;
-            ebLv = lv;
-            numEl.textContent = String(lv);
-            if (up) {
-              lvEl.classList.remove('is-up');
-              void lvEl.offsetWidth; // 重新触发动画
-              lvEl.classList.add('is-up');
-            }
-          }
-        }
       }
 
       initReveal();
@@ -118,6 +98,15 @@ const pageDescription = description ?? siteConfig.description;
       document.addEventListener('astro:after-swap', () => {
         initReveal();
         onScrollProgress();
+      });
+    </script>
+
+    <script>
+      // 正文长图点击放大/还原（委托到 document，ClientRouter 切换后依然生效）
+      document.addEventListener('click', (e) => {
+        const img = e.target.closest('.prose-article img');
+        if (!img) return;
+        img.classList.toggle('eb-zoomed');
       });
     </script>
   </body>

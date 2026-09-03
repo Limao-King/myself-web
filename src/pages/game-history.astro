@@ -1,13 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { gameCategories, totalGameCount, commentedGameCount, findGame } from '../data/games';
+import { gameCategories, totalGameCount, findGame } from '../data/games';
 
-const highlightNames = ['博德之门3', '极乐迪斯科', '暗黑地牢系列'];
-const highlights = highlightNames
+// 长评：为用户重点书写的两则深度评述（完整展开）
+const longReviewNames = ['骑马与砍杀系列', '博德之门3'];
+const longReviews = longReviewNames
   .map((n) => findGame(n))
   .filter((g): g is NonNullable<typeof g> => Boolean(g?.comment));
 
-const focusTags = ['回合制战斗', '资源与压力系统', '分支叙事', '任务结构', '环境交互', '行动经济'];
+// 短评：挑体验时间长、评述体现系统理解的几则，紧凑排布
+const shortReviewNames = ['杀戮尖塔系列', '暗黑地牢系列', '我的世界', '土豆兄弟', '饥荒'];
+const shortReviews = shortReviewNames
+  .map((n) => findGame(n))
+  .filter((g): g is NonNullable<typeof g> => Boolean(g?.comment));
 ---
 
 <Layout panel={false} theme="eb" title="游戏经历" description="我的游戏履历与游戏理解">
@@ -17,45 +22,71 @@ const focusTags = ['回合制战斗', '资源与压力系统', '分支叙事', '
       <h1 class="eb-window__title">◆ 游戏经历</h1>
       <p class="eb-dialog mt-2">
         累计单机游戏 <span class="eb-pixel">{totalGameCount}</span> 款 · 6000+ 小时。
-        鼠标扫过图鉴，点亮每个类别下的游戏；带 <span class="eb-pixel">✦</span> 的悬停可见点评。
       </p>
     </section>
 
     <!-- 长期关注 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 我长期关注的设计命题</h2>
-      <div class="mt-3 flex flex-wrap gap-2">
-        {focusTags.map((t) => (
-          <span style="background:#1f140d;color:var(--eb-frame)" class="rounded px-2 py-1 text-xs">
-            {t}
-          </span>
-        ))}
+      <div class="eb-dialog mt-3">
+        <p>
+          回合制游戏爱好者，长期关注回合制游戏中的地形利用 / 行动经济 / 构筑配置等博弈点，可以敏锐地察觉游戏中的系统创新点，并尝试思考系统设计的思路和复现路径。
+        </p>
+        <p class="mt-3">
+          长期保持阅读习惯，熟习电影、剧作、文学、游戏文本创作理论，并会思考文字、镜头等媒介于游戏媒介的运用与交集。
+        </p>
+        <p class="mt-3">
+          持续保持对叙事驱动类游戏中剧本结构 / 人物塑造 / 世界观 / 冲突设计 / 叙事创新等多个维度的观察，思考文本如何黏着融入游戏，如何塑造游戏的核心气质。
+        </p>
       </div>
-      <p class="eb-dialog mt-3 text-xs">
-        把「玩得多」翻译成「会分析」—— 这些命题是拆解案与策划案反复回到的核心。
-      </p>
     </section>
 
-    <!-- 深度理解 · 评述摘选 -->
+    <!-- 深度体验 · 评述摘选 -->
     {
-      highlights.length > 0 && (
+      (longReviews.length > 0 || shortReviews.length > 0) && (
         <section class="eb-window">
-          <h2 class="eb-window__title">◆ 深度理解 · 评述摘选</h2>
-          <p class="eb-dialog mt-1 text-xs">共 {commentedGameCount} 款带深度评述。</p>
-          <div class="mt-3 grid gap-3 sm:grid-cols-3">
-            {highlights.map((g) => (
-              <div
-                class="rounded-lg p-4"
-                style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
-              >
-                <p class="flex items-baseline justify-between gap-2">
-                  <span class="eb-pixel">{g.name}</span>
-                  {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
-                </p>
-                <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
+          <h2 class="eb-window__title">◆ 深度体验 · 评述摘选</h2>
+
+          {
+            longReviews.length > 0 && (
+              <div class="mt-4 grid gap-3 lg:grid-cols-2">
+                {longReviews.map((g) => (
+                  <div
+                    class="rounded-lg p-5"
+                    style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
+                  >
+                    <p class="flex items-baseline justify-between gap-2">
+                      <span class="eb-pixel text-base">{g.name}</span>
+                      {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
+                    </p>
+                    <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )
+          }
+
+          {
+            shortReviews.length > 0 && (
+              <div class="mt-4">
+                <p class="mb-2 text-xs uppercase tracking-wide" style="color:#6b5a3e">更多深度体验</p>
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {shortReviews.map((g) => (
+                    <div
+                      class="rounded-lg p-4"
+                      style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
+                    >
+                      <p class="flex items-baseline justify-between gap-2">
+                        <span class="eb-pixel">{g.name}</span>
+                        {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
+                      </p>
+                      <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          }
         </section>
       )
     }
