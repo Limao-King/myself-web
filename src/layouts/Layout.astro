@@ -57,6 +57,9 @@ const pageDescription = description ?? siteConfig.description;
     <main id="main" class:list={['mx-auto w-full max-w-5xl px-6 py-8', panel ? 'page-panel' : '']}>
       <slot />
     </main>
+    <!-- 浮动层：position:fixed 元素必须挂在 main 外——main.page-panel 的 backdrop-filter
+         会把内部 fixed 元素的定位基准从视口变成 main，导致侧边目录等被文档滚走 -->
+    <slot name="floating" />
     <Footer />
     <Achievements />
 
@@ -109,6 +112,31 @@ const pageDescription = description ?? siteConfig.description;
         if (!img) return;
         img.classList.toggle('eb-zoomed');
       });
+
+      // 竖版长图（流程图等）：默认显示很窄、文字不可辨——挂"点击放大"提示，
+      // 并略放宽默认限高，让读者第一眼就知道可以点开看全图。
+      function markTallImages() {
+        document.querySelectorAll('.prose-article img').forEach((img) => {
+          if (img.dataset.tallMarked) return;
+          const check = () => {
+            if (!img.naturalWidth || !img.naturalHeight) return;
+            img.dataset.tallMarked = '1';
+            if (img.naturalWidth / img.naturalHeight < 0.65) {
+              img.classList.add('eb-tall');
+              const hint = document.createElement('button');
+              hint.type = 'button';
+              hint.className = 'img-zoom-hint';
+              hint.textContent = '🔍 竖版大图 · 点击放大查看';
+              hint.addEventListener('click', () => img.classList.toggle('eb-zoomed'));
+              img.insertAdjacentElement('afterend', hint);
+            }
+          };
+          if (img.complete) check();
+          else img.addEventListener('load', check, { once: true });
+        });
+      }
+      markTallImages();
+      document.addEventListener('astro:after-swap', markTallImages);
     </script>
   </body>
 </html>

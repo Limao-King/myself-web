@@ -8,7 +8,7 @@ role: 主制作
 teamSize: 团队（滑动屏幕工作室）
 duration: 2017–2018（约 15 个月）
 tags: [关卡设计, 线性剧情,系统启蒙, Minecraft]
-summary: 主制作：撰写设计案，初步萌生创作的热情，学习了用组件与命令构建关卡和对话，借鉴了许多游戏的系统以辅助地图中的相关功能实现；帖子 10 万+ 点击、3000 下载。
+summary: 主制作：撰写设计案，学习用组件与命令构建关卡与对话，借鉴多款游戏系统辅助实现；帖子 10 万+ 点击、3000 下载。
 cover: /images/projects/sanguo/cover.jpg
 screenshots:
   - src: /images/projects/sanguo/cover.jpg

@@ -86,6 +86,15 @@
         if (m.top <= scrollY) current = m.a;
       }
       links.forEach((a) => a.classList.toggle('is-active', a === current));
+      // 目录列表自身可滚动（长文档超出 max-height）时，把高亮项滚进可视区——
+      // 否则滑到文档下方，高亮会落到目录看不见的位置，像"TOC 不再跟随"了
+      const list = root && root.querySelector('.eb-toc__list');
+      if (list && current) {
+        const lr = list.getBoundingClientRect();
+        const ar = current.getBoundingClientRect();
+        if (ar.top < lr.top + 8) list.scrollTop -= lr.top + 8 - ar.top;
+        else if (ar.bottom > lr.bottom - 8) list.scrollTop += ar.bottom - lr.bottom + 8;
+      }
     };
 
     const init = () => {

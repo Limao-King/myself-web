@@ -82,6 +82,8 @@ html {
   color-scheme: light;
   -webkit-text-size-adjust: 100%;
   font-size: 106.25%; /* 17px 基础字号：中文正文的舒适可读底线 */
+  /* 主题化滚动条：系统默认冷灰滚动条与暖纸/草绿主题脱节 */
+  scrollbar-color: #b0a482 transparent;
 }
 
 body {
@@ -101,6 +103,25 @@ body {
 ::selection {
   background: #d9ecc0;
   color: #262016;
+}
+
+/* WebKit 滚动条主题化（与上面 scrollbar-color 同一套暖褐色） */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #b0a482;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #98866a;
+  background-clip: padding-box;
 }
 
 /* 展示用像素字体（标题 / 按钮 / 品牌名） */
@@ -545,6 +566,27 @@ h2 {
   cursor: zoom-out;
 }
 
+/* 竖版长图（流程图）：默认限高略放宽 + 下方提示可点击放大 */
+.prose-article img.eb-tall {
+  max-height: 32rem;
+}
+.img-zoom-hint {
+  display: block;
+  margin: -1.1rem auto 1.5rem;
+  border: none;
+  background: none;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  color: #8a7a5a;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.img-zoom-hint:hover {
+  color: #5d5444;
+  background: rgba(217, 205, 174, 0.5);
+}
+
 .prose-article table {
   @apply my-6 w-full border-collapse text-sm;
   display: block;
@@ -773,22 +815,21 @@ h2 {
   flex: 0 0 auto;
 }
 
-/* 导航品牌像素角色：金发蓝衣（char02.png，金发小人 = 3列×4行，帧起 x288 y0，每帧48×72）。
-   头像用「向下」第一帧（行0 帧0 = x288 y0）。用整数比 0.75 等比映射，逐像素对齐，不露邻格。 */
+/* 导航品牌像素角色：金发蓝衣站立帧（char-stand.png，独立裁剪，双脚并拢、四周透明无黑边） */
 .nav-brand__char {
   flex: 0 0 auto;
-  width: 36px;
-  height: 54px;
-  background-image: url("/images/char02.png");
-  background-size: 432px 378px;      /* 原图 576*0.75 × 504*0.75 */
-  background-position: -216px 0;     /* 帧0 x288*0.75 */
+  width: 32px;
+  height: 42px;
+  background-image: url("/images/char-stand.png");   /* 独立的金发蓝衣站立帧 */
+  background-size: contain;
+  background-position: center;
   image-rendering: pixelated;
   background-repeat: no-repeat;
 }
 
 .nav-brand__copy { display: flex; flex-direction: column; line-height: 1.05; }
 .nav-brand__copy strong { font-family: "FusionPixel", var(--font-sans); font-size: .95rem; }
-.nav-brand__copy small { margin-top: .28rem; font-size: .52rem; font-weight: 700; letter-spacing: .13em; opacity: .72; }
+.nav-brand__copy small { margin-top: .28rem; font-size: .6rem; font-weight: 700; letter-spacing: .13em; opacity: .72; }
 
 @media (max-width: 767px) {
   .site-nav { min-height: 62px; padding: .6rem 1rem; }
@@ -814,15 +855,16 @@ h2 {
    首页改为分段卡片后不再套 .page-panel，让每个板块独立成卡。
    ---------------------------------------------------------------------------- */
 main.page-panel {
-  background-color: rgba(251, 247, 236, 0.68);
-  backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  background-color: rgba(251, 247, 236, 0.82);
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
   border: 1px solid rgba(217, 205, 174, 0.7);
   border-radius: 16px;
   margin-top: 1.5rem;
   margin-bottom: 3rem;
   padding-top: 1.5rem;
   padding-bottom: 2.5rem;
+  padding-inline: 1.5rem;
   box-shadow: 0 18px 40px -28px rgba(38, 32, 22, 0.35);
 }
 
