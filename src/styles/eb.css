@@ -20,7 +20,7 @@
   --eb-muted:      #a89c78;   /* 提示/禁用暖灰 */
 
   /* 点缀色：从镇上房子/花朵/招牌采样 */
-  --eb-red:        #d85030;   /* 番茄红：房屋 + 主 CTA */
+  --eb-red:        #c84526;   /* 番茄红：房屋 + 主 CTA（比原 #d85030 深一档，奶油字对比 3.7→4.7） */
   --eb-red-deep:   #8a2a18;   /* 暗红：阴影 */
   --eb-yellow:     #f0d040;   /* 招牌黄：EXP 条 */
   --eb-orange:     #e88858;   /* 屋顶橙：强调 */
@@ -66,7 +66,7 @@
   background-size: 192px 192px;
   background-repeat: repeat;
   background-color: transparent;
-  opacity: 0.9;
+  opacity: 0.72;
 }
 
 /* grass.png 平移（96px 整周期无缝循环） */
@@ -90,9 +90,9 @@
   background-size: 192px 192px;
   background-repeat: repeat;
   background-color: transparent;
-  opacity: 0.9;
+  opacity: 0.7;
 }
-.eb2-theme #scroll-progress { background: #405054; }
+.eb2-theme #scroll-progress { background: #9a5a1e; height: 3px; }
 .eb2-theme .site-header {
   background-color: #6b9ca8 !important;
   /* 底噪：细密像素噪点平铺（32px 原尺寸），避免青底过纯 */
@@ -105,10 +105,12 @@
   box-shadow: 0 2px 0 #262016; /* 其下黑线（同款） */
 }
 .eb2-theme .site-header .link-underline,
-.eb2-theme .site-header #mobile-menu a:not(.nav-resume) { color: #405054 !important; }
+.eb2-theme .site-header #mobile-menu a:not(.nav-resume) { color: #1f2e34 !important; }
 .eb2-theme .site-header .link-underline:hover,
-.eb2-theme .site-header #mobile-menu a:not(.nav-resume):hover { color: #2a3a42 !important; }
-.eb2-theme .site-header .link-underline[aria-current="page"] { color: #2a3a42 !important; text-decoration-color: #2a3a42; }
+.eb2-theme .site-header #mobile-menu a:not(.nav-resume):hover { color: #152024 !important; }
+.eb2-theme .site-header .link-underline[aria-current="page"] { color: #152024 !important; text-decoration-color: #152024; }
+/* 移动端下拉菜单：跟头部同为青色（否则会露出 paper 主题的绿色 --nav-bg 兜底） */
+.eb2-theme .site-header #mobile-menu { background-color: #6b9ca8 !important; }
 /* 后两页主版面（文档/卡片）近白 */
 .eb2-theme .prose-article,
 .eb2-theme .eb-paper-card,
@@ -176,10 +178,14 @@
   color: #2a1a12;
   border: var(--eb-frame-w) solid var(--eb-brown);
   border-radius: var(--eb-radius);
-  padding: 1.5rem 1.75rem;
+  padding: 1.75rem 2.25rem;
   box-shadow:
     0 0 0 var(--eb-outline-w) var(--eb-frame),
     var(--eb-shadow) var(--eb-shadow) 0 rgba(42, 26, 18, 0.18);
+}
+/* 长文行宽上限：60+ 字/行的通栏排版超出舒适阅读区（35~45 字） */
+.eb-theme .prose-article > p {
+  max-width: 42em;
 }
 
 .eb-theme .prose-article h1,
@@ -187,6 +193,15 @@
 .eb-theme .prose-article h3,
 .eb-theme .prose-article strong {
   color: #2a1a12;
+}
+
+/* 正文 H2 前缀像素菱形：给最重要的阅读区补上 JRPG 图鉴气质 */
+.eb-theme .prose-article h2::before,
+.eb2-theme .prose-article h2::before {
+  content: "◆ ";
+  color: #9a5a1e;
+  font-size: 0.78em;
+  margin-right: 0.15em;
 }
 
 /* ============ EB 组件类 ============ */
@@ -251,9 +266,35 @@
 .eb-pixel { font-family: "FusionPixel", var(--font-sans); color: #5c4c38; font-size: 0.85rem; }
 .eb-title { color: #262016; font-size: 2.4rem; font-weight: 800; margin-top: 0.5rem; }
 .eb-body { color: #2b2418; line-height: 1.7; font-size: 0.95rem; font-weight: 500; }
-.eb-ev, .eb-stat__ev { color: #5b4a34; font-size: 0.78rem; font-weight: 600; }
+.eb-ev, .eb-stat__ev { color: #5b4a34; font-size: 0.78rem; font-weight: 600; word-break: keep-all; }  /* keep-all：行尾箭头"→"不孤行 */
 .eb-dialog { color: #2b2418; line-height: 1.7; font-weight: 500; }
 .eb-link { color: #9a5a1e; text-decoration: underline; }
+/* 面板级"更多"入口：小像素按钮形态，与条目级"查看 →"文字链接拉开层级 */
+.eb-more-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "FusionPixel", var(--font-sans);
+  font-size: 0.9rem;
+  color: #262016;
+  background: #e8e0c8;
+  border: 2px solid #262016;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, color 0.12s ease;
+}
+.eb-more-link:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.26);
+  color: #9a5a1e;
+}
+.eb-more-link:active { transform: translate(1px, 1px); box-shadow: none; }
+.eb-theme.eb-classic .eb-more-link {
+  border-color: #d9cdae;
+  box-shadow: 2px 2px 0 rgba(42, 26, 18, 0.12);
+}
 /* 对话框（黑底）是唯一保留奶油字的地方 */
 .eb-window--dialog .eb-window__title,
 .eb-window--dialog .eb-pixel,
@@ -309,7 +350,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(24, 20, 16, 0.45);
+  background: rgba(24, 20, 16, 0.72);
   color: var(--eb-paper);
   border: 2px solid #262016; /* 单线加厚 */
   border-radius: 6px;
@@ -1069,7 +1110,7 @@
   padding: 0.24rem 0.5rem;
   font-size: 0.8rem;
   line-height: 1.35;
-  color: #6b5a3e;
+  color: #5d5444;
   text-decoration: none;
   border-left: 2px solid transparent;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
@@ -1087,10 +1128,17 @@
 .eb-toc__list::-webkit-scrollbar { width: 6px; }
 .eb-toc__list::-webkit-scrollbar-thumb { background: #d9cdae; border-radius: 3px; }
 
-/* 桌面内容右缩进，避免被固定 TOC 遮挡 */
+/* 桌面内容右缩进，避免被固定 TOC 遮挡——只对真正带 TOC 的页面生效，
+   否则项目详情这类无目录页会被无端留出右侧空带 */
 @media (min-width: 768px) {
   .eb-toc { right: 1.5rem; }
-  .prose-article { padding-right: 13rem; }   /* 正文给侧边 TOC 让位 */
+  body:has(.eb-toc:not(.is-empty)) .prose-article { padding-right: 13rem; }   /* 正文给侧边 TOC 让位 */
+}
+
+/* eb2 正文引用块：默认绿左边框与整页棕橙暖色打架，换成暖金 */
+.eb2-theme .prose-article blockquote {
+  border-left-color: #c89a3a;
+  background-color: rgba(200, 154, 58, 0.12);
 }
 
 /* 移动端：折叠成顶部小按钮 */
@@ -1109,12 +1157,23 @@
   position: relative;
   background: #e8e0c8;
   color: #2a1a12;
-  border-top: 4px solid var(--eb-brown);
+  border-top: none;
   margin-top: 3rem;
+}
+/* 像素抖动（dither）过渡边：棋盘格让绿色底纹"渐隐"进米色页脚，代替生硬直线 */
+.eb-theme footer::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-image: repeating-conic-gradient(#e8e0c8 0% 25%, transparent 0% 50%);
+  background-size: 8px 8px;
 }
 .eb-theme footer .text-neutral-400 { color: #6b5a3e; }
 .eb-theme footer .text-neutral-500 { color: #5b5242; }
-.eb-theme footer .border-neutral-700\/70 { border-color: rgba(42, 26, 18, 0.18); }
+.eb-theme footer .border-neutral-700\/70 { border-color: rgba(42, 26, 18, 0.35); border-top-width: 2px; }
 .eb-theme footer a { color: #9a5a1e; }
 .eb-theme footer a:hover { color: #b05a1e !important; }
 

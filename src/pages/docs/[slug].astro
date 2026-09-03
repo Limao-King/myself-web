@@ -17,14 +17,16 @@ const isDialogue = category === '对白';
 ---
 
 <Layout title={title} description={doc.data.summary} theme="eb2">
+  <!-- TOC 挂到 main 外的浮动层：page-panel 的 backdrop-filter 会让 main 内部的
+       position:fixed 失效（定位基准变 main，TOC 被文档滚走） -->
+  <Toc slot="floating" />
   <article class="py-12">
-    <Toc />
-    <nav class="text-sm">
+    <nav class="doc-head text-sm">
       <a href="/docs/" class="link-underline text-neutral-400 transition-colors hover:text-green-text">← 返回策划文档</a>
     </nav>
 
     <Reveal>
-      <header class="mt-6">
+      <header class="doc-head mt-6">
         <h1 class="font-body text-3xl font-bold text-neutral-100">{title}</h1>
         <p class="mt-3 text-sm text-neutral-400">{formatDate(date)} · {category}</p>
         {
@@ -60,3 +62,12 @@ const isDialogue = category === '对白';
     </Reveal>
   </article>
 </Layout>
+
+<style>
+  /* 桌面端固定 TOC 悬浮在右上：标题/面包屑同样要给它让位，否则长标题会钻到目录卡下面被切字 */
+  @media (min-width: 768px) {
+    .doc-head {
+      padding-right: 13rem;
+    }
+  }
+</style>

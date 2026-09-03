@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# 构建临时资源
+.tmp-assets/
+
 # generated types
 .astro/
 

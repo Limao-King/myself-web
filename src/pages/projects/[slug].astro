@@ -23,10 +23,10 @@ const { title, date, type, platform, role, teamSize, duration, demoUrl, demoLabe
       <p class="project-summary">{project.data.summary}</p>
       <p class="eb-ev mt-2">完成时间 · {formatDate(date)}</p>
 
-      <!-- 项目情况（从「周期/团队等标签」挪进正文的结构化信息） -->
-      <div class="mt-4 rounded-lg border-2 border-[var(--eb-frame)]/40 bg-[#f6f6dd] p-4">
-        <p class="mb-2 font-pixel text-sm text-[var(--eb-yellow)]">◆ 项目情况</p>
-        <dl class="project-meta grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <!-- 项目情况：黑底白字气泡（与「关于我」深色对话框同款，协调） -->
+      <div class="mt-4 rounded-lg p-4" style="background:#2b2418;color:#f4eddb;border:4px solid #f4eddb;box-shadow:inset -4px -4px 0 rgba(0,0,0,.55), inset 4px 4px 0 rgba(255,255,255,.08);">
+        <p class="mb-2 font-pixel text-sm" style="color:#e6c76a;">◆ 项目情况</p>
+        <dl class="project-meta grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
           <div><dt>类型</dt><dd>{type}</dd></div>
           <div><dt>平台</dt><dd>{platform}</dd></div>
           <div><dt>团队</dt><dd>{teamSize}</dd></div>
@@ -75,9 +75,11 @@ const { title, date, type, platform, role, teamSize, duration, demoUrl, demoLabe
 <style>
   .project-summary { max-width:46rem; margin-top:.75rem; padding-right:8rem; color:#423625; font-size:.94rem; line-height:1.75; }
   .project-meta > div { display:grid; grid-template-columns:4.5rem minmax(0,1fr); gap:.5rem; align-items:start; }
-  .project-meta dt { color:#705f47; }
-  .project-meta dd { min-width:0; color:#17120c; font-weight:700; overflow-wrap:anywhere; }
-  .project-meta__role { grid-column:1 / -1; }
+  .project-meta dt { color:#b8a887; }
+  .project-meta dd { min-width:0; color:#f4eddb; font-weight:700; overflow-wrap:anywhere; }
+  /* 三列时"我的角色"占两格，避免右下留死黑空档 */
+  .project-meta__role { grid-column:auto; }
+  @media (min-width:640px) { .project-meta__role { grid-column:span 2; } }
   @media (max-width:560px) {
     .project-meta { grid-template-columns:1fr; gap:.7rem; }
     .project-meta__role { grid-column:auto; }

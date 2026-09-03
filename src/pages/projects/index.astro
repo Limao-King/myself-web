@@ -22,7 +22,7 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
         <div>
           <p class="project-board__eyebrow">SELECTED QUESTS · {projects.length} PROJECTS</p>
           <h1>项目与实践</h1>
-          <p>从可玩原型到世界观与剧本项目。每个项目都标明我的职责、过程与实际产出。</p>
+          <p>从可玩原型到世界观与剧本项目。每个项目中我的具体职责、过程与产出都已注明。</p>
         </div>
         <span class="project-board__stamp" aria-hidden="true">WORK<br />LOG</span>
       </header>
@@ -55,16 +55,18 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
   .project-board__eyebrow { color:#6c573d; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
   .project-board__head h1 { margin-top:.45rem; color:#201a12; font-size:clamp(2rem,5vw,3.4rem); font-weight:800; letter-spacing:-.025em; }
   .project-board__head p:last-child { max-width:42rem; margin-top:.75rem; color:#5d503f; font-size:.92rem; line-height:1.8; }
-  .project-board__stamp { flex:none; display:grid; place-items:center; width:5.2rem; height:5.2rem; border:3px double #9b472c; border-radius:50%; color:#9b472c; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; line-height:1.45; text-align:center; transform:rotate(8deg); opacity:.8; }
+  .project-board__stamp { flex:none; display:grid; place-items:center; width:5.2rem; height:5.2rem; border:3px double #7e351d; border-radius:50%; color:#7e351d; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; line-height:1.45; text-align:center; transform:rotate(8deg); opacity:.9; }
   .project-showcase { position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
   .project-feature { display:grid; grid-template-columns:9rem minmax(0,1fr); height:20rem; background:#fdf8e8; border:2px solid #33291d; border-radius:7px; overflow:hidden; box-shadow:5px 5px 0 rgba(38,32,22,.15); transition:transform .2s ease,box-shadow .2s ease; }
   .project-feature:hover,.project-feature:focus-visible { transform:translateY(-4px); box-shadow:7px 9px 0 rgba(38,32,22,.18); }
-  .project-feature__visual { min-height:100%; display:grid; place-items:center; overflow:hidden; background:#394d2d; color:#f8f4dc; font-family:"FusionPixel",var(--font-sans); writing-mode:vertical-rl; letter-spacing:.12em; }
+  .project-feature__visual { min-height:100%; display:grid; place-items:center; overflow:hidden; background:#394d2d; color:#f8f4dc; font-family:"FusionPixel",var(--font-sans); letter-spacing:.12em; }
+  /* 竖排只给无图占位文字；writing-mode 不能挂在容器上，否则 img 的 width:100% 会失效（封面被裁成中间一条） */
+  .project-feature__visual > span { writing-mode:vertical-rl; }
   .project-feature__visual img { width:100%; height:100%; object-fit:cover; transition:transform .35s ease; }
   .project-feature:hover .project-feature__visual img { transform:scale(1.035); }
   .project-feature__body { display:flex; flex-direction:column; min-width:0; padding:1.2rem; }
   .project-feature__meta { color:#746149; font-size:.68rem; font-weight:700; letter-spacing:.06em; }
-  .project-feature h2 { margin-top:.45rem; color:#231c14; font-family:var(--font-sans); font-size:1.2rem; font-weight:800; line-height:1.35; }
+  .project-feature h2 { margin-top:.45rem; color:#231c14; font-family:var(--font-sans); font-size:1.2rem; font-weight:800; line-height:1.35; text-wrap:balance; }
   .project-feature__role { margin-top:.55rem; color:#8f472e; font-size:.76rem; font-weight:700; }
   .project-feature__summary { margin-top:.7rem; color:#554939; font-size:.82rem; line-height:1.7; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .project-feature__tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.8rem; }
@@ -75,7 +77,8 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
     .project-board { padding:1.25rem; }
     .project-board__stamp { display:none; }
     .project-feature { grid-template-columns:1fr; height:auto; min-height:0; }
-    .project-feature__visual { min-height:10rem; max-height:12rem; writing-mode:horizontal-tb; }
+    .project-feature__visual { min-height:10rem; max-height:12rem; }
+    .project-feature__visual > span { writing-mode:horizontal-tb; }
     .project-feature__body { padding:1.1rem; }
   }
 

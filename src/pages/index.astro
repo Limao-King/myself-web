@@ -37,7 +37,7 @@ const abilities = [
       <div class="home-hero__content">
         <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true"></span>2027 届 · 寻找游戏策划实习 / 校招机会</p>
         <p class="eb-pixel home-greeting">你好，我是 {siteConfig.name}。</p>
-        <h1 class="eb-title">把设计写进文档，<br /><span>也把它做成能玩的游戏。</span></h1>
+        <h1 class="eb-title">把想象变成设计，<br /><span>再让它落地成可玩的游戏。</span></h1>
         <p class="eb-body home-lead">{siteConfig.hero.tagline}</p>
         <ul class="home-proof" aria-label="个人经历摘要">
           <li><strong>4</strong><span>个完整项目</span></li>
@@ -61,6 +61,7 @@ const abilities = [
               >
                 <span class="home-doc__em">{d.data.category ?? '文档'}</span>
                 <strong class="home-doc__title">{d.data.title}</strong>
+                <span class="home-doc__sum">{d.data.summary}</span>
                 <span class="home-doc__cta">阅读 <b aria-hidden="true">→</b></span>
               </a>
             ))
@@ -178,25 +179,28 @@ const abilities = [
       <p class="eb-pixel mt-1 text-sm">剧本文档收集度 <span id="eb-collect">0</span>/5</p>
       <div class="mt-3 space-y-3">
         {featureDocs.map((d) => (
-          <a href={`/docs/${d.id}/`} class="eb-log-row">
-            <span class="eb-body"><span class="mr-2 rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{d.data.category}</span>{d.data.title}</span>
+          <a href={`/docs/${d.id}/`} class="eb-log-row eb-log-row--doc">
+            <span class="eb-body">
+              <span class="eb-chip">{d.data.category}</span>
+              <span class="home-log-title">{d.data.title}</span>
+            </span>
             <span class="eb-ev">查看 →</span>
           </a>
         ))}
       </div>
-      <p class="mt-4 eb-ev"><a href="/docs/" class="eb-link">打开完整图鉴 →</a></p>
+      <div class="mt-4"><a href="/docs/" class="eb-more-link">打开完整图鉴 →</a></div>
     </section>
 
     <!-- 游戏经历：冒险记录 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 至今的冒险（游戏经历）</h2>
-      <p class="eb-dialog mt-2 home-experience">已收集 <span class="eb-pixel">{totalGameCount}</span> 款游戏、累计 6000+ 小时。我不只记录“玩过什么”，也持续拆解回合制游戏中的地形利用、行动经济与构筑博弈，以及叙事驱动游戏中的结构、人物、世界观和冲突设计。对我来说，游戏经历最终要转化成可复用的设计判断。</p>
+      <p class="eb-dialog mt-2 home-experience">已收集 <span class="eb-pixel">{totalGameCount}</span> 款游戏、累计 6000+ 小时。不只于体验，我会保持思考。在回合制游戏中思考地形利用、行动经济与构筑博弈。在叙事驱动游戏中考察结构、人物、世界观和冲突设计。优秀的游戏设计会进入我的灵感库，成为我设计时的辅助。</p>
       <div class="mt-3 flex flex-wrap gap-2">
         {['回合制', '叙事驱动', '机制创新', '剧情结构','行动经济'].map((t) => (
           <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
         ))}
       </div>
-      <p class="mt-4 eb-ev"><a href="/game-history/" class="eb-link">查看更多经历 →</a></p>
+      <div class="mt-4"><a href="/game-history/" class="eb-more-link">查看更多经历 →</a></div>
     </section>
 
     <!-- CTA：入队事件 -->
@@ -237,39 +241,47 @@ const abilities = [
     padding:.25rem 0; justify-content:stretch;
   }
   /* 纸条叠：相对定位，纸条绝对定位，从顶部开始叠 */
-  .home-docs__stack { position:relative; flex:1; min-height:22rem; }
-  /* 每张纸条：修长长条卡片，叠放露顶边；颜色逐张变化 */
+  .home-docs__stack { position:relative; flex:1; min-height:23rem; }
+  /* 每张纸条：撑满宽度的修长卡片，叠放露顶边+左右边；沿一条轻微弧线排布；颜色逐张变化 */
   .home-doc {
-    position:absolute; left:0; right:0; top:0; height:92%; display:flex; flex-direction:column; gap:.5rem;
+    position:absolute; left:0.5rem; right:0.5rem; top:0; height:82%; display:flex; flex-direction:column; gap:.5rem;
     padding:1.25rem 1.25rem 1rem; border-radius:8px; cursor:pointer; text-decoration:none;
     border:3px solid var(--doc-edge); outline:2px solid var(--doc-outline);
     background:var(--doc-bg); color:var(--doc-ink); box-shadow:5px 5px 0 rgba(24,20,16,.2);
-    transform:rotate(var(--r,0deg));
-    transition:transform .32s cubic-bezier(.2,1,.3,1), box-shadow .32s;
+    transform:translateX(var(--arc-x,0px)) rotate(var(--r,0deg));
+    transition:transform .32s cubic-bezier(.2,1,.3,1), box-shadow .3s;
   }
-  /* 三张叠放：每张下移一点点，让后面的露顶边 */
-  .home-doc--1 { --r:.6deg;   top:calc(3% ); z-index:3; }
-  .home-doc--2 { --r:-0.5deg; top:calc(7%); z-index:2; }
-  .home-doc--3 { --r:0deg;    top:calc(11%); z-index:1; }
+  /* 三张叠放：前卡最低、后卡渐高（每张头部露出来，标题可见），沿弧线左右蜿蜒 */
+  .home-doc--1 { --r:.5deg;   top:calc(16%); --arc-x:2.2rem;  z-index:3; }   /* 前：偏右（过轴右侧） */
+  .home-doc--2 { --r:0deg;    top:calc(8%);  --arc-x:-2.8rem; z-index:2; }   /* 中：弧线凸向左（过轴左侧） */
+  .home-doc--3 { --r:-0.5deg; top:calc(0%);  --arc-x:0.5rem;  z-index:1; }   /* 后：回摆到轴右 */
   /* 逐张换色：深绿 → 米金Beige → 暖米纸（协调于全站色板） */
   .home-doc--1 {
     --doc-bg:#27341f; --doc-ink:#f8f4dc; --doc-edge:#f8f4dc; --doc-outline:#1b2117;
-    --doc-em:#a9b98a; --doc-cta:#e0c98a;
+    --doc-em:#a9b98a; --doc-cta:#e0c98a; --doc-sum:#c9d4ae;
   }
   .home-doc--2 {
     --doc-bg:#f5f5dc; --doc-ink:#3a2a10; --doc-edge:#3a2a10; --doc-outline:#262016;
-    --doc-em:#6b4f1c; --doc-cta:#74411f;
+    --doc-em:#6b4f1c; --doc-cta:#74411f; --doc-sum:#6a5b3e;
   }
   .home-doc--3 {
     --doc-bg:#f6efdb; --doc-ink:#2b2418; --doc-edge:#262016; --doc-outline:#262016;
-    --doc-em:#9b472c; --doc-cta:#74411f;
+    --doc-em:#9b472c; --doc-cta:#74411f; --doc-sum:#6a5b3e;
   }
   /* 悬停：抽出当前卡片，浮起 */
   .home-doc:hover { transform:rotate(0deg) translateY(-14px) scale(1.02); z-index:9; box-shadow:9px 13px 0 rgba(24,20,16,.22); }
-  .home-doc__em { font-family:"FusionPixel",var(--font-sans); font-size:.6rem; letter-spacing:.12em; color:var(--doc-em); }
-  .home-doc__title { font-size:1.02rem; font-weight:800; line-height:1.4; color:var(--doc-ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .home-doc__em { font-family:"FusionPixel",var(--font-sans); font-size:.72rem; letter-spacing:.12em; color:var(--doc-em); }
+  .home-doc__title { font-size:1rem; font-weight:800; line-height:1.4; color:var(--doc-ink); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  /* 摘要：填满卡片中段，顺便让招聘方多看到一句内容 */
+  .home-doc__sum { font-size:.72rem; line-height:1.55; color:var(--doc-sum); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .home-doc__cta { margin-top:auto; padding-top:.4rem; color:var(--doc-cta); font-size:.74rem; font-weight:700; }
-  .home-experience { max-width:56rem; }
+  .home-experience { max-width:46rem; }
+  /* 图鉴条目：分类 chip 独占一行（块级），标题不再被顶出参差缩进 */
+  .eb-log-row--doc .eb-body { display:flex; flex-direction:column; align-items:flex-start; gap:.35rem; min-width:0; }
+  .home-log-title { overflow-wrap:anywhere; }
+  .eb-chip { border-radius:4px; padding:.12rem .5rem; font-size:.68rem; letter-spacing:.05em; background:#1f140d; color:var(--eb-frame); }
+  /* 面板级"更多"入口：与条目级"查看 →"链接拉开层级 */
+  .home-flow .eb-more-link { margin-top:1rem; }
   @media (max-width:760px) {
     .home-flow { gap:1.25rem; }
     .home-hero { grid-template-columns:1fr; gap:1.5rem; padding:1.75rem 1.55rem; }
@@ -279,9 +291,10 @@ const abilities = [
     .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
     .home-proof li { min-width:0; padding-inline:.75rem; }
     .home-proof strong { font-size:1.15rem; }
-    .home-proof span { font-size:.64rem; }
+    .home-proof span { font-size:.64rem; white-space:nowrap; }  /* 标签不再拆出孤字（如"小时游戏体/验"） */
     .home-actions > * { flex:1 1 auto; }
     .home-text-link { justify-content:center; flex-basis:100%; }
+    .home-eyebrow { font-size:.72rem; letter-spacing:.02em; white-space:nowrap; }  /* "校招机会"不拆行 */
   }
 </style>
 
@@ -445,8 +458,10 @@ const abilities = [
   document.addEventListener('astro:after-swap', initBattleMedia);
 
   // ============ 雪花屏（老电视未调台画面）：低分辨率随机噪点 + 扫描扰动 ============
-  // 替代原正弦纹样预览面：作为试玩的前置画面，点击 TUNE IN 后直启游戏（无中间封面）。
-  (function initCoverWarp() {
+  // 替代原正弦纹样预览面：作为试玩的前置画面，点击后直启游戏（无中间封面）。
+  // 注意：必须是可重入的 initCoverWarp()（IIFE 只跑一次）——ClientRouter 软导航回到首页时
+  // canvas 是全新 DOM 节点，不重新绑定的话雪花屏会变成一块空白，这就是"偶尔不显示"的根因。
+  function initCoverWarp() {
     const warp = document.getElementById('eb-cover-warp');
     if (!warp || !('getContext' in warp)) return;
     if (warp._bound) return;
@@ -454,6 +469,8 @@ const abilities = [
 
     const ctx = warp.getContext('2d');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const controller = new AbortController();
+    const { signal } = controller;
     let raf = 0;
     let started = false;
     let last = 0;
@@ -469,7 +486,7 @@ const abilities = [
       W = cols; H = rows;
     };
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { signal });
     // CSS 拉伸像素化显示（warp 元素铺满屏幕区域）
     warp.style.width = '100%';
     warp.style.height = '100%';
@@ -515,6 +532,11 @@ const abilities = [
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { cancelAnimationFrame(raf); started = false; }
       else if (!reduce && !started && warp.isConnected && !warp.hidden) { started = true; raf = requestAnimationFrame(tick); }
-    });
-  })();
+    }, { signal });
+
+    // ClientRouter 换页前清理：resize / visibilitychange 监听随旧 canvas 一起作废
+    document.addEventListener('astro:before-swap', () => controller.abort(), { once: true, signal });
+  }
+  initCoverWarp();
+  document.addEventListener('astro:after-swap', initCoverWarp);
 </script>

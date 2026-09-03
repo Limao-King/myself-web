@@ -20,7 +20,6 @@ const pinned = [
 
 const writingGroups = [
   { subtitle: '剧本', items: byCategory('剧本') },
-  { subtitle: '对白', items: byCategory('对白') },
   { subtitle: '世界观', items: byCategory('世界观') },
 ];
 ---
@@ -31,7 +30,7 @@ const writingGroups = [
       <SectionHeading
         as="h1"
         title="策划文档"
-        description={`共 ${docs.length} 篇。这里收录系统拆解、完整策划案，以及剧本、对白与世界观写作样本。`}
+        description={`共 ${docs.length} 篇。这里收录系统拆解、完整策划案，以及剧本、对白与世界观写作文档，随写作实时更新。`}
       />
     </Reveal>
 
@@ -47,7 +46,7 @@ const writingGroups = [
         />
         <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="按类型筛选文档">
           <button type="button" data-filter-type="all" class="filter-chip is-active" aria-pressed="true">全部</button>
-          {['拆解案', '策划案', '剧本', '对白', '世界观'].map((t) => (
+          {['拆解案', '策划案', '剧本', '世界观'].map((t) => (
             <button type="button" data-filter-type={t} class="filter-chip" aria-pressed="false">{t}</button>
           ))}
         </div>
@@ -66,7 +65,7 @@ const writingGroups = [
                 {group.title}
               </h2>
               <p class="mb-4 pl-[1.125rem] text-sm text-neutral-400">{group.desc}</p>
-              <div class="grid gap-5 sm:grid-cols-2">
+              <div class="doc-grid grid gap-5 sm:grid-cols-2">
                 {
                   group.items.map((d) => (
                     <div class="doc-item" data-type={d.data.category} data-text={`${d.data.title} ${d.data.summary} ${d.data.tags.join(' ')} ${d.data.kind ?? ''}`}>
@@ -94,18 +93,18 @@ const writingGroups = [
           <span class="inline-block h-4 w-1.5 bg-violet-500" aria-hidden="true"></span>
           剧本文档
         </h2>
-        <p class="mb-5 pl-[1.125rem] text-sm text-neutral-400">剧本 · 对白 · 世界观</p>
+        <p class="mb-5 pl-[1.125rem] text-sm text-neutral-400">剧本与世界观写作样本</p>
 
         <div class="space-y-8">
           {
             writingGroups.map((group) =>
               group.items.length > 0 ? (
                 <div>
-                  <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                  <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-400">
                     {group.subtitle}
-                    <span class="ml-2 font-normal normal-case text-neutral-500">（{group.items.length} 篇）</span>
+                    <span class="font-normal normal-case text-neutral-400">（{group.items.length} 篇）</span>
                   </h3>
-                  <div class="grid gap-5 sm:grid-cols-2">
+                  <div class="doc-grid grid gap-5 sm:grid-cols-2">
                     {
                       group.items.map((d) => (
                         <div class="doc-item" data-type={d.data.category} data-text={`${d.data.title} ${d.data.summary} ${d.data.tags.join(' ')} ${d.data.kind ?? ''}`}>
@@ -136,27 +135,36 @@ const writingGroups = [
       )
     }
 
-    <!-- 次要入口：全部文档 & Demo 打包下载（放最底部，弱化处理） -->
+    <!-- 次要入口：全部文档 & Demo 打包下载（放最底部；主入口按钮化，括号说明弱化） -->
     <Reveal delay={80}>
-      <div class="mt-14 border-t border-neutral-800 pt-6">
+      <div class="mt-14 flex flex-wrap items-center gap-3 border-t border-neutral-800 pt-6">
         <a
           href={siteConfig.downloadUrl}
           target="_blank"
           rel="noopener noreferrer"
-          class="group inline-flex items-center gap-2 text-sm text-neutral-500 transition-colors hover:text-neutral-300"
+          class="btn-primary"
         >
           <svg class="h-4 w-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          <span>全部文档 &amp; Demo 打包下载</span>
-          <span class="text-neutral-700 transition-colors group-hover:text-neutral-400">（备用网盘入口 · 提取码 {siteConfig.downloadPwd}）</span>
+          全部文档 &amp; Demo 打包下载
         </a>
+        <span class="text-xs text-neutral-500">备用网盘入口 · 提取码 {siteConfig.downloadPwd}</span>
       </div>
     </Reveal>
   </div>
 </Layout>
+
+<style>
+  /* 奇数张的板块：最后一张跨两列，避免右列留空洞（拆解案 1 张同理变全宽） */
+  @media (min-width: 640px) {
+    .doc-grid > .doc-item:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
 
 <script>
   function initDocFilters() {
