@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
-import { formatDate } from '../../utils/format';
 
 // 按开始时间从新到旧排（缺省退回 date），保证叠纸与日志顺序一致
 const projects = (await getCollection('projects')).sort(
@@ -9,8 +8,7 @@ const projects = (await getCollection('projects')).sort(
 );
 
 // 叠纸区重点：古界 / 唤她 作为更拿得出手的代表作，放大并居中；其余常规小纸
-const spotlight = ['上元古界（开放世界 RPG）', '唤她真名（心理悬疑动画剧本）'];
-const inSpotlight = (p: { data: { title: string } }) => spotlight.includes(p.data.title);
+const inSpotlight = (p: { data: { featured?: boolean } }) => Boolean(p.data.featured);
 const tagsOf = (p: { data: { tags: string[] } }) => p.data.tags ?? [];
 const coverOf = (p: { data: { cover?: string } }) => p.data.cover;
 const roleOf = (p: { data: { role: string } }) => p.data.role;
@@ -18,60 +16,70 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
 
 <Layout title="项目" description="我的游戏项目" theme="eb" panel={false}>
   <div class="flex flex-col gap-6">
-    <!-- 叠纸互动区：翻一张项目看看？ -->
-    <section class="paper-zone">
-      <h2 class="paper-zone__title px">▍翻一张项目看看？</h2>
-      <div class="paper-zone__stack">
-        {
-          projects.map((p, i) => (
-            <a
-              href={`/projects/${p.id}/`}
-              class:list={['note', `n${i + 1}`, inSpotlight(p) && 'note--spot']}
-            >
-              <em class="px">QUEST / {String(i + 1).padStart(2, '0')}</em>
-              <h3>{p.data.title}</h3>
-              <div class="meta px">
-                {new Date(p.data.date).getFullYear()} · {p.data.type} · {roleOf(p)}
-              </div>
-              <p>{p.data.summary}</p>
-              <span class="cta px">▶ 查看详情</span>
-            </a>
-          ))
-        }
+    <!-- 项目入口：按招聘方扫描习惯直接展示职责、类型和项目证据 -->
+    <section class="project-board">
+      <header class="project-board__head">
+        <div>
+          <p class="project-board__eyebrow">SELECTED QUESTS · {projects.length} PROJECTS</p>
+          <h1>项目与实践</h1>
+          <p>从可玩原型到世界观与剧本项目。每个项目都标明我的职责、过程与实际产出。</p>
+        </div>
+        <span class="project-board__stamp" aria-hidden="true">WORK<br />LOG</span>
+      </header>
+      <div class="project-showcase">
+        {projects.map((p, i) => (
+          <a href={`/projects/${p.id}/`} class:list={['project-feature', inSpotlight(p) && 'is-spotlight']}>
+            <div class="project-feature__visual">
+              {coverOf(p) ? <img src={coverOf(p)} alt="" loading={i === 0 ? 'eager' : 'lazy'} /> : <span aria-hidden="true">QUEST {String(i + 1).padStart(2, '0')}</span>}
+            </div>
+            <div class="project-feature__body">
+              <p class="project-feature__meta">{new Date(p.data.date).getFullYear()} · {p.data.type}</p>
+              <h2>{p.data.title}</h2>
+              <p class="project-feature__role">我的职责 · {roleOf(p)}</p>
+              <p class="project-feature__summary">{p.data.summary}</p>
+              <div class="project-feature__tags">{tagsOf(p).slice(0, 3).map((tag) => <span>{tag}</span>)}</div>
+              <span class="project-feature__cta">查看项目过程与产出 <b aria-hidden="true">→</b></span>
+            </div>
+          </a>
+        ))}
       </div>
-      <p class="paper-zone__hint px">悬停某张纸，把它抽出来翻看</p>
     </section>
 
-    <!-- 常规任务日志：内容自适应，不额外放大某一款 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title px">◆ 任务日志（项目）</h2>
-      <p class="eb-body mt-2">每一个任务，都有它的战利品。按项目内容多少自动贴合，刚好铺满。</p>
-      <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {
-          projects.map((p) => (
-            <a href={`/projects/${p.id}/`} class="eb-stat block">
-              {coverOf(p) && (
-                <img
-                  src={coverOf(p)}
-                  alt={`${p.data.title} 封面`}
-                  class="mb-3 w-full border-2 border-[var(--eb-frame)]"
-                  style="image-rendering: pixelated;"
-                />
-              )}
-              <p class="eb-stat__name">{p.data.title}</p>
-              <p class="eb-ev mt-1">{formatDate(p.data.date)} · {roleOf(p)}</p>
-              <p class="eb-body mt-2" style="font-size:0.85rem;opacity:0.8">{p.data.summary}</p>
-              <p class="eb-ev mt-2">▶ 查看详情</p>
-            </a>
-          ))
-        }
-      </div>
-    </section>
   </div>
 </Layout>
 
 <style>
-  /* 叠纸区：奶油纸垫动画，融入 eb-theme（panel 暖米黄 + 帧框） */
+  .project-board { position:relative; padding:clamp(1.5rem,4vw,2.75rem); background:#efe7ce; border:3px solid #262016; border-radius:12px; box-shadow:0 0 0 3px var(--eb-frame),10px 10px 0 rgba(0,0,0,.22); overflow:hidden; }
+  .project-board::before { content:""; position:absolute; inset:0; background:linear-gradient(rgba(120,80,40,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(120,80,40,.055) 1px,transparent 1px); background-size:24px 24px; pointer-events:none; }
+  .project-board__head { position:relative; display:flex; justify-content:space-between; gap:2rem; align-items:flex-start; margin-bottom:2rem; }
+  .project-board__eyebrow { color:#6c573d; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
+  .project-board__head h1 { margin-top:.45rem; color:#201a12; font-size:clamp(2rem,5vw,3.4rem); font-weight:800; letter-spacing:-.025em; }
+  .project-board__head p:last-child { max-width:42rem; margin-top:.75rem; color:#5d503f; font-size:.92rem; line-height:1.8; }
+  .project-board__stamp { flex:none; display:grid; place-items:center; width:5.2rem; height:5.2rem; border:3px double #9b472c; border-radius:50%; color:#9b472c; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; line-height:1.45; text-align:center; transform:rotate(8deg); opacity:.8; }
+  .project-showcase { position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .project-feature { display:grid; grid-template-columns:9rem minmax(0,1fr); height:20rem; background:#fdf8e8; border:2px solid #33291d; border-radius:7px; overflow:hidden; box-shadow:5px 5px 0 rgba(38,32,22,.15); transition:transform .2s ease,box-shadow .2s ease; }
+  .project-feature:hover,.project-feature:focus-visible { transform:translateY(-4px); box-shadow:7px 9px 0 rgba(38,32,22,.18); }
+  .project-feature__visual { min-height:100%; display:grid; place-items:center; overflow:hidden; background:#394d2d; color:#f8f4dc; font-family:"FusionPixel",var(--font-sans); writing-mode:vertical-rl; letter-spacing:.12em; }
+  .project-feature__visual img { width:100%; height:100%; object-fit:cover; transition:transform .35s ease; }
+  .project-feature:hover .project-feature__visual img { transform:scale(1.035); }
+  .project-feature__body { display:flex; flex-direction:column; min-width:0; padding:1.2rem; }
+  .project-feature__meta { color:#746149; font-size:.68rem; font-weight:700; letter-spacing:.06em; }
+  .project-feature h2 { margin-top:.45rem; color:#231c14; font-family:var(--font-sans); font-size:1.2rem; font-weight:800; line-height:1.35; }
+  .project-feature__role { margin-top:.55rem; color:#8f472e; font-size:.76rem; font-weight:700; }
+  .project-feature__summary { margin-top:.7rem; color:#554939; font-size:.82rem; line-height:1.7; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .project-feature__tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.8rem; }
+  .project-feature__tags span { padding:.18rem .45rem; background:#dfe8c3; color:#3d542c; border-radius:3px; font-size:.64rem; font-weight:700; }
+  .project-feature__cta { margin-top:auto; padding-top:1rem; color:#743d24; font-size:.76rem; font-weight:700; }
+  @media (max-width:880px) { .project-showcase { grid-template-columns:1fr; } }
+  @media (max-width:560px) {
+    .project-board { padding:1.25rem; }
+    .project-board__stamp { display:none; }
+    .project-feature { grid-template-columns:1fr; height:auto; min-height:0; }
+    .project-feature__visual { min-height:10rem; max-height:12rem; writing-mode:horizontal-tb; }
+    .project-feature__body { padding:1.1rem; }
+  }
+
+  /* 旧叠纸方案样式保留，便于按需回退。 */
   .paper-zone {
     position: relative;
     overflow: hidden;

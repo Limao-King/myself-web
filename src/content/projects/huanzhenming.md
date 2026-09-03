@@ -4,7 +4,7 @@ date: 2026-06-30
 start: 2026-06-01
 type: 动画电影剧本
 platform: 动画电影
-role: 组长 / 编剧
+role: 组长
 teamSize: 团队（组长）
 duration: 完整梗概 · 节选
 tags: [剧本, 心理悬疑, 动画, 民俗童话]
