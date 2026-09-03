@@ -495,6 +495,21 @@
   font-weight: 600;
   text-decoration: none;
 }
+/* 主按钮（直接打一场试试）：更大、更醒目、居中 */
+.eb-play-main {
+  padding: 0.8rem 2rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+  box-shadow:
+    0 0 0 3px var(--eb-ink),
+    0 5px 0 rgba(42, 26, 18, 0.35);
+}
+.eb-play-main:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 3px var(--eb-ink),
+    0 6px 0 rgba(42, 26, 18, 0.35);
+}
 .eb-hint__sep {
   color: var(--eb-muted);
   opacity: 0.5;
