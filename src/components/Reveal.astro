@@ -1,0 +1,16 @@
+---
+interface Props {
+  /** 交错延迟（毫秒），多张卡片用 0/100/200 制造先后登场 */
+  delay?: number;
+  /** 进入方向 */
+  from?: 'up' | 'left' | 'right' | 'none';
+  class?: string;
+}
+
+const { delay = 0, from = 'up', class: className } = Astro.props;
+const dir = from === 'none' ? '' : `reveal-${from}`;
+---
+
+<div class:list={['reveal', dir, className]} style={`--reveal-delay:${delay}ms`}>
+  <slot />
+</div>

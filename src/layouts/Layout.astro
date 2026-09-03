@@ -1,0 +1,124 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/misans-fontfaces.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Achievements from '../components/Achievements.astro';
+import '../styles/global.css';
+import '../styles/eb.css';
+import { siteConfig } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  panel?: boolean;
+  /** 主题：paper（默认，暖纸）| eb（Onett 晴日 / EarthBound 气质） */
+  theme?: 'paper' | 'eb';
+}
+
+const { title, description, panel = true, theme = 'paper' } = Astro.props;
+const pageTitle = title ? `${title} · ${siteConfig.name}` : `${siteConfig.name} · ${siteConfig.title}`;
+const pageDescription = description ?? siteConfig.description;
+---
+
+<!doctype html>
+<html lang="zh-CN" class:list={theme === 'eb' ? 'eb-theme' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={`${siteConfig.siteUrl}${Astro.url.pathname}`} />
+    <meta property="og:image" content={`${siteConfig.siteUrl}/images/projects/fairytale/01-title.jpg`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <ClientRouter />
+    <script>
+      // 尽早标记 JS 可用：.js 前缀才隐藏 reveal 初始态，保证无 JS 时内容可见
+      document.documentElement.classList.add('js');
+      // 经典视图（纸质模式）偏好：绘制前应用，避免闪烁
+      try {
+        if (localStorage.getItem('eb-view') === 'classic') {
+          document.documentElement.classList.add('eb-classic');
+        }
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <div class="bg-pattern" aria-hidden="true"></div>
+    <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+    {theme === 'eb' && (
+      <div id="eb-level" class="eb-level" aria-hidden="true">Lv.<span id="eb-level-num">1</span><span class="eb-level__exp">EXP</span></div>
+    )}
+    <Nav eb={theme === 'eb'} />
+    <main id="main" class:list={['mx-auto w-full max-w-5xl px-6 py-8', panel ? 'page-panel' : '']}>
+      <slot />
+    </main>
+    <Footer />
+    <Achievements />
+
+    <script>
+      // 滚动进入动画（IntersectionObserver 模式，社区主流做法）
+      function initReveal() {
+        const els = document.querySelectorAll('.reveal:not(.is-revealed)');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach((el) => el.classList.add('is-revealed'));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed');
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { threshold: 0.12, rootMargin: '0px 0px -48px 0px' }
+        );
+        els.forEach((el) => io.observe(el));
+      }
+
+      // 顶部阅读进度条 + EXP 等级徽章（Lv.1→5 随滚动升级）
+      let ebLv = 1;
+      function onScrollProgress() {
+        const bar = document.getElementById('scroll-progress');
+        if (!bar) return;
+        const el = document.documentElement;
+        const max = el.scrollHeight - el.clientHeight;
+        const ratio = max > 0 ? el.scrollTop / max : 0;
+        bar.style.transform = `scaleX(${ratio})`;
+
+        const lvEl = document.getElementById('eb-level');
+        const numEl = document.getElementById('eb-level-num');
+        if (lvEl && numEl) {
+          const lv = 1 + Math.min(4, Math.floor(ratio * 5));
+          if (lv !== ebLv) {
+            const up = lv > ebLv;
+            ebLv = lv;
+            numEl.textContent = String(lv);
+            if (up) {
+              lvEl.classList.remove('is-up');
+              void lvEl.offsetWidth; // 重新触发动画
+              lvEl.classList.add('is-up');
+            }
+          }
+        }
+      }
+
+      initReveal();
+      onScrollProgress();
+      window.addEventListener('scroll', onScrollProgress, { passive: true });
+      // ClientRouter 客户端切换后，重新初始化新页面的 reveal 与进度条
+      document.addEventListener('astro:after-swap', () => {
+        initReveal();
+        onScrollProgress();
+      });
+    </script>
+  </body>
+</html>

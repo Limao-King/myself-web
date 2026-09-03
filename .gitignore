@@ -1,0 +1,33 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# 私人素材（不上传公开仓库）
+求职素材集/
+
+
+# 部署时由 scripts/setup-misans.mjs 自动生成
+public/fonts/misans/
+
+.vercel

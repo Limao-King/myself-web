@@ -1,0 +1,65 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  meta?: string;
+  summary?: string;
+  tags?: string[];
+  /** 封面图（public/ 下路径），如 /images/projects/xxx.jpg */
+  cover?: string;
+  /** 无封面时的像素占位文案（如项目类型） */
+  coverFallback?: string;
+}
+
+const { href, title, meta, summary, tags = [], cover, coverFallback } = Astro.props;
+---
+
+<a
+  href={href}
+  class="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-700 bg-[#fdfbf5] shadow-[0_1px_2px_rgba(38,32,22,0.06),0_8px_20px_-12px_rgba(38,32,22,0.18)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-500/50 hover:shadow-[0_2px_4px_rgba(38,32,22,0.08),0_14px_28px_-14px_rgba(38,32,22,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+>
+  {
+    cover ? (
+      <img
+        src={cover}
+        alt={`${title} 封面`}
+        loading="lazy"
+        class="w-full border-b-2 border-[#262016]/15 transition-transform duration-300 group-hover:scale-[1.03]"
+        style="image-rendering: pixelated;"
+      />
+    ) : coverFallback ? (
+      <div class="flex h-32 items-center justify-center border-b-2 border-[#262016]/15 bg-[#e3eec9]">
+        <span class="font-pixel text-sm text-[#3a6920]">{coverFallback}</span>
+      </div>
+    ) : null
+  }
+
+  <div class="flex flex-1 flex-col p-6">
+    <!-- 右上角提示箭头（悬停出现，提示可点击） -->
+    <span
+      class="absolute right-5 top-5 text-neutral-500 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-green-text group-hover:opacity-100"
+      aria-hidden="true"
+    >
+      →
+    </span>
+
+    {meta && (
+      <p class="pr-6 text-xs font-medium tracking-wide text-neutral-500">{meta}</p>
+    )}
+    <h3 class="mt-2.5 text-lg font-semibold text-neutral-100 transition-colors group-hover:text-green-text">
+      {title}
+    </h3>
+    {summary && (
+      <p class="mt-2 text-sm leading-relaxed text-neutral-400">{summary}</p>
+    )}
+    {
+      tags.length > 0 && (
+        <div class="mt-4 flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span class="rounded-full bg-green-tint px-2.5 py-0.5 text-xs font-medium text-green-text">{tag}</span>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</a>
