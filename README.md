@@ -1,6 +1,6 @@
 # 个人的作品集网站
 
-这是明鑫的游戏策划求职作品集网站，部署在 [www.limao.site](https://www.limao.site)。
+明鑫的游戏策划求职作品集网站，部署在 [www.limao.site](https://www.limao.site)。
 
 ## 内容
 
