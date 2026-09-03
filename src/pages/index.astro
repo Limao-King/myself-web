@@ -287,7 +287,20 @@ const abilities = [
     .home-hero { grid-template-columns:1fr; gap:1.5rem; padding:1.75rem 1.55rem; }
     .home-hero .eb-title { font-size:clamp(2rem,10vw,3rem); }
     .home-lead { font-size:.92rem; line-height:1.8; }
-    .home-hero__quest, .home-docs { display:none; }
+    .home-hero__quest { display:none; }
+    .home-docs { display:flex; margin-top:.5rem; }
+    /* 移动端：三张精品文档垂直紧凑列表，整体缩到约50%（更小巧） */
+    .home-docs__stack { display:flex; flex-direction:column; gap:.4rem; min-height:0; flex:0 0 auto; }
+    .home-doc {
+      position:static; height:auto; width:100%; left:auto; right:auto;
+      transform:none; padding:.5rem .55rem .45rem; gap:.15rem;
+    }
+    .home-doc--1,.home-doc--2,.home-doc--3 { top:auto; transform:none; }
+    .home-doc:hover { transform:none; box-shadow:5px 5px 0 rgba(24,20,16,.2); }
+    .home-doc__em { font-size:.5rem; letter-spacing:.08em; }
+    .home-doc__title { font-size:.72rem; -webkit-line-clamp:2; }
+    .home-doc__sum { font-size:.58rem; line-height:1.4; -webkit-line-clamp:2; }
+    .home-doc__cta { font-size:.6rem; padding-top:.2rem; }
     .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
     .home-proof li { min-width:0; padding-inline:.75rem; }
     .home-proof strong { font-size:1.15rem; }
