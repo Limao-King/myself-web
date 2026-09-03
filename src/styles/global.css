@@ -1,0 +1,946 @@
+/* ============================================================================
+   设计系统 · Game Designer Portfolio
+   ----------------------------------------------------------------------------
+   设计方向（参考 Linear / Vercel / shadcn/ui 等成熟产品设计）：
+   · 一个主色 + 一个点缀色的克制配色（暖羊皮纸 + 复古绿 + 琥珀橙），
+     移除原来的冷青蓝杂色，让整体色温统一。
+   · 用语义化 token 组织颜色：背景 / 表面 / 边框 / 正文 / 次要 / 弱化。
+   · 统一的圆角与阴影层级：卡片圆角 + 柔和阴影，按钮保留像素硬边作为
+     "游戏策划"的个性签名，形成"专业底座 + 游戏感点缀"的协调感。
+   · 清晰的文字层级：标题（最重）→ 正文 → 次要 → 弱化，弱化文字仍保证
+     可读对比度（约 4.5:1）。
+   ============================================================================ */
+
+@layer nes;
+@import "nes.css/css/nes.css" layer(nes);
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   字体
+   ---------------------------------------------------------------------------- */
+@font-face {
+  font-family: "FusionPixel";
+  src: url("/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ----------------------------------------------------------------------------
+   主题 token（Tailwind v4）
+   说明：为保证低改动，沿用 neutral / violet 这些工具类名，但把值统一成
+   温暖的羊皮纸 + 复古绿体系。violet 系列在此作为「品牌主色（绿色）」使用。
+   ---------------------------------------------------------------------------- */
+@theme {
+  /* 正文无衬线（MiSans 等中文字体优先） */
+  --font-sans: "MiSans", "HarmonyOS Sans SC", "Alibaba PuHuiTi",
+    "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui,
+    -apple-system, sans-serif;
+
+  /* ---- 中性色：暖羊皮纸（浅）→ 暖墨色（深） ----
+     注意：此处采用「数值越大越浅」的映射（与站内既有用法一致）：
+     neutral-950 = 页面背景，neutral-100 = 标题文字。 */
+  --color-neutral-950: #f4eddb; /* 页面背景 · 暖羊皮纸 */
+  --color-neutral-900: #fbf7ec; /* 表面 · 卡片 / 面板 */
+  --color-neutral-800: #ece2cc; /* 浅填充 · 标签底 / 代码底 */
+  --color-neutral-700: #d9cdae; /* 边框 */
+  --color-neutral-600: #c4b48e; /* 强调边框 / 分割线 */
+  --color-neutral-500: #7b7160; /* 弱化文字（仍可读） */
+  --color-neutral-400: #5b5242; /* 次要文字 */
+  --color-neutral-300: #443d30; /* 正文 */
+  --color-neutral-200: #322b21; /* 加粗正文 */
+  --color-neutral-100: #262016; /* 标题 */
+  --color-neutral-50: #1b170f; /* 最深 */
+
+  /* ---- 品牌主色（复古绿，用 violet 工具类承载）---- */
+  --color-violet-700: #35601f;
+  --color-violet-600: #40772a;
+  --color-violet-500: #4c8a30; /* 主色 */
+  --color-violet-400: #66a647;
+  --color-violet-300: #8ec46c;
+  --color-violet-200: #c6e3a8;
+  --color-violet-100: #e6f1d1;
+
+  /* ---- 文字 / 强调专用绿 ---- */
+  --color-green-text: #3a6920; /* 链接 / 强调文字（深绿，对比度充足） */
+  --color-green-tint: #e3eec9; /* 标签浅绿底 */
+
+  /* ---- 点缀色：琥珀橙（时间线、进度条） ---- */
+  --color-amber: #d98c2b;
+}
+
+/* ----------------------------------------------------------------------------
+   基础
+   ---------------------------------------------------------------------------- */
+:root {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* 锚点跳转时避让吸顶导航 */
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+  font-size: 106.25%; /* 17px 基础字号：中文正文的舒适可读底线 */
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-300 antialiased;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+/* 全局焦点可见性：键盘导航清晰可辨 */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* 选区 */
+::selection {
+  background: #d9ecc0;
+  color: #262016;
+}
+
+/* 展示用像素字体（标题 / 按钮 / 品牌名） */
+.font-pixel {
+  font-family: "FusionPixel", var(--font-sans);
+  letter-spacing: 0.02em;
+}
+
+/* 正体（正文无衬线），用于覆盖 h1/h2 的像素字体（如 Hero 里的「明鑫」） */
+.font-body {
+  font-family: var(--font-sans);
+}
+
+/* 标题：像素字体作为"游戏感"签名，注意行高避免发虚 */
+h1,
+h2 {
+  font-family: "FusionPixel", var(--font-sans);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+/* 长文（markdown）内的次级标题改用正文无衬线，保证长时间阅读舒适 */
+.prose-article h1,
+.prose-article h2,
+.prose-article h3,
+.prose-article h4 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   按钮
+   像素硬边按钮是本站的"游戏感"签名，其余组件保持现代圆角，形成协调对比。
+   ---------------------------------------------------------------------------- */
+.btn-primary,
+.btn-ghost,
+.btn-accent,
+.btn-white {
+  font-family: "FusionPixel", var(--font-sans);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-style: solid;
+  border-width: 2px;
+  border-color: transparent;
+  border-image-slice: 2;
+  border-image-width: 2;
+  border-image-repeat: stretch;
+  border-image-outset: 2;
+  border-image-source: url("data:image/svg+xml;utf8,<?xml version=\"1.0\" encoding=\"UTF-8\" ?><svg version=\"1.1\" width=\"5\" height=\"5\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M2 1 h1 v1 h-1 z M1 2 h1 v1 h-1 z M3 2 h1 v1 h-1 z M2 3 h1 v1 h-1 z\" fill=\"rgb(38,32,22)\" /></svg>");
+  image-rendering: pixelated;
+  padding: 0.68rem 1.6rem;
+  line-height: 1;
+  min-height: 44px; /* 无障碍：可点击区域 ≥ 44px */
+  transition: transform 0.15s var(--ease-out-quint), background-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary::after,
+.btn-ghost::after,
+.btn-accent::after,
+.btn-white::after {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  bottom: -4px;
+  left: -4px;
+  content: "";
+  pointer-events: none;
+}
+
+.btn-primary {
+  color: #fdfaf1;
+  background-color: var(--color-violet-500);
+}
+
+.btn-primary::after {
+  box-shadow: inset -4px -4px rgba(0, 0, 0, 0.24);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-violet-400);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(.is-disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:active:not(.is-disabled)::after {
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.38);
+}
+
+.btn-ghost {
+  color: var(--color-neutral-100);
+  background-color: var(--color-neutral-900);
+}
+
+.btn-ghost::after {
+  box-shadow: inset -4px -4px rgba(0, 0, 0, 0.14);
+}
+
+.btn-ghost:hover {
+  color: var(--color-green-text);
+  transform: translateY(-1px);
+}
+
+.btn-ghost:active:not(.is-disabled) {
+  transform: translateY(0);
+}
+
+.btn-ghost:active:not(.is-disabled)::after {
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.32);
+}
+
+/* 白色按钮：白底 + 像素硬边 + 深墨字（Hero 三个按钮统一用） */
+.btn-white {
+  color: #2b2418;
+  background-color: #ffffff;
+}
+
+.btn-white::after {
+  box-shadow: inset -4px -4px rgba(0, 0, 0, 0.12);
+}
+
+.btn-white:hover {
+  color: var(--color-green-text);
+  background-color: #fbf7ec;
+  transform: translateY(-1px);
+}
+
+.btn-white:active:not(.is-disabled) {
+  transform: translateY(0);
+}
+
+.btn-white:active:not(.is-disabled)::after {
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.22);
+}
+
+/* 琥珀按钮：专属「行动」色 —— 用于最终 CTA 等需要把用户推向动作的位置 */
+.btn-accent {
+  color: #2b2418;
+  background-color: var(--color-amber);
+}
+
+.btn-accent::after {
+  box-shadow: inset -4px -4px rgba(0, 0, 0, 0.18);
+}
+
+.btn-accent:hover {
+  background-color: #e5a23d;
+  transform: translateY(-1px);
+}
+
+.btn-accent:active:not(.is-disabled) {
+  transform: translateY(0);
+}
+
+.btn-accent:active:not(.is-disabled)::after {
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.32);
+}
+
+/* ----------------------------------------------------------------------------
+   页面过渡（View Transitions）
+   ---------------------------------------------------------------------------- */
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-out 0.2s ease both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 0.35s var(--ease-out-quint) both;
+}
+
+/* ----------------------------------------------------------------------------
+   滚动进入动画（仅当 JS 可用时隐藏初始态，脚本失败/禁用时内容默认可见）
+   ---------------------------------------------------------------------------- */
+.js .reveal {
+  opacity: 0;
+  transition:
+    opacity 0.7s var(--ease-out-quint),
+    transform 0.7s var(--ease-out-quint);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.js .reveal-up {
+  transform: translateY(24px);
+}
+
+.js .reveal-left {
+  transform: translateX(-24px);
+}
+
+.js .reveal-right {
+  transform: translateX(24px);
+}
+
+.js .reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ----------------------------------------------------------------------------
+   策划文档 · 轻量筛选（filter-chip）
+   ---------------------------------------------------------------------------- */
+.filter-chip {
+  border: 2px solid #262016;
+  border-radius: 9999px;
+  background-color: #fbf7ec;
+  color: #4a4134;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip:hover {
+  background-color: #e3eec9;
+}
+
+.filter-chip.is-active {
+  background-color: #4c8a30;
+  color: #fdfaf1;
+}
+
+/* ----------------------------------------------------------------------------
+   可访问性：跳转链接 + 键盘焦点
+   ---------------------------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background-color: #262016;
+  color: #f4eddb;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 8px 0;
+  font-size: 0.85rem;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+:focus-visible {
+  outline: 3px solid #b06e14;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+#main {
+  scroll-margin-top: 5rem;
+}
+
+/* 详情页正文里的 h1 与页面标题重复，隐藏正文 h1 */
+.prose-article h1 {
+  display: none;
+}
+
+/* ----------------------------------------------------------------------------
+   链接下划线动效
+   ---------------------------------------------------------------------------- */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.25s var(--ease-out-quint);
+  border-radius: 1px;
+}
+
+.link-underline:hover::after,
+.link-underline[aria-current="page"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.link-underline[aria-current="page"] {
+  @apply text-green-text;
+}
+
+/* ----------------------------------------------------------------------------
+   顶部阅读进度条
+   ---------------------------------------------------------------------------- */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #4c8a30, #d98c2b);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  z-index: 60;
+}
+
+/* ----------------------------------------------------------------------------
+   减少动效
+   ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Markdown 正文（.prose-article）
+   ---------------------------------------------------------------------------- */
+.prose-article {
+  @apply text-neutral-300 leading-relaxed;
+}
+
+.prose-article h1,
+.prose-article h2,
+.prose-article h3,
+.prose-article h4 {
+  @apply mt-10 mb-4 text-neutral-100 first:mt-0;
+  scroll-margin-top: 5rem;
+}
+
+.prose-article h1 {
+  @apply text-2xl;
+}
+
+.prose-article h2 {
+  @apply text-xl border-b border-neutral-700 pb-2;
+}
+
+.prose-article h3 {
+  @apply text-lg;
+}
+
+.prose-article p {
+  @apply my-4;
+}
+
+.prose-article ul,
+.prose-article ol {
+  @apply my-4 pl-6 space-y-2;
+}
+
+.prose-article ul {
+  @apply list-disc;
+}
+
+.prose-article ol {
+  @apply list-decimal;
+}
+
+.prose-article a {
+  @apply text-green-text underline underline-offset-4 decoration-neutral-600 hover:text-violet-600 hover:decoration-violet-500;
+}
+
+.prose-article strong {
+  @apply text-neutral-100 font-semibold;
+}
+
+.prose-article blockquote {
+  @apply my-6 border-l-4 border-violet-500/60 bg-neutral-800/40 pl-4 py-1 text-neutral-400 italic rounded-r-lg;
+}
+
+.prose-article code {
+  @apply rounded-md bg-neutral-800 px-1.5 py-0.5 text-sm text-green-text;
+}
+
+.prose-article pre {
+  @apply my-6 overflow-x-auto rounded-xl bg-neutral-900 border border-neutral-700 p-4 text-sm;
+}
+
+.prose-article pre code {
+  @apply bg-transparent p-0 text-neutral-200;
+}
+
+.prose-article img {
+  @apply my-6 rounded-xl border border-neutral-700 max-w-full;
+}
+
+.prose-article table {
+  @apply my-6 w-full border-collapse text-sm;
+}
+
+.prose-article th,
+.prose-article td {
+  @apply border border-neutral-700 px-3 py-2 text-left;
+}
+
+.prose-article th {
+  @apply bg-neutral-900 text-neutral-100;
+}
+
+.prose-article hr {
+  @apply my-8 border-neutral-700;
+}
+
+/* ----------------------------------------------------------------------------
+   NES.css 覆盖：统一到暖色系
+   ---------------------------------------------------------------------------- */
+.nes-btn {
+  margin: 0;
+  font-family: "FusionPixel", var(--font-sans);
+  padding: 0.6rem 1.4rem;
+}
+
+.nes-btn.is-primary {
+  background-color: #4c8a30;
+}
+
+.nes-btn.is-primary:hover {
+  background-color: #66a647;
+}
+
+.nes-btn.is-primary::after {
+  box-shadow: inset -4px -4px #35601f;
+}
+
+.nes-btn.is-primary:active:not(.is-disabled)::after {
+  box-shadow: inset 4px 4px #35601f;
+}
+
+/* 深色对话框气泡：暖黑而非冷蓝灰，配绿色像素描边 */
+.nes-container.is-dark {
+  border-width: 2px;
+  background-color: #2b2418;
+  color: #f4eddb;
+}
+
+.nes-container.is-dark > .title {
+  background-color: #f4eddb;
+  color: #2b2418;
+}
+
+/* ----------------------------------------------------------------------------
+   动态背景：暖羊皮纸像素纹理 + 极慢漂移
+   ---------------------------------------------------------------------------- */
+.bg-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-pattern::before {
+  content: "";
+  position: absolute;
+  inset: -200px; /* 四周多出一块，平移时绝不露白 */
+  background-image:
+    url("/images/bg/paper.png"),
+    linear-gradient(#efe6cf, #efe6cf);
+  background-size: 192px 192px, 100% 100%;
+  image-rendering: pixelated;
+  opacity: 0.5; /* 压低纹理存在感，保证前景可读性 */
+  will-change: transform;
+  animation: bg-drift 60s linear infinite;
+}
+
+@keyframes bg-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-192px, -192px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-pattern::before {
+    animation: none;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   导航：RPGUI 金标题条风格（琥珀金 + 暖墨 + 硬边斜角，实色像素风）
+   参考 RonenNess/RPGUI 的"金色标题条"视觉语言，配色换成本站暖色系。
+   ---------------------------------------------------------------------------- */
+.site-header {
+  /* 导航主题变量：改这些即整条导航（背景/文字）统一变色 */
+  --nav-bg: #b4c586;
+  --nav-ink: #262016;
+  --nav-link: #3a4522;
+  --nav-link-active: #262016;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--nav-bg);
+  color: var(--nav-ink);
+  border-bottom: 3px solid #262016; /* 硬边深描边 */
+  box-shadow:
+    inset 0 2px 0 rgba(255, 242, 210, 0.4), /* 顶部受光斜角 */
+    inset 0 -2px 0 rgba(90, 55, 10, 0.28); /* 底部暗角 */
+}
+
+/* 导航链接颜色跟随变量（覆盖 .link-underline[aria-current] 的全站绿色规则） */
+.site-header .link-underline {
+  color: var(--nav-link);
+}
+
+.site-header .link-underline:hover,
+.site-header .link-underline[aria-current="page"] {
+  color: var(--nav-link-active);
+}
+
+/* 移动端菜单链接颜色 */
+.site-header #mobile-menu a {
+  color: var(--nav-link);
+}
+
+.site-header #mobile-menu a:hover,
+.site-header #mobile-menu a[aria-current="page"] {
+  color: var(--nav-link-active);
+}
+
+/* RPGUI 原版金色按钮 → 导航紧凑版
+   说明1：RPGUI 的左右端盖精灵在导航小尺寸下会被拉伸变形，直接隐藏。
+   说明2：原版精灵图是固定金色写死的，没法干净地染成任意色；为了让按钮
+   在配导航色时能跟着协调，这里改用 `--btn-bg` 驱动的"像素立体按钮"（硬
+   描边 + 上高光下阴影），仍是 RPGUI 菜单那种手感，但颜色可自定义。 */
+.rpgui-button.golden.nav-resume {
+  min-width: 0;
+  height: 36px;
+  padding-left: 30px;
+  padding-right: 30px;
+  background: none;
+  background-color: var(--btn-bg, #e7ef94);
+  border: 2px solid #262016;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.28);
+  image-rendering: pixelated;
+  color: var(--btn-fg, #262016);
+  font-family: "FusionPixel", var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+
+/* 端盖在导航小尺寸下会被拉伸变形，直接隐藏，只保留中间金色按钮底 */
+.rpgui-button.golden.nav-resume::before,
+.rpgui-button.golden.nav-resume::after {
+  display: none;
+}
+
+.rpgui-button.golden.nav-resume:hover {
+  filter: brightness(1.08);
+}
+
+.rpgui-button.golden.nav-resume:active {
+  transform: translate(1px, 1px);
+  box-shadow:
+    inset 0 3px 0 rgba(0, 0, 0, 0.25),
+    inset 0 -3px 0 rgba(255, 255, 255, 0.16);
+}
+
+.rpgui-button.golden.nav-resume p {
+  display: inline-block;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header {
+    transition: none;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   内容主面板：可选"纸面浮层"（仅当 main 带 .page-panel 时生效）
+   首页改为分段卡片后不再套 .page-panel，让每个板块独立成卡。
+   ---------------------------------------------------------------------------- */
+main.page-panel {
+  background-color: rgba(251, 247, 236, 0.68);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  border: 1px solid rgba(217, 205, 174, 0.7);
+  border-radius: 16px;
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+  box-shadow: 0 18px 40px -28px rgba(38, 32, 22, 0.35);
+}
+
+/* ----------------------------------------------------------------------------
+   分段卡片（首页）：每个板块独立成卡，套用之前 .pixel-frame 的像素框边框
+   ---------------------------------------------------------------------------- */
+.segment {
+  border-style: solid;
+  border-width: 3px;
+  border-color: transparent;
+  border-image-slice: 3;
+  border-image-width: 3;
+  border-image-repeat: stretch;
+  border-image-outset: 0;
+  border-image-source: url("data:image/svg+xml;utf8,<?xml version=\"1.0\" encoding=\"UTF-8\" ?><svg version=\"1.1\" width=\"8\" height=\"8\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M3 1 h1 v1 h-1 z M4 1 h1 v1 h-1 z M2 2 h1 v1 h-1 z M5 2 h1 v1 h-1 z M1 3 h1 v1 h-1 z M6 3 h1 v1 h-1 z M1 4 h1 v1 h-1 z M6 4 h1 v1 h-1 z M2 5 h1 v1 h-1 z M5 5 h1 v1 h-1 z M3 6 h1 v1 h-1 z M4 6 h1 v1 h-1 z\" fill=\"rgb(180,168,136)\" /></svg>");
+  image-rendering: pixelated;
+  background-color: #fbf7ec;
+  box-shadow: 0 12px 24px -18px rgba(38, 32, 22, 0.4);
+  padding: 1.75rem;
+}
+
+/* Hero 首屏 · 醒目入口卡：像素框更粗 + 更大留白 */
+.segment--hero {
+  border-width: 4px;
+  border-image-width: 4;
+  padding: 3rem 2rem;
+  box-shadow: 0 18px 36px -20px rgba(38, 32, 22, 0.45);
+}
+
+/* ----------------------------------------------------------------------------
+   游戏经历 · 像素图鉴「扫过式」点亮
+   ---------------------------------------------------------------------------- */
+.game-scan {
+  position: relative;
+}
+
+/* 跟随鼠标的柔光（扫描灯），只做氛围，不抢交互 */
+.game-scan__light {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  margin-left: -190px;
+  margin-top: -190px;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 3;
+  background: radial-gradient(circle, rgba(255, 252, 240, 0.6), rgba(255, 252, 240, 0) 70%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* 单个游戏「卡」：默认偏素，扫过/悬停时点亮 */
+.game-chip {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #262016;
+  border-radius: 9999px;
+  background-color: #fbf7ec;
+  color: #4a4134;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    background-color 0.14s ease,
+    color 0.14s ease,
+    border-color 0.14s ease;
+  cursor: pointer;
+}
+
+.game-chip:hover {
+  transform: translateY(-2px);
+  background-color: #e3eec9;
+  border-color: #4c8a30;
+  color: #262016;
+  box-shadow:
+    0 0 0 2px rgba(76, 138, 48, 0.22),
+    3px 3px 0 rgba(38, 32, 22, 0.12);
+}
+
+/* 时长徽章：默认浅绿，悬停时反转成实色 */
+.game-chip__hours {
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  background-color: #e3eec9;
+  color: #3a6920;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.game-chip:hover .game-chip__hours {
+  background-color: #4c8a30;
+  color: #fdfaf1;
+}
+
+/* ✦ 标记：带评述的游戏（悬停出点评） */
+.game-chip__mark {
+  color: #4c8a30;
+  font-size: 0.6rem;
+  line-height: 1;
+  transition: color 0.14s ease;
+}
+
+.game-chip:hover .game-chip__mark {
+  color: #3a6920;
+}
+
+/* 评述气泡：悬停或聚焦（键盘）带评语的游戏浮现一句点评 */
+.game-chip[data-tip]:hover::after,
+.game-chip[data-tip]:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  padding: 0.4rem 0.6rem;
+  background-color: #2b2418;
+  color: #f4eddb;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+  border: 2px solid #262016;
+  border-radius: 4px;
+  z-index: 6;
+  white-space: normal;
+}
+
+.game-chip[data-tip]:hover::before,
+.game-chip[data-tip]:focus::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #262016;
+  z-index: 6;
+}
+
+/* ----------------------------------------------------------------------------
+   项目截图画廊：正文里用 <div class="shot-grid"> 包裹一组截图
+   ---------------------------------------------------------------------------- */
+.shot-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+@media (min-width: 640px) {
+  .shot-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shot-grid img {
+  width: 100%;
+  border: 2px solid #262016;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+/* ----------------------------------------------------------------------------
+   对白文档 · JRPG 对话窗（category 为「对白」时套用）
+   ---------------------------------------------------------------------------- */
+.dialogue-box {
+  background-color: #2b2418;
+  border: 3px solid #262016;
+  outline: 2px solid #f4eddb;
+  outline-offset: 3px;
+  border-radius: 6px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 10px 24px -18px rgba(38, 32, 22, 0.5);
+  color: #f4eddb;
+}
+
+.dialogue-box h1,
+.dialogue-box h2,
+.dialogue-box h3,
+.dialogue-box strong,
+.dialogue-box li {
+  color: #f4eddb;
+}
+
+.dialogue-box > *:first-child {
+  margin-top: 0;
+}
+
+.dialogue-box > *:last-child {
+  margin-bottom: 0;
+}
+
+/* 场景标记/舞台提示（markdown 引用块）压成小字 */
+.dialogue-box blockquote {
+  border-left: 0;
+  background: none;
+  color: #b8a98a;
+  font-style: normal;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  margin: 0.6rem 0;
+  padding: 0;
+}

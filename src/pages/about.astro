@@ -1,0 +1,120 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Reveal from '../components/Reveal.astro';
+import { siteConfig } from '../site.config';
+
+const education = [
+  {
+    school: '集美大学',
+    major: '戏剧影视文学 · 本科',
+    period: '2022.09 – 2027.06',
+    note: '主修课程：戏剧剧本创作、影视剧本创作、电影理论、艺术概论、中外电影史。',
+  },
+];
+
+const skillGroups = [
+  {
+    name: '引擎与工具',
+    skills: ['Godot 基础开发', 'Excel / 配置表 / 数值曲线', '流程图工具（系统与关卡设计）'],
+  },
+  {
+    name: '代码与编程',
+    skills: ['基础代码阅读与调试', 'AI 辅助脚本编写'],
+  },
+  {
+    name: '策划与叙事',
+    skills: ['游戏剧本写作', '过场动画分镜', '系统设计文档撰写', '世界观构建与角色塑造'],
+  },
+];
+---
+
+<Layout title="关于我" description="我的个人简介、教育背景与技能栈">
+  <div class="py-12">
+    <Reveal>
+      <SectionHeading title="关于我" description="游戏系统 / 文案策划 · 兼具叙事与世界观设计能力 · 集美大学戏剧影视文学在读" />
+    </Reveal>
+
+    <!-- 个人简介 -->
+    <Reveal>
+      <section class="mb-12">
+        <div class="nes-container is-dark mb-5 max-w-2xl">
+          <p class="text-sm">
+            我是明鑫，集美大学戏剧影视文学专业在读，求职方向为「游戏系统 / 文案策划」。
+            累计单机游戏 6000+ 小时，主导过 Minecraft RPG 地图、开放世界世界观与可玩的 JRPG Demo。
+          </p>
+        </div>
+        <div class="space-y-3 leading-relaxed text-neutral-300">
+          <p>
+            从 Minecraft 组件与命令做关卡，到用 Godot + AI 辅助编程独立完成一个可玩的回合制 JRPG 序章，
+            我始终在做一件事：把想法落地成能跑、能玩的东西。
+          </p>
+          <p>
+            擅长系统与数值：战斗流程、AI 范式、伤害公式、配置表；也写得了世界观与剧本（戏剧影视文学专业出身）。
+            玩得最深的是 CRPG、战棋与回合制策略，也长期观察叙事驱动作品的叙事手法。
+          </p>
+        </div>
+      </section>
+    </Reveal>
+
+    <!-- 教育背景 -->
+    <Reveal>
+      <section class="mb-12">
+        <h2 class="mb-4 text-xl font-semibold text-neutral-100">教育背景</h2>
+        <ul class="space-y-4">
+          {
+            education.map((e) => (
+              <li class="rounded-xl border border-neutral-700 bg-neutral-900 p-5">
+                <div class="flex items-baseline justify-between gap-4">
+                  <h3 class="font-semibold text-neutral-100">{e.school}</h3>
+                  <p class="shrink-0 text-xs text-neutral-500">{e.period}</p>
+                </div>
+                <p class="mt-1 text-sm text-green-text">{e.major}</p>
+                <p class="mt-2 text-sm text-neutral-400">{e.note}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </Reveal>
+
+    <!-- 技能栈 -->
+    <Reveal delay={80}>
+      <section class="mb-12">
+        <h2 class="mb-4 text-xl font-semibold text-neutral-100">技能栈</h2>
+        <div class="space-y-5">
+          {
+            skillGroups.map((g) => (
+              <div>
+                <h3 class="mb-2 text-sm font-medium text-neutral-400">{g.name}</h3>
+                <div class="flex flex-wrap gap-2">
+                  {g.skills.map((s) => (
+                    <span class="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-sm text-neutral-300">{s}</span>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </Reveal>
+
+    <!-- 联系方式 -->
+    <Reveal delay={160}>
+      <section>
+        <h2 class="mb-4 text-xl font-semibold text-neutral-100">联系方式</h2>
+        <ul class="space-y-3 text-sm text-neutral-300">
+          <li>邮箱：<a href={`mailto:${siteConfig.email}`} class="link-underline text-green-text">{siteConfig.email}</a></li>
+          <li>GitHub：<a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="link-underline text-green-text">{siteConfig.github}</a></li>
+          <li>简历（含联系方式）：<a href={siteConfig.resumeUrl} target="_blank" class="link-underline text-green-text">下载 PDF</a></li>
+          <li>
+            全部文档 / Demo 下载：
+            <a href={siteConfig.downloadUrl} target="_blank" rel="noopener noreferrer" class="link-underline text-green-text">
+              百度网盘（提取码 {siteConfig.downloadPwd}）
+            </a>
+          </li>
+        </ul>
+      </section>
+    </Reveal>
+  </div>
+</Layout>

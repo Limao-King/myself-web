@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { formatDate } from '../../utils/format';
+
+const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Layout title="项目" description="我的游戏项目" theme="eb" panel={false}>
+  <div class="flex flex-col gap-6">
+    <section class="eb-window">
+      <h1 class="eb-window__title">◆ 任务日志（项目）</h1>
+      <p class="eb-body mt-2">每一个任务，都有它的战利品。</p>
+      <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          projects.map((p) => (
+            <a href={`/projects/${p.id}/`} class="eb-stat block">
+              {
+                p.data.cover && (
+                  <img src={p.data.cover} alt={`${p.data.title} 封面`} class="mb-3 w-full border-2 border-[var(--eb-frame)]" style="image-rendering: pixelated;" />
+                )
+              }
+              <p class="eb-stat__name">{p.data.title}</p>
+              <p class="eb-ev mt-1">{formatDate(p.data.date)} · {p.data.role}</p>
+              <p class="eb-body mt-2" style="font-size:0.85rem;opacity:0.8">{p.data.summary}</p>
+              <p class="eb-ev mt-2">▶ 查看详情</p>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</Layout>

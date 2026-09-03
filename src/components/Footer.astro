@@ -1,0 +1,20 @@
+---
+import { siteConfig } from '../site.config';
+---
+
+<footer class="py-10">
+  <div class="mx-auto max-w-5xl px-6">
+    <div class="flex flex-col items-center gap-2 border-t border-neutral-700/70 pt-6 text-center text-sm text-neutral-400">
+      <p>
+        © {new Date().getFullYear()} {siteConfig.name} ·
+        <a href={`mailto:${siteConfig.email}`} class="link-underline transition-colors hover:text-green-text">{siteConfig.email}</a>
+        {siteConfig.github !== 'https://github.com/yourname' && (
+          <>
+            {' '}· <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="link-underline transition-colors hover:text-green-text">GitHub</a>
+          </>
+        )}
+      </p>
+      <p class="text-xs text-neutral-500">用 Astro + Tailwind 构建 · 求职作品集</p>
+    </div>
+  </div>
+</footer>

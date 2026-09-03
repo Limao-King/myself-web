@@ -1,0 +1,65 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import { formatDate } from '../../utils/format';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((p) => ({ params: { slug: p.id }, props: { project: p } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const { title, date, type, platform, role, teamSize, duration, cover, demoUrl, demoLabel, videoUrl, planDoc, tags } = project.data;
+
+const chips = [type, platform, `团队：${teamSize}`, `周期：${duration}`, ...tags].filter(Boolean);
+
+const bvMatch = videoUrl?.match(/BV[0-9A-Za-z]{10}/);
+const playerUrl = bvMatch
+  ? `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0`
+  : null;
+---
+
+<Layout title={title} description={project.data.summary} theme="eb" panel={false}>
+  <div class="flex flex-col gap-6">
+    <!-- 任务卡头部 -->
+    <section class="eb-battle">
+      <a href="/projects/" class="eb-backlink text-sm">← 返回任务日志</a>
+      <h1 class="eb-battle__title">任务：{title}</h1>
+      <p class="eb-ev mt-1">{formatDate(date)} · 我的角色：{role}</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {chips.map((c) => (
+          <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{c}</span>
+        ))}
+      </div>
+      {
+        (videoUrl || demoUrl || planDoc) && (
+          <div class="mt-5 flex flex-wrap gap-3">
+            {videoUrl && <a href={videoUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-solid">▶ 观看演示</a>}
+            {demoUrl && <a href={demoUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-line">{demoLabel ?? '下载 Demo'}</a>}
+            {planDoc && <a href={planDoc} class="eb-btn-line">查看策划案</a>}
+          </div>
+        )
+      }
+    </section>
+
+    {
+      playerUrl && (
+        <div>
+          <iframe src={playerUrl} title={`${title} 演示视频`} class="eb-video" loading="lazy" allowfullscreen allow="fullscreen; accelerometer; encrypted-media; picture-in-picture"></iframe>
+        </div>
+      )
+    }
+
+    {
+      cover && (
+        <img src={cover} alt={`${title} 封面`} class="w-full border-3 border-[var(--eb-frame)]" style="image-rendering: pixelated;" />
+      )
+    }
+
+    <!-- 正文：图鉴纸质卡（保证长文可读） -->
+    <div class="prose-article">
+      <Content />
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,160 @@
+---
+import { siteConfig } from '../site.config';
+
+interface Props {
+  /** 当前页是否 EB 主题（决定是否显示「经典视图」开关） */
+  eb?: boolean;
+}
+const { eb = false } = Astro.props;
+
+const links = [
+  { href: '/', label: '首页' },
+  { href: '/projects/', label: '项目' },
+  { href: '/game-history/', label: '游戏经历' },
+  { href: '/docs/', label: '策划文档' },
+  { href: '/about/', label: '关于我' },
+];
+
+const isActive = (href: string) =>
+  href === '/' ? Astro.url.pathname === '/' : Astro.url.pathname.startsWith(href);
+---
+
+<header class="site-header">
+  <nav class="flex items-center justify-between px-6 py-3 md:justify-end">
+    <!-- 移动端站点名（顶栏左侧，桌面端隐藏） -->
+    <a href="/" class="nav-brand font-pixel text-sm font-bold tracking-wide md:hidden">
+      {siteConfig.name} · 作品集
+    </a>
+    <!-- 桌面导航（贴屏幕最右缘） -->
+    <ul class="hidden items-center gap-1 md:flex">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class:list={[
+                'link-underline font-pixel rounded-md px-3 py-1.5 text-sm transition-colors',
+                isActive(link.href) ? 'font-bold' : '',
+              ]}
+              aria-current={isActive(link.href) ? 'page' : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      {
+        eb && (
+          <li class="ml-1 flex items-center">
+            <button
+              type="button"
+              class="eb-view-toggle link-underline font-pixel rounded-md px-3 py-1.5 text-sm transition-colors"
+            >
+              经典视图
+            </button>
+          </li>
+        )
+      }
+      <li class="ml-2 flex items-center">
+        <a
+          href={siteConfig.resumeUrl}
+          target="_blank"
+          class="rpgui-button golden nav-resume"
+        >
+          <p>简历</p>
+        </a>
+      </li>
+    </ul>
+
+    <!-- 移动端菜单按钮 -->
+    <button
+      id="nav-toggle"
+      type="button"
+      class="ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-[var(--nav-ink)] transition-colors hover:bg-[var(--nav-link-active)]/10 md:hidden"
+      aria-label="打开菜单"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7" />
+        <line x1="4" y1="12" x2="20" y2="12" />
+        <line x1="4" y1="17" x2="20" y2="17" />
+      </svg>
+    </button>
+  </nav>
+
+  <!-- 移动端下拉菜单 -->
+  <div id="mobile-menu" class="hidden border-t-2 border-[#262016] bg-[var(--nav-bg,#b4c586)] px-6 py-4 md:hidden">
+    <ul class="flex flex-col gap-1">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class:list={[
+                'block font-pixel rounded-lg px-3 py-2.5 text-sm transition-colors',
+                isActive(link.href) ? 'bg-[#262016]/10 font-bold' : 'hover:bg-[#262016]/8',
+              ]}
+              aria-current={isActive(link.href) ? 'page' : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      {
+        eb && (
+          <li class="mt-1 flex justify-center">
+            <button
+              type="button"
+              class="eb-view-toggle block font-pixel rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-[#262016]/8"
+            >
+              经典视图
+            </button>
+          </li>
+        )
+      }
+      <li class="mt-2 flex justify-center">
+        <a
+          href={siteConfig.resumeUrl}
+          target="_blank"
+          class="rpgui-button golden nav-resume"
+        >
+          <p>下载简历</p>
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('mobile-menu');
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    });
+  }
+
+  // 经典视图开关（RPG ↔ 纸质）：html 类切换 + localStorage 持久化
+  const viewBtns = document.querySelectorAll('.eb-view-toggle');
+  function syncViewLabel() {
+    const classic = document.documentElement.classList.contains('eb-classic');
+    viewBtns.forEach((b) => {
+      b.textContent = classic ? 'RPG 视图' : '经典视图';
+      b.setAttribute('aria-pressed', String(classic));
+    });
+  }
+  viewBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const classic = document.documentElement.classList.toggle('eb-classic');
+      try {
+        localStorage.setItem('eb-view', classic ? 'classic' : 'eb');
+      } catch {}
+      syncViewLabel();
+    });
+  });
+  syncViewLabel();
+</script>

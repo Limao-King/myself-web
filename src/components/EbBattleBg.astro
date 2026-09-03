@@ -1,0 +1,63 @@
+---
+// EarthBound 战斗背景（earthbound-battle-backgrounds）
+// 懒加载：进入视口（提前 240px 预热）才动态 import；
+// 减少动态（prefers-reduced-motion）时不启动动画循环，只绘制一帧静态画面；
+// 加载失败或浏览器不支持时删除 canvas，由 .eb-battle__stage 的暖色渐变兜底。
+---
+<canvas class="eb-battle__bg" aria-hidden="true"></canvas>
+
+<script>
+  (() => {
+    const canvas = document.querySelector('.eb-battle__bg');
+    if (!canvas) return;
+    const reduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    async function start() {
+      try {
+        const { Engine, BackgroundLayer } = await import('earthbound-battle-backgrounds');
+        const engine = new Engine(
+          [new BackgroundLayer(154), new BackgroundLayer(298)],
+          { canvas }
+        );
+        if (reduced) {
+          // 静态一帧：镜像 animate() 的单帧计算，但不启动 rAF 循环
+          engine.layers[0].entry && !engine.layers[1].entry && ((engine.alpha[0] = 1), (engine.alpha[1] = 0));
+          !engine.layers[0].entry && engine.layers[1].entry && ((engine.alpha[0] = 0), (engine.alpha[1] = 1));
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          canvas.width = 256;
+          canvas.height = 224;
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          let data = img.data;
+          engine.layers.forEach((layer, i) => {
+            data = layer.overlayFrame(data, engine.aspectRatio, engine.tick, engine.alpha[i], i === 0);
+          });
+          img.data.set(data);
+          ctx.putImageData(img, 0, 0);
+        } else {
+          engine.animate();
+        }
+      } catch (err) {
+        canvas.remove();
+      }
+    }
+
+    if (reduced) {
+      start();
+    } else if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            io.disconnect();
+            start();
+          }
+        },
+        { rootMargin: '240px 0px' }
+      );
+      io.observe(canvas);
+    } else {
+      start();
+    }
+  })();
+</script>

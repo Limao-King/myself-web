@@ -1,0 +1,258 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { siteConfig } from '../site.config';
+import { totalGameCount } from '../data/games';
+import EbBattleBg from '../components/EbBattleBg.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const docs = await getCollection('docs');
+const feature = projects.find((p) => p.data.featured) ?? projects[0];
+const otherProjects = projects.filter((p) => p.id !== feature?.id);
+const bvMatch = feature?.data.videoUrl?.match(/BV[0-9A-Za-z]{10}/);
+const playerUrl = bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=0` : null;
+const pickDoc = (id: string) => docs.find((d) => d.id === id);
+const featureDocs = ['bg3', 'fairytale-plan', 'world-timeline'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
+
+const abilities = [
+  { name: '系统设计', ev: '「九大系统策划案」发挥了效果！→', href: `/projects/${feature?.id}/`, value: 86, kind: 'hp' },
+  { name: '数值设计', ev: '「伤害公式 · 成长曲线」发挥了效果！→', href: '/docs/fairytale-plan/', value: 72, kind: 'pp' },
+  { name: '叙事设计', ev: '「世界观 · 剧本 · 对白」发挥了效果！→', href: '/projects/gujie/', value: 90, kind: 'hp' },
+];
+---
+
+<Layout panel={false} theme="eb">
+  <!-- 遭遇战开场 -->
+  <div id="eb-encounter" class="eb-encounter" aria-hidden="true">
+    <p class="eb-encounter__line">招聘方 出现了！</p>
+    <button id="eb-start" type="button" class="eb-start">▶ PRESS START</button>
+  </div>
+
+  <div class="flex flex-col gap-6">
+    <!-- Hero 对话窗 -->
+    <section class="eb-window">
+      <p class="eb-pixel">你好！我是 {siteConfig.name} · 求职意向：</p>
+      <h1 class="eb-title">{siteConfig.hero.role}</h1>
+      <p class="eb-body">{siteConfig.hero.tagline}</p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href={`/projects/${feature?.id}/`} class="eb-btn-solid">▶ 查看代表项目</a>
+        <a href={siteConfig.resumeUrl} target="_blank" class="eb-btn-line">下载简历</a>
+      </div>
+    </section>
+
+    <!-- 能力：角色状态栏 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 明鑫 的状态栏</h2>
+      <div class="mt-4 grid gap-5 sm:grid-cols-3">
+        {abilities.map((a) => (
+          <a href={a.href} class="eb-stat block">
+            <div class="flex items-baseline justify-between">
+              <span class="eb-stat__name">{a.name}</span>
+              <span class="eb-stat__num">{a.value}</span>
+            </div>
+            <div class="eb-stat__bar" aria-hidden="true"><span class={`eb-stat__fill ${a.kind}`} style={`width:${a.value}%`}></span></div>
+            <span class="eb-ev">{a.ev}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- 代表项目：BOSS 战 -->
+    {
+      feature && (
+        <section class="eb-battle">
+          <h2 class="eb-battle__title">{feature.data.title}</h2>
+          <div id="eb-battle-swap" class="eb-swap">
+            <div class="eb-battle__stage eb-swap__pane is-active" data-slot="stage">
+              <EbBattleBg />
+              <img src={feature.data.cover ?? '/images/projects/fairytale/01-title.jpg'} alt={feature.data.title} class="eb-battle__enemy" style="image-rendering: pixelated;" />
+            </div>
+            {
+              playerUrl && (
+                <div class="eb-battle__video eb-swap__pane" data-slot="video">
+                  <p class="eb-swap__loading" aria-hidden="true">正在召唤演示视频…</p>
+                  <iframe data-src={playerUrl} title="童话冒险 DEMO 演示视频" class="eb-video" allowfullscreen allow="fullscreen; accelerometer; encrypted-media; picture-in-picture"></iframe>
+                </div>
+              )
+            }
+            <div class="eb-swap__flash" aria-hidden="true"></div>
+          </div>
+          {
+            (playerUrl || feature.data.demoUrl) && (
+              <p class="eb-hint mt-3" id="eb-hint">
+                <a
+                  id="eb-play-cta"
+                  class="eb-btn-solid eb-hint__play"
+                  href={feature.data.demoUrl ?? `/projects/${feature.id}/`}
+                  target={feature.data.demoUrl ? '_blank' : undefined}
+                  rel={feature.data.demoUrl ? 'noopener' : undefined}
+                  data-slot-active="stage"
+                >
+                  ▶ 直接打一场试试
+                </a>
+                {
+                  playerUrl && (
+                    <>
+                      <span class="eb-hint__sep" aria-hidden="true">/</span>
+                      <button id="eb-video-toggle" type="button" class="eb-btn-line eb-hint__watch" data-slot-active="stage">
+                        或者——观看演示视频
+                      </button>
+                      <span class="eb-hint__arrow" aria-hidden="true">
+                        <span class="eb-hint__line"></span>
+                        <span class="eb-hint__tip"></span>
+                      </span>
+                    </>
+                  )
+                }
+              </p>
+            )
+          }
+          <p class="eb-dialog mt-3">野生的 可玩 Demo 跳了出来！—— 回合制 JRPG 序章，战斗、探索、装备、存档系统可运行。</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <a href={`/projects/${feature.id}/`} class="eb-btn-solid">▶ 查看完整项目</a>
+            {feature.data.demoUrl && <a href={feature.data.demoUrl} target="_blank" class="eb-btn-line">{feature.data.demoLabel ?? '下载 Demo'}</a>}
+            <a href="/docs/fairytale-plan/" class="eb-btn-line">查看策划案</a>
+          </div>
+        </section>
+      )
+    }
+
+    <!-- 其他项目：任务日志 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 任务日志（其他项目）</h2>
+      <div class="mt-3 space-y-3">
+        {otherProjects.map((p) => (
+          <a href={`/projects/${p.id}/`} class="eb-log-row">
+            <span class="eb-body">{p.data.title}</span>
+            <span class="eb-ev">{p.data.type} · {p.data.role}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- 代表策划文档：图鉴 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 图鉴（代表策划文档）</h2>
+      <p class="eb-pixel mt-1 text-sm">剧本文档收集度 <span id="eb-collect">0</span>/8（剧本 · 对白，看一篇算一篇）</p>
+      <div class="mt-3 space-y-3">
+        {featureDocs.map((d) => (
+          <a href={`/docs/${d.id}/`} class="eb-log-row">
+            <span class="eb-body"><span class="mr-2 rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{d.data.category}</span>{d.data.title}</span>
+            <span class="eb-ev">查看 →</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- 游戏经历：冒险记录 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 至今的冒险（游戏经历）</h2>
+      <p class="eb-dialog mt-2">已收集图鉴 <span class="eb-pixel">{totalGameCount}</span> 款游戏，累计 6000+ 小时 —— 回合制战斗、资源压力、分支叙事、任务结构是我的长期关注。</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {['回合制战斗', '资源与压力系统', '分支叙事', '任务结构', '环境交互'].map((t) => (
+          <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
+        ))}
+      </div>
+      <p class="mt-4 eb-ev"><a href="/game-history/" class="eb-link">打开完整图鉴 →</a></p>
+    </section>
+
+    <!-- CTA：入队事件 -->
+    <section class="eb-window">
+      <p class="eb-dialog text-center">要让 明鑫 加入队伍吗？</p>
+      <div class="mt-4 flex flex-wrap justify-center gap-3">
+        <a href={siteConfig.resumeUrl} target="_blank" class="eb-btn-solid">▶ 要（下载简历）</a>
+        <button id="eb-no" type="button" class="eb-btn-line">不要</button>
+        <a href={`mailto:${siteConfig.email}`} class="eb-btn-line">直接联系</a>
+      </div>
+      <p id="eb-no-msg" class="eb-dialog mt-3 text-center" hidden>……那太遗憾了。（那就看看项目吧 → <a href="/projects/" class="eb-link">任务日志</a>）</p>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  const el = document.getElementById('eb-encounter');
+  const skip =
+    localStorage.getItem('eb-seen') === '1' ||
+    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (el && skip) el.remove();
+  const start = document.getElementById('eb-start');
+  if (el && start) {
+    const dismiss = () => {
+      el.classList.add('is-leaving');
+      localStorage.setItem('eb-seen', '1');
+      setTimeout(() => el.remove(), 700);
+    };
+    start.addEventListener('click', dismiss);
+    document.addEventListener('keydown', dismiss, { once: true });
+    setTimeout(dismiss, 3000);
+  }
+  const noBtn = document.getElementById('eb-no');
+  const noMsg = document.getElementById('eb-no-msg');
+  noBtn?.addEventListener('click', () => { noMsg.hidden = false; noBtn.disabled = true; });
+
+  // BOSS 战：标题画面 ⇄ 演示视频（闪光过场 + 交叉淡入淡出 + 互斥：彻底卸载前一个媒体的 DOM/音频）
+  const swapBox = document.getElementById('eb-battle-swap');
+  const videoTog = document.getElementById('eb-video-toggle');
+  const hintBox = document.getElementById('eb-hint');
+  const playCta = document.getElementById('eb-play-cta');
+  if (swapBox && videoTog) {
+    const stage = swapBox.querySelector('[data-slot="stage"]');
+    const video = swapBox.querySelector('[data-slot="video"]');
+    const iframe = video?.querySelector('iframe');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let busy = false;
+    // 彻底停掉视频：把 iframe 的 src 拆掉会让 B 站播放器内嵌的 video/audio 元素随 DOM 一并销毁，音频必停
+    const killVideo = () => { if (iframe) iframe.removeAttribute('src'); };
+    // 反向保险：若未来嵌入 Godot web demo，调用 window.postMessage + iframe.contentWindow 派发停止信号
+    const pauseGodot = () => {
+      try { iframe?.contentWindow?.postMessage({ type: 'pause' }, '*'); } catch {}
+    };
+    const doSwap = (showVideo) => {
+      if (showVideo) {
+        // 切入视频：先挂 src 让 B 站重建播放器，再翻面板
+        if (iframe && !iframe.src) iframe.src = iframe.dataset.src;
+        stage.classList.remove('is-active');
+        video.classList.add('is-active');
+        videoTog.textContent = '← 返回标题画面';
+        // 视频态：隐藏「直接打一场试试」CTA（避免和视频内容互斥时还在自我矛盾）
+        if (playCta) playCta.style.display = 'none';
+        // 也隐藏提示行的 / 与流动箭头（只剩"返回"按钮，干净）
+        if (hintBox) hintBox.classList.add('is-video');
+      } else {
+        // 切回舞台：先拆 iframe src 把 B 站播放器和音频一起干掉，再翻面板
+        killVideo();
+        video.classList.remove('is-active');
+        stage.classList.add('is-active');
+        videoTog.textContent = '或者——观看演示视频';
+        // 试玩态：恢复所有元素
+        if (playCta) playCta.style.display = '';
+        if (hintBox) hintBox.classList.remove('is-video');
+      }
+    };
+    videoTog.addEventListener('click', () => {
+      if (busy) return;
+      busy = true;
+      const showVideo = !video.classList.contains('is-active');
+      if (reduce) {
+        doSwap(showVideo);
+        busy = false;
+      } else {
+        swapBox.classList.add('is-swapping');
+        setTimeout(() => doSwap(showVideo), 140); // 闪光最亮的一瞬完成切换 + 旧媒体销毁
+        setTimeout(() => { swapBox.classList.remove('is-swapping'); busy = false; }, 400);
+      }
+    });
+    // 离开页面/切经典视图时也清掉音频
+    window.addEventListener('pagehide', killVideo);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) killVideo(); });
+    // 经典视图开关（根 html 上有 .eb-classic 类）
+    const classicObserver = new MutationObserver(() => {
+      if (document.documentElement.classList.contains('eb-classic')) killVideo();
+    });
+    classicObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    // 视频若嵌入的是 Godot web demo，每 800ms 探测一次 iframedoc 状态，确保不残留 audio 上下文
+    setInterval(() => {
+      if (iframe?.src && video.classList.contains('is-active')) pauseGodot();
+    }, 800);
+  }
+</script>

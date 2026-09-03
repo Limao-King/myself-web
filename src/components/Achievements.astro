@@ -1,0 +1,105 @@
+---
+// 成就系统彩蛋（v2 4.7）：
+// 下载简历 → 「获得了 简历.pdf ×1！」；看完三个项目 → 「成就解锁：尽职调查」；
+// EXP 满级（滚到底）→ 「明鑫 升到了 Lv.5！……好像学会了「独立制作」！」；
+// 剧本文档收集度 n/8（剧本 ×5 + 对白 ×3，看一篇算一篇）。
+// localStorage 键 eb-achv 持久记录；所有监听随 ClientRouter 切换存活。
+---
+<div id="eb-toast" class="eb-toast" role="status" aria-live="polite"></div>
+
+<script>
+  const STORE = 'eb-achv';
+  // 8 篇剧本文档：剧本 5 + 对白 3
+  const LIBRARY = [
+    'huan-tazhenming', 'jinchuan', 'keluomi', 'nanliang', 'three-pigs',
+    'dialogue-fantasy-power', 'dialogue-home-outside', 'dialogue-prologue',
+  ];
+
+  const read = () => {
+    try {
+      return JSON.parse(localStorage.getItem(STORE)) || {};
+    } catch {
+      return {};
+    }
+  };
+  const write = (v) => {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(v));
+    } catch {
+      /* 隐私模式等场景静默失败 */
+    }
+  };
+
+  function toast(text) {
+    const box = document.getElementById('eb-toast');
+    if (!box) return;
+    const item = document.createElement('div');
+    item.className = 'eb-toast__item';
+    item.textContent = text;
+    box.appendChild(item);
+    requestAnimationFrame(() => item.classList.add('is-show'));
+    setTimeout(() => {
+      item.classList.remove('is-show');
+      setTimeout(() => item.remove(), 320);
+    }, 2000);
+  }
+
+  function fire(key, text) {
+    const s = read();
+    if (s[key]) return;
+    s[key] = true;
+    write(s);
+    toast(text);
+  }
+
+  function record(key, val) {
+    const s = read();
+    const arr = s[key] || [];
+    if (!arr.includes(val)) {
+      arr.push(val);
+      s[key] = arr;
+      write(s);
+    }
+    return s;
+  }
+
+  // 1) 下载简历（document 级委托，ClientRouter 切换后依然生效）
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href$="resume.pdf"]');
+    if (a) fire('resume', '获得了 简历.pdf ×1！');
+  });
+
+  // 2) 看过三个项目页 / 3) 剧本文档收集度 / 4) 首页滚到底升 Lv.5
+  let lv5Bound = false;
+  function bindLv5() {
+    // 仅首页（BOSS 战舞台）：EXP 满级才算升到 Lv.5
+    if (lv5Bound || !document.querySelector('.eb-battle__stage')) return;
+    lv5Bound = true;
+    const check = () => {
+      const el = document.documentElement;
+      const max = el.scrollHeight - el.clientHeight;
+      if (max > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 8) {
+        fire('lv5', '明鑫 升到了 Lv.5！……好像学会了「独立制作」！');
+        window.removeEventListener('scroll', check);
+      }
+    };
+    window.addEventListener('scroll', check, { passive: true });
+    check();
+  }
+
+  function trackPage() {
+    const pm = location.pathname.match(/^\/projects\/([^/]+)\//);
+    if (pm) {
+      record('projects', pm[1]);
+      if ((read().projects || []).length >= 3) fire('dueDiligence', '成就解锁：尽职调查');
+    }
+    const dm = location.pathname.match(/^\/docs\/([^/]+)\//);
+    if (dm && LIBRARY.includes(dm[1])) record('library', dm[1]);
+    const collect = document.getElementById('eb-collect');
+    if (collect) collect.textContent = String((read().library || []).length);
+    bindLv5();
+  }
+
+  trackPage();
+  document.addEventListener('astro:after-swap', trackPage);
+</script>

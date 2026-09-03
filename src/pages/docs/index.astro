@@ -1,0 +1,178 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Card from '../../components/Card.astro';
+import Reveal from '../../components/Reveal.astro';
+import { getCollection } from 'astro:content';
+import { formatDate } from '../../utils/format';
+import { siteConfig } from '../../site.config';
+
+const docs = (await getCollection('docs')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+const byCategory = (c: string) => docs.filter((d) => d.data.category === c);
+
+const pinned = [
+  { title: '拆解案', desc: '分析他人作品的设计逻辑', items: byCategory('拆解案') },
+  { title: '策划案', desc: '我主导的完整设计案', items: byCategory('策划案') },
+];
+
+const writingGroups = [
+  { subtitle: '剧本', items: byCategory('剧本') },
+  { subtitle: '对白', items: byCategory('对白') },
+  { subtitle: '世界观', items: byCategory('世界观') },
+];
+---
+
+<Layout title="策划文档" description="拆解案、策划案、剧本、对白与世界观文档">
+  <div class="py-12">
+    <Reveal>
+      <SectionHeading
+        as="h1"
+        title="策划文档"
+        description="拆解案与策划案置顶，剧本 / 对白 / 世界观归为「剧本文档」一类。"
+      />
+    </Reveal>
+
+    <!-- 轻量筛选：关键词 + 类型 -->
+    <Reveal delay={20}>
+      <div class="mb-8">
+        <input
+          id="doc-search"
+          type="search"
+          placeholder="搜索文档标题 / 摘要 / 标签…"
+          class="w-full max-w-sm rounded-lg border-2 border-[#262016] bg-white px-3 py-2 text-sm text-[#262016] outline-none focus:border-[#4c8a30]"
+          aria-label="搜索文档"
+        />
+        <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="按类型筛选文档">
+          <button type="button" data-filter-type="all" class="filter-chip is-active">全部</button>
+          {['拆解案', '策划案', '剧本', '对白', '世界观'].map((t) => (
+            <button type="button" data-filter-type={t} class="filter-chip">{t}</button>
+          ))}
+        </div>
+      </div>
+    </Reveal>
+    <Reveal delay={40}>
+      <a
+        href={siteConfig.downloadUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mb-10 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-neutral-700 bg-neutral-900 p-5 transition-colors hover:border-violet-500/60"
+      >
+        <div>
+          <p class="font-pixel text-base text-neutral-100">全部文档 & Demo 打包下载</p>
+          <p class="mt-1 text-xs text-neutral-400">
+            单篇文档建议直接在线预览；网盘仅作全部资料打包的备用入口（提取码 {siteConfig.downloadPwd}）
+          </p>
+        </div>
+        <span class="btn-white">前往下载 →</span>
+      </a>
+    </Reveal>
+
+    <!-- 置顶：拆解案 + 策划案 -->
+    {
+      pinned.map((group, gi) =>
+        group.items.length > 0 ? (
+          <Reveal delay={gi * 80}>
+            <section class="mb-10">
+              <h2 class="mb-1 flex items-center gap-3 text-xl font-bold text-neutral-100">
+                <span class="inline-block h-4 w-1.5 bg-violet-500" aria-hidden="true"></span>
+                {group.title}
+              </h2>
+              <p class="mb-4 pl-[1.125rem] text-sm text-neutral-400">{group.desc}</p>
+              <div class="grid gap-5 sm:grid-cols-2">
+                {
+                  group.items.map((d) => (
+                    <div class="doc-item" data-type={d.data.category} data-text={`${d.data.title} ${d.data.summary} ${d.data.tags.join(' ')} ${d.data.kind ?? ''}`}>
+                      <Card
+                        href={`/docs/${d.id}/`}
+                        title={d.data.title}
+                        meta={formatDate(d.data.date)}
+                        summary={d.data.summary}
+                        tags={d.data.tags}
+                      />
+                    </div>
+                  ))
+                }
+              </div>
+            </section>
+          </Reveal>
+        ) : null
+      )
+    }
+
+    <!-- 剧本文档 -->
+    <Reveal delay={160}>
+      <section>
+        <h2 class="mb-1 flex items-center gap-3 text-xl font-bold text-neutral-100">
+          <span class="inline-block h-4 w-1.5 bg-violet-500" aria-hidden="true"></span>
+          剧本文档
+        </h2>
+        <p class="mb-5 pl-[1.125rem] text-sm text-neutral-400">剧本 · 对白 · 世界观</p>
+
+        <div class="space-y-8">
+          {
+            writingGroups.map((group) =>
+              group.items.length > 0 ? (
+                <div>
+                  <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                    {group.subtitle}
+                    <span class="ml-2 font-normal normal-case text-neutral-500">（{group.items.length} 篇）</span>
+                  </h3>
+                  <div class="grid gap-5 sm:grid-cols-2">
+                    {
+                      group.items.map((d) => (
+                        <div class="doc-item" data-type={d.data.category} data-text={`${d.data.title} ${d.data.summary} ${d.data.tags.join(' ')} ${d.data.kind ?? ''}`}>
+                          <Card
+                            href={`/docs/${d.id}/`}
+                            title={d.data.title}
+                            meta={d.data.kind ? `${d.data.kind} · ${formatDate(d.data.date)}` : formatDate(d.data.date)}
+                            summary={d.data.summary}
+                            tags={d.data.tags}
+                          />
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              ) : null
+            )
+          }
+        </div>
+      </section>
+    </Reveal>
+
+    {
+      docs.length === 0 && (
+        <p class="text-sm text-neutral-500">
+          还没有文档。新建一个 .md 放进 <code class="text-green-text">src/content/docs/</code> 即可显示。
+        </p>
+      )
+    }
+  </div>
+</Layout>
+
+<script>
+  const input = document.getElementById('doc-search');
+  const btns = document.querySelectorAll('[data-filter-type]');
+  let curType = 'all';
+
+  function apply() {
+    const kw = (input?.value || '').trim().toLowerCase();
+    document.querySelectorAll('.doc-item').forEach((el) => {
+      const okType = curType === 'all' || el.dataset.type === curType;
+      const okKw = !kw || (el.dataset.text || '').toLowerCase().includes(kw);
+      el.style.display = okType && okKw ? '' : 'none';
+    });
+  }
+
+  input?.addEventListener('input', apply);
+  btns.forEach((b) =>
+    b.addEventListener('click', () => {
+      curType = b.dataset.filterType;
+      btns.forEach((x) => x.classList.toggle('is-active', x === b));
+      apply();
+    })
+  );
+</script>

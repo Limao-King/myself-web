@@ -1,0 +1,123 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { gameCategories, totalGameCount, commentedGameCount, findGame } from '../data/games';
+
+const highlightNames = ['博德之门3', '极乐迪斯科', '暗黑地牢系列'];
+const highlights = highlightNames
+  .map((n) => findGame(n))
+  .filter((g): g is NonNullable<typeof g> => Boolean(g?.comment));
+
+const focusTags = ['回合制战斗', '资源与压力系统', '分支叙事', '任务结构', '环境交互', '行动经济'];
+---
+
+<Layout panel={false} theme="eb" title="游戏经历" description="我的游戏履历与游戏理解">
+  <div class="flex flex-col gap-6">
+    <!-- 头部 -->
+    <section class="eb-window">
+      <h1 class="eb-window__title">◆ 游戏经历</h1>
+      <p class="eb-dialog mt-2">
+        累计单机游戏 <span class="eb-pixel">{totalGameCount}</span> 款 · 6000+ 小时。
+        鼠标扫过图鉴，点亮每个类别下的游戏；带 <span class="eb-pixel">✦</span> 的悬停可见点评。
+      </p>
+    </section>
+
+    <!-- 长期关注 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 我长期关注的设计命题</h2>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {focusTags.map((t) => (
+          <span style="background:#1f140d;color:var(--eb-frame)" class="rounded px-2 py-1 text-xs">
+            {t}
+          </span>
+        ))}
+      </div>
+      <p class="eb-dialog mt-3 text-xs">
+        把「玩得多」翻译成「会分析」—— 这些命题是拆解案与策划案反复回到的核心。
+      </p>
+    </section>
+
+    <!-- 深度理解 · 评述摘选 -->
+    {
+      highlights.length > 0 && (
+        <section class="eb-window">
+          <h2 class="eb-window__title">◆ 深度理解 · 评述摘选</h2>
+          <p class="eb-dialog mt-1 text-xs">共 {commentedGameCount} 款带深度评述。</p>
+          <div class="mt-3 grid gap-3 sm:grid-cols-3">
+            {highlights.map((g) => (
+              <div
+                class="rounded-lg p-4"
+                style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
+              >
+                <p class="flex items-baseline justify-between gap-2">
+                  <span class="eb-pixel">{g.name}</span>
+                  {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
+                </p>
+                <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- 图鉴扫描 -->
+    <section class="eb-window">
+      <h2 class="eb-window__title">◆ 图鉴扫描</h2>
+      <div id="scan-area" class="game-scan mt-3">
+        <div id="scan-light" class="game-scan__light" aria-hidden="true"></div>
+        <div class="space-y-8">
+          {
+            gameCategories.map((cat) => (
+              <div>
+                <p class="mb-3 flex items-center gap-3">
+                  <span class="eb-pixel text-base" style="color:#262016">{cat.title}</span>
+                  <span class="text-xs" style="color:#6b5a3e">
+                    （{cat.groups.reduce((s, g) => s + g.items.length, 0)} 款）
+                  </span>
+                </p>
+
+                {
+                  cat.groups.map((g) => (
+                    <div class="mb-3">
+                      {g.subtitle && <p class="mb-2 text-xs font-semibold uppercase tracking-wide" style="color:#6b5a3e">{g.subtitle}</p>}
+                      <div class="flex flex-wrap gap-2">
+                        {g.items.map((item) => (
+                          <button
+                            type="button"
+                            class="game-chip"
+                            data-tip={item.comment}
+                            aria-label={item.comment ? `${item.name}：${item.comment}` : item.name}
+                          >
+                            {item.name}
+                            {item.hours && <span class="game-chip__hours">{item.hours}h</span>}
+                            {item.comment && <span class="game-chip__mark" aria-hidden="true">✦</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  const area = document.getElementById('scan-area');
+  const light = document.getElementById('scan-light');
+  if (area && light) {
+    area.addEventListener('mousemove', (e) => {
+      const r = area.getBoundingClientRect();
+      light.style.left = `${e.clientX - r.left}px`;
+      light.style.top = `${e.clientY - r.top}px`;
+      light.style.opacity = '1';
+    });
+    area.addEventListener('mouseleave', () => {
+      light.style.opacity = '0';
+    });
+  }
+</script>
