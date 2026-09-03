@@ -250,6 +250,16 @@ export const gameCategories: GameCategory[] = [
         items: [{ name: '揍击派对' }, { name: '大骗局（诈欺娇娃）' }],
       },
       {
+        subtitle: '网络游戏',
+        items: [
+          { name: '燕云十六声', hours: '150' },
+          { name: '剑与远征', hours: '50' },
+          { name: '少年三国志' },
+          { name: '君临天下' },
+          { name: '部落冲突系列' },
+        ],
+      },
+      {
         subtitle: '其他',
         items: [
           { name: '王国：80年代' },
