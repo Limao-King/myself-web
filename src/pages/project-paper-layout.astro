@@ -1,0 +1,208 @@
+---
+// 预览：项目页「叠纸互动区 + 切割式常规日志」完整版面
+// 顶部：4 张项目纸叠在小长方形版面，悬停可翻出；标题大字「翻一张项目看看？」
+// 底部：常规任务日志，按项目文字多少切割卡片高度，刚好填满；标题「或者想要常规一点地阅览」
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>项目页 · 叠纸 + 切割日志 · 版面预览</title>
+  <style>
+    :root {
+      --ink:#262016; --paper:#f6efdb; --frame:#f8f8d8; --line:#cbb890;
+      --brown:#785028; --orange:#e88858; --green-line:#b7d96a;
+      --bg:#708650;
+    }
+    * { box-sizing:border-box; margin:0; }
+    body { background:var(--bg); color:var(--ink); font-family:"MiSans","PingFang SC","Microsoft YaHei",sans-serif; padding:40px 0 80px; }
+    .px { font-family:"FusionPixel",ui-monospace,monospace; }
+    a { color:inherit; text-decoration:none; }
+    .wrap { width:min(1040px,calc(100% - 40px)); margin:0 auto; }
+
+    /* ========== 顶部：叠纸互动区 ========== */
+    .paper-zone {
+      position:relative;
+      background:#e8e0c8;              /* 奶油纸垫：一叠纸下面垫着的卡纸底板，融入主体而非突兀深绿 */
+      border:4px solid var(--ink);
+      border-radius:12px;
+      box-shadow:0 0 0 3px var(--frame), 10px 10px 0 rgba(0,0,0,.24);
+      padding:30px 28px 38px;
+      overflow:hidden;
+    }
+    .paper-zone__title {
+      font-family:"FusionPixel";
+      font-size:clamp(1.6rem,3.4vw,2.4rem);
+      color:var(--ink);                 /* 奶油底上用深字，融化进主体 */
+      text-shadow:none;
+      letter-spacing:.04em;
+      text-align:center;
+      margin-bottom:26px;
+    }
+    .paper-zone__hint { font-family:"FusionPixel"; font-size:.72rem; color:#6b5a3e; text-align:center; margin-top:14px; letter-spacing:.08em; }
+    /* 纸垫上的细网格纹理（像垫纸） */
+    .paper-zone { background-image:repeating-linear-gradient(90deg, rgba(120,80,40,.06) 0 1px, transparent 1px 24px), repeating-linear-gradient(0deg, rgba(120,80,40,.06) 0 1px, transparent 1px 24px), linear-gradient(#e8e0c8,#e8e0c8); }
+
+    /* 叠纸堆：在一个较小长方形内高交叠 */
+    .stack {
+      position:relative;
+      max-width:880px; height:470px;
+      margin:0 auto;
+    }
+    /* 记录纸：横线纸 + 顶部折角，交叠露出一点 */
+    .note {
+      position:absolute;
+      width:min(440px,72%);
+      padding:26px 28px 22px;
+      border:3px solid var(--ink);
+      border-radius:3px;
+      background:
+        linear-gradient(transparent 0 28px, rgba(0,0,0,.05) 28px 29px),
+        repeating-linear-gradient(0deg, rgba(203,184,144,.6) 0 1px, transparent 1px 28px),
+        var(--paper);
+      box-shadow:0 0 0 2px var(--frame), 12px 12px 0 rgba(0,0,0,.32);
+      transform:rotate(var(--r,0deg));
+      transition:transform .5s cubic-bezier(.2,1,.3,1), box-shadow .5s, z-index 0s;
+      z-index:calc(var(--z,1));
+      cursor:pointer;
+    }
+    .note:after { content:""; position:absolute; right:0; top:0; width:24px; height:24px;
+      background:linear-gradient(135deg, var(--paper) 50%, rgba(0,0,0,.13) 50%);
+      border-left:2px solid rgba(0,0,0,.12); }
+    .note:hover {
+      transform:rotate(0deg) translateY(-12px) scale(1.05);
+      box-shadow:0 0 0 2px var(--frame), 28px 28px 0 rgba(0,0,0,.26);
+      z-index:99;
+    }
+    .note em { font-family:"FusionPixel"; font-size:.6rem; letter-spacing:.12em; color:var(--brown); }
+    .note h3 { font-size:1.5rem; font-weight:900; line-height:1.05; margin:.5rem 0 .5rem; }
+    .note .meta { font-family:"FusionPixel"; font-size:.68rem; color:#6b5a3e; margin-bottom:.7rem; }
+    .note p { font-size:.84rem; line-height:1.65; opacity:.94; }
+    .note .cta { font-family:"FusionPixel"; font-size:.7rem; color:var(--orange); display:block; margin-top:1rem; }
+
+    /* 高度交叠：每张只露出 ~25%，压住前一张大半 */
+    .n1 { --r:-4deg;  top:8px;   left:4%;   --z:1; }
+    .n2 { --r:3deg;   top:52px;  left:27%;  --z:2; }
+    .n3 { --r:-2deg;  top:100px; left:50%;  --z:3; }
+    .n4 { --r:4deg;   top:150px; left:36%;  --z:4; }
+
+    /* ========== 下方：切割式常规任务日志 ========== */
+    .log-zone { margin-top:48px; }
+    .log-zone__title {
+      font-family:"FusionPixel"; font-size:clamp(1.2rem,2.6vw,1.7rem);
+      color:var(--frame); text-shadow:2px 2px 0 var(--ink); margin-bottom:22px;
+    }
+    .log-zone__title small { display:block; font-family:"MiSans"; font-size:.85rem; color:#cfe0b8; text-shadow:none; margin-top:6px; font-weight:400; letter-spacing:0; }
+    /* 切割式网格：项目内容多的高一点，少的矮一点，主板区不至于太空 */
+    .log-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:stretch; }
+    /* 原站主板（.eb-stat）夹心框：暖奶油 #ecead3 + 2px 深褐单线，垫在卡片后 */
+    .log-card {
+      background:#ecead3;
+      border:2px solid #262016;
+      border-radius:4px;
+      padding:22px 24px;
+      display:flex; flex-direction:column; gap:12px;
+      transition:transform .3s;
+    }
+    .log-card:hover { transform:translateY(-3px); }
+    /* 封面图：像素风，保留项目封面 */
+    .log-card__cover { width:100%; border:2px solid #262016; border-radius:3px; image-rendering:pixelated; object-fit:cover; max-height:190px; }
+    .log-card em { font-family:"FusionPixel"; font-size:.62rem; letter-spacing:.12em; color:var(--brown); }
+    .log-card h3 { font-size:1.5rem; font-weight:900; line-height:1.1; }
+    .log-card .meta { font-family:"FusionPixel"; font-size:.68rem; color:#6b5a3e; }
+    .log-card p { font-size:.85rem; line-height:1.7; opacity:.94; flex:1; }
+    .log-card .foot { display:flex; align-items:center; justify-content:space-between; margin-top:auto; }
+    .log-card .tags { display:flex; flex-wrap:wrap; gap:6px; }
+    .log-card .tag { font-family:"FusionPixel"; font-size:.6rem; background:var(--ink); color:var(--frame); padding:3px 8px; border-radius:3px; }
+    .log-card .cta { font-family:"FusionPixel"; font-size:.72rem; color:var(--orange); }
+
+    @media (max-width:720px){
+      .log-grid{grid-template-columns:1fr;}
+      .stack{height:640px;}
+      .note{width:82%;}
+      .n2{left:12%;}
+      .n3{left:14%;}
+      .n4{left:18%;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 顶部叠纸互动区 -->
+    <section class="paper-zone">
+      <h2 class="paper-zone__title">▍翻一张项目看看？</h2>
+      <div class="stack">
+        <a class="note n1" href="#">
+          <em>QUEST / 01</em>
+          <h3>童话冒险 DEMO</h3>
+          <div class="meta px">2026 · 独立游戏 · 制作人/主策划</div>
+          <p>回合制 JRPG 序章：战斗、装备、队伍、背包、存档、商店，Godot 可运行原型。</p>
+          <span class="cta">▶ 查看详情</span>
+        </a>
+        <a class="note n2" href="#">
+          <em>QUEST / 02</em>
+          <h3>唤她真名</h3>
+          <div class="meta px">2026 · 动画电影剧本 · 组长/编剧</div>
+          <p>心理悬疑 × 民俗童话动画电影剧本（120 分钟），组长，负责结局撰写。后续《童话冒险》化用了此世界观。</p>
+          <span class="cta">▶ 查看详情</span>
+        </a>
+        <a class="note n3" href="#">
+          <em>QUEST / 03</em>
+          <h3>上元古界</h3>
+          <div class="meta px">2019 · 开放世界世界观 · 主策划</div>
+          <p>体素风国风世界观开放世界 RPG，主导世界观构建与多角色主线剧情。</p>
+          <span class="cta">▶ 查看详情</span>
+        </a>
+        <a class="note n4" href="#">
+          <em>QUEST / 04</em>
+          <h3>乱世三国</h3>
+          <div class="meta px">2017 · Minecraft 地图 · 主制作</div>
+          <p>大型线性 RPG 地图，30 关，职业与身份系统；10 万+ 浏览、3000 下载。</p>
+          <span class="cta">▶ 查看详情</span>
+        </a>
+      </div>
+      <p class="paper-zone__hint px">悬停某张纸，把它抽出来翻看</p>
+    </section>
+
+    <!-- 下方常规任务日志 -->
+    <section class="log-zone">
+      <h2 class="log-zone__title">▍或者想要常规一点地阅览<small>按项目内容多少，卡片大小自动贴合，刚好铺满</small></h2>
+      <div class="log-grid">
+        <a class="log-card" href="#">
+          <img class="log-card__cover" src="/images/projects/fairytale/01-title.jpg" alt="童话冒险封面" />
+          <em>QUEST / 01</em>
+          <h3>童话冒险 DEMO</h3>
+          <div class="meta px">2026 · 独立游戏 · 制作人/主策划</div>
+          <p>用 Godot + AI 辅助编程独立完成的可玩回合制 JRPG 序章：战斗、装备、队伍、背包、存档、商店系统，并实际填充主线剧情与事件。</p>
+          <div class="foot"><div class="tags"><span class="tag">JRPG</span><span class="tag">回合制</span></div><span class="cta">查看详情 →</span></div>
+        </a>
+        <a class="log-card" href="#">
+          <img class="log-card__cover" src="/images/projects/huanzhenming/bl.jpg" alt="唤她真名封面" />
+          <em>QUEST / 02</em>
+          <h3>唤她真名</h3>
+          <div class="meta px">2026 · 动画电影剧本 · 组长/编剧</div>
+          <p>作为组长撰写完整梗概，按电影理论迭代并负责结局（12、13 节）撰写；后续《童话冒险》化用了此世界观。</p>
+          <div class="foot"><div class="tags"><span class="tag">剧本</span><span class="tag">组长</span></div><span class="cta">查看详情 →</span></div>
+        </a>
+        <a class="log-card" href="#">
+          <img class="log-card__cover" src="/images/projects/gujie/overview.jpg" alt="上元古界封面" />
+          <em>QUEST / 03</em>
+          <h3>上元古界</h3>
+          <div class="meta px">2019 · 开放世界世界观 · 主策划</div>
+          <p>体素风国风世界观开放世界 RPG，主导世界观构建与多角色主线剧情撰写；因团队与学业压力未完成，沉淀了策划文档规范意识。</p>
+          <div class="foot"><div class="tags"><span class="tag">世界观</span><span class="tag">主策划</span></div><span class="cta">查看详情 →</span></div>
+        </a>
+        <a class="log-card" href="#">
+          <img class="log-card__cover" src="/images/projects/sanguo/cover.jpg" alt="乱世三国封面" />
+          <em>QUEST / 04</em>
+          <h3>乱世三国</h3>
+          <div class="meta px">2017 · Minecraft 地图 · 主制作</div>
+          <p>大型线性 RPG 地图 · 30 关主线 + 支线小游戏；职业与身份系统；论坛帖子 10 万+ 点击、3000 下载。</p>
+          <div class="foot"><div class="tags"><span class="tag">Minecraft</span><span class="tag">主制作</span></div><span class="cta">查看详情 →</span></div>
+        </a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

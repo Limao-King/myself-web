@@ -1,0 +1,10 @@
+name = "fairytale-game"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+[[r2_buckets]]
+binding = "MY_GAME_BUCKET"
+bucket_name = "myself-web-game"
+
+[observability]
+enabled = true

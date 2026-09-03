@@ -521,10 +521,27 @@ h2 {
 
 .prose-article pre code {
   @apply bg-transparent p-0 text-neutral-200;
+  /* 强制 pre 内代码为浅色，防止被 .prose-article code 的深色文字规则覆盖（深底上会看不清） */
+  color: #e1e4e8 !important;
 }
 
 .prose-article img {
   @apply my-6 rounded-xl border border-neutral-700 max-w-full;
+  /* 长图（流程图/示意）默认收窄，避免撑满整屏；可点击查看原图 */
+  max-height: 26rem;
+  object-fit: contain;
+  margin-left: auto;
+  margin-right: auto;
+  background: #fff;
+  cursor: zoom-in;
+}
+
+/* 点击后放大查看（全宽原比例） */
+.prose-article img.eb-zoomed {
+  max-height: none;
+  width: 100%;
+  object-fit: contain;
+  cursor: zoom-out;
 }
 
 .prose-article table {
@@ -569,16 +586,33 @@ h2 {
   box-shadow: inset 4px 4px #35601f;
 }
 
-/* 深色对话框气泡：暖黑而非冷蓝灰，配绿色像素描边 */
+/* 深色对话框气泡（MOTHER/EarthBound 像素框还原）：
+   nes.css 容器 + 暖黑底 + 浮雕式内阴影 + 像素描边（参考 git 初始版 pixel-bubble 的点阵精神，
+   用双层内阴影模拟 NES 硬边立体，文字用像素字体） */
 .nes-container.is-dark {
-  border-width: 2px;
-  background-color: #2b2418;
+  border-width: 4px;
+  border-style: solid;
+  border-color: #f4eddb; /* 米白像素边 */
+  background-color: #2b2418; /* 暖黑（不是冷蓝灰） */
   color: #f4eddb;
+  padding: 1.2rem 1.4rem;
+  box-shadow:
+    inset -4px -4px 0 rgba(0, 0, 0, 0.55),
+    inset 4px 4px 0 rgba(255, 255, 255, 0.08); /* 上下左右像素浮雕，NES 框的立体感 */
+}
+
+/* 框内文字：像素字体 + 暖米色，找回"母星同款"的字体气质 */
+.nes-container.is-dark p {
+  font-family: "FusionPixel", var(--font-sans);
+  color: #f4eddb;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
 }
 
 .nes-container.is-dark > .title {
   background-color: #f4eddb;
   color: #2b2418;
+  font-family: "FusionPixel", var(--font-sans);
 }
 
 /* ----------------------------------------------------------------------------
@@ -845,7 +879,8 @@ main.page-panel {
   color: #3a6920;
 }
 
-/* 评述气泡：悬停或聚焦（键盘）带评语的游戏浮现一句点评 */
+/* 评述气泡：悬停或聚焦（键盘）带评语的游戏浮现一句点评。
+   文本变长时限制为最多 3 行 + 省略，避免长评述撑出巨大气泡显得突兀 */
 .game-chip[data-tip]:hover::after,
 .game-chip[data-tip]:focus::after {
   content: attr(data-tip);
@@ -854,18 +889,24 @@ main.page-panel {
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 260px;
+  max-width: 240px;
   padding: 0.4rem 0.6rem;
   background-color: #2b2418;
   color: #f4eddb;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   line-height: 1.5;
-  text-align: center;
+  text-align: left;
   border: 2px solid #262016;
   border-radius: 4px;
   z-index: 6;
   white-space: normal;
+  /* 多行截断：长评述只露前 3 行，超出省略 */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .game-chip[data-tip]:hover::before,

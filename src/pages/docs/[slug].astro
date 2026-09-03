@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Reveal from '../../components/Reveal.astro';
+import Toc from '../../components/Toc.astro';
 import { getCollection, render } from 'astro:content';
 import { formatDate } from '../../utils/format';
 
@@ -15,8 +16,9 @@ const { title, date, category, pdf, tags } = doc.data;
 const isDialogue = category === '对白';
 ---
 
-<Layout title={title} description={doc.data.summary}>
+<Layout title={title} description={doc.data.summary} theme="eb2">
   <article class="py-12">
+    <Toc />
     <nav class="text-sm">
       <a href="/docs/" class="link-underline text-neutral-400 transition-colors hover:text-green-text">← 返回策划文档</a>
     </nav>

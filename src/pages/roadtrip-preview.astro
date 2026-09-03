@@ -1,0 +1,575 @@
+---
+// 预览页：方向一「白昼异变公路片」首页概念
+// 自包含 demo（不套 Layout，独立场景），用于确认视觉方向后迁移回 index.astro。
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>白昼异变公路片 · 概念预览</title>
+  <style>
+    /* ============ 设计令牌：白昼异变公路片 ============ */
+    :root {
+      --ink: #17130f;      /* 暖黑墨 */
+      --paper: #f6f1d1;    /* 晒太阳纸 */
+      --sky: #63d9f5;      /* 异常天空蓝 */
+      --road: #f2d34f;     /* 公路芥末黄 */
+      --grass: #42a35a;    /* 潮湿草绿 */
+      --alert: #f0523d;    /* 番茄警报红 */
+      --grape: #7a5ac8;    /* 怪味葡萄紫 */
+      --peach: #f49a8a;    /* 桃肉粉 */
+      --mist: #b7ded2;     /* 雾青 */
+      --wood: #765137;     /* 旧木褐 */
+      --line: 3px;
+      --pixel: "FusionPixel", "MiSans", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      line-height: 1.75;
+      background: var(--paper);
+    }
+    .px { font-family: var(--pixel); }
+    img { image-rendering: pixelated; }
+    a { color: inherit; }
+    ::selection { background: var(--road); }
+
+    /* ============ 贯穿全页的冒险路线（左缘 fixed） ============ */
+    .world-route {
+      position: fixed;
+      left: 14px;
+      top: 0;
+      height: 100vh;
+      width: 46px;
+      z-index: 60;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .world-route svg { height: 96vh; width: 46px; overflow: visible; }
+    .route-base { fill: none; stroke: rgba(23,19,15,.18); stroke-width: 3; stroke-dasharray: 4 6; }
+    .route-ink { fill: none; stroke: var(--ink); stroke-width: 3; }
+    .route-done { fill: none; stroke: var(--alert); stroke-width: 4; filter: drop-shadow(0 0 4px rgba(240,82,61,.6)); }
+    .token {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 30px; height: 30px;
+      transform: translate(-50%, -50%);
+      font-family: var(--pixel);
+      font-size: 17px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 rgba(23,19,15,.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 61;
+    }
+    .stop-name {
+      position: absolute;
+      left: 56px;
+      transform: translateY(-50%);
+      font-family: var(--pixel);
+      font-size: 10px;
+      letter-spacing: .04em;
+      color: var(--ink);
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      padding: 2px 8px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .stop-name.is-on { opacity: 1; border-color: var(--alert); }
+
+    /* ============ 幕：每幕占视口 90%+，场景色主导 ============ */
+    main { padding: 0 0 40px; }
+    .act {
+      min-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 40px 24px 40px 84px;
+      overflow: hidden;
+    }
+    .act__inner { width: 100%; max-width: 980px; position: relative; z-index: 2; }
+    .act__tag {
+      font-family: var(--pixel);
+      font-size: 12px;
+      letter-spacing: .22em;
+      opacity: .75;
+      margin-bottom: 14px;
+    }
+    .act__title { font-family: var(--pixel); font-size: clamp(26px, 4.6vw, 46px); line-height: 1.2; letter-spacing: .02em; }
+    .act__body { max-width: 56ch; margin-top: 14px; font-size: 16.5px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--pixel);
+      font-size: 15px;
+      padding: 14px 24px;
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 rgba(23,19,15,.35);
+      cursor: pointer; text-decoration: none;
+      background: var(--paper); color: var(--ink);
+      transition: transform .12s steps(2);
+    }
+    .btn:hover { transform: translate(-2px,-2px); }
+    .btn--solid { background: var(--alert); color: #fff; border-color: #7a1f12; }
+
+    /* ----- 第一幕 Hero：晴空出生点 ----- */
+    .act--hero {
+      background: linear-gradient(180deg, var(--sky) 0 82%, var(--mist) 82% 90%, var(--grass) 90% 100%);
+    }
+    .act--hero .act__tag { color: var(--ink); }
+    .act--hero .hero-name { color: var(--alert); }
+    /* 不水平的草地边：手绘地图感 */
+    .act--hero::after {
+      content: "";
+      position: absolute;
+      left: -10%; right: -10%; bottom: -2px;
+      height: 46px;
+      background:
+        linear-gradient(135deg, transparent 0 14px, var(--grass) 14px 100%) left/22px 100% repeat-x,
+        linear-gradient(45deg,  var(--grass) 0 14px, transparent 14px 100%) left/22px 100% repeat-x;
+      opacity: 1;
+    }
+    .act--hero .hero-dlg {
+      max-width: 46ch;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(23,19,15,.4);
+      padding: 22px 24px;
+      transform: rotate(-.6deg);
+    }
+
+    /* ----- 第二幕 能力区：草地调查现场 ----- */
+    .act--grass {
+      background:
+        linear-gradient(176deg,
+          var(--mist) 0 8%,
+          var(--sky) 8% 11%,
+          var(--road) 11% 15%,
+          var(--grass) 15% 100%);
+    }
+    .act--grass .act__title { color: #eaffdc; text-shadow: 0 3px 0 rgba(0,0,0,.35); }
+    .ability-scene {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      grid-template-rows: 190px 160px;
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .obj {
+      border: 3px solid var(--ink);
+      box-shadow: 5px 5px 0 rgba(23,19,15,.35);
+      background: var(--paper);
+      padding: 18px 20px;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative;
+      transition: transform .45s cubic-bezier(.16,1.35,.35,1);
+      will-change: transform;
+    }
+    .obj:hover { transform: translateY(-3px) rotate(0deg) !important; }
+    .obj--system { grid-row: 1/3; transform: rotate(-1.3deg); background: #fdf8dc; }
+    .obj--narrative { transform: rotate(1deg); }
+    .obj--level { transform: rotate(-1.8deg); }
+    .obj__num { font-family: var(--pixel); font-size: 44px; line-height: 1; }
+    .obj__name { font-family: var(--pixel); font-size: 15px; letter-spacing: .06em; margin-top: 8px; }
+    .obj__ev { font-size: 13.5px; opacity: .75; margin-top: 6px; }
+    .obj__bar {
+      height: 10px; border: 2px solid var(--ink); background: #fff; margin-top: 12px; overflow: hidden;
+    }
+    .obj__bar i { display: block; height: 100%; width: 0; transition: width 1.1s cubic-bezier(.2,.9,.3,1); background: repeating-linear-gradient(90deg, var(--alert) 0 8px, #a91f0f 8px 10px); }
+    /* 能力偶发事件文本 */
+    .obj .event-text {
+      position: absolute;
+      left: 8px; bottom: -14px;
+      font-family: var(--pixel); font-size: 11px;
+      background: var(--road); border: 2px solid var(--ink);
+      padding: 2px 8px; opacity: 0; transform: translateY(4px);
+      transition: all .3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .obj.ev-on .event-text { opacity: 1; transform: none; }
+
+    /* ----- 第三幕 Demo：精神异常区（唯一大面积暗场） ----- */
+    .act--battle {
+      background: var(--ink);
+      color: var(--paper);
+      align-items: stretch;
+      display: block;
+    }
+    .act--battle .sticky-zone {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .warp-zone {
+      position: absolute;
+      inset: 0;
+    }
+    .warp-zone canvas { width: 100%; height: 100%; display: block; opacity: .5; mix-blend-mode: screen; }
+    .battle-card {
+      position: relative;
+      z-index: 2;
+      width: min(620px, 88vw);
+      margin: 0 auto;
+      border: 4px solid var(--grape);
+      background: rgba(23,19,15,.55);
+      padding: 30px 34px;
+      box-shadow: 0 0 40px rgba(122,90,200,.5), 12px 12px 0 rgba(0,0,0,.5);
+    }
+    .battle-card .act__title { color: #fff; text-shadow: 0 0 18px var(--grape); }
+    .battle-card .battle-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+    .btn--battle { background: var(--alert); color: #fff; border-color: #7a1f12; }
+    .btn--ghost { background: transparent; color: var(--paper); border-color: var(--paper); box-shadow: none; }
+
+    /* ----- 第四幕 证据库：晚霞公路 + 档案室 ----- */
+    .act--road {
+      background: linear-gradient(180deg, var(--peach) 0 74%, var(--road) 74% 100%);
+      align-items: flex-start;
+      padding-top: 110px;
+    }
+    .signs {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .sign {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      background: var(--wood);
+      color: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 5px 5px 0 rgba(23,19,15,.35);
+      padding: 14px 22px;
+      max-width: 560px;
+      transform: rotate(-.3deg);
+      text-decoration: none;
+    }
+    .sign:nth-child(2) { margin-left: 70px; transform: rotate(.4deg); }
+    .sign:nth-child(3) { margin-left: 140px; transform: rotate(-.2deg); }
+    .sign .sign__name { font-family: var(--pixel); font-size: 18px; }
+    .sign .sign__type { font-size: 13px; opacity: .8; margin-left: auto; }
+
+    .act--archive {
+      background: var(--grape);
+      color: var(--paper);
+    }
+    .file {
+      background: var(--paper); color: var(--ink);
+      border: 3px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,.35);
+      padding: 18px 22px;
+      margin-top: 14px;
+      max-width: 640px;
+      display: flex; gap: 12px; align-items: baseline;
+      text-decoration: none;
+    }
+    .file .file__no { font-family: var(--pixel); color: var(--grape); }
+    .file .file__title { font-weight: 700; }
+
+    /* ----- 第五幕 入队：夜幕营火 ----- */
+    .act--camp {
+      background: var(--ink);
+      color: var(--paper);
+      text-align: center;
+      flex-direction: column;
+    }
+    .act--camp .camp-star {
+      font-size: 12px; color: var(--road);
+      letter-spacing: 14px;
+      margin-bottom: 16px;
+    }
+    .act--camp .fire { font-size: 60px; line-height: 1; filter: drop-shadow(0 0 14px rgba(240,82,61,.8)); }
+    .act--camp .camp-btns { display: flex; gap: 16px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+
+    /* 小屏兜底 */
+    @media (max-width: 860px) {
+      .ability-scene { grid-template-columns: 1fr; grid-template-rows: none; }
+      .obj--system { grid-row: auto; }
+      .world-route { display: none; }
+      .act { padding-left: 24px; }
+      .sign:nth-child(2), .sign:nth-child(3) { margin-left: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      .obj__bar i { width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 贯穿路线 -->
+  <div class="world-route" aria-hidden="true">
+    <svg viewBox="0 0 46 900" preserveAspectRatio="none">
+      <path id="route-base" class="route-base" d="M 23 4 C 36 120, 8 200, 23 300 S 40 430, 16 520 S 30 720, 23 896" />
+      <path id="route-ink" class="route-ink" d="M 23 4 C 36 120, 8 200, 23 300 S 40 430, 16 520 S 30 720, 23 896" />
+      <path id="route-done" class="route-done" d="M 23 4 C 36 120, 8 200, 23 300 S 40 430, 16 520 S 30 720, 23 896" />
+    </svg>
+    <div class="token" id="token">明</div>
+    <span class="stop-name" id="stop-name"></span>
+  </div>
+
+  <main>
+    <!-- 第一幕：出生点 -->
+    <section class="act act--hero" data-stop="明鑫的房间">
+      <div class="act__inner">
+        <p class="act__tag px">CHAPTER 01 / 出生点</p>
+        <div class="hero-dlg">
+          <h1 class="act__title px">
+            你好！我是 <span class="hero-name">明鑫</span><br />
+            游戏系统 / 文案策划
+          </h1>
+          <p class="act__body">
+            背着一台笔记本，从普通小镇出发。每完成一个作品，现实就会发生一次色彩异常。
+          </p>
+          <p class="act__body" style="margin-top:10px">
+            <a class="btn" href="#act2">▶ 开始调查</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第二幕：能力现场调查 -->
+    <section class="act act--grass" data-stop="技能观测站" id="act2">
+      <div class="act__inner">
+        <p class="act__tag px">CHAPTER 02 / 技能观测站</p>
+        <h2 class="act__title px">我怎样思考游戏</h2>
+        <div class="ability-scene">
+          <div class="obj obj--system" data-count="86" data-ev="独立完成可运行的回合制系统原型">
+            <span class="obj__num px">00</span>
+            <span class="obj__name px">系统设计</span>
+            <div class="obj__bar"><i data-w="86"></i></div>
+            <p class="obj__ev">证据：童话冒险 Demo —— 战斗 / 装备 / 存档可运行</p>
+            <span class="event-text">发现了一份完整的系统策划案！</span>
+          </div>
+          <div class="obj obj--narrative" data-count="82" data-ev="完整动画电影剧本与多份世界观文档">
+            <span class="obj__num px">00</span>
+            <span class="obj__name px">叙事设计</span>
+            <div class="obj__bar"><i data-w="82"></i></div>
+            <p class="obj__ev">证据：唤她真名 · 完整动画电影剧本</p>
+            <span class="event-text">对白在空中浮现……</span>
+          </div>
+          <div class="obj obj--level" data-count="78" data-ev="Minecraft RPG 地图获得 10 万+ 浏览">
+            <span class="obj__num px">00</span>
+            <span class="obj__name px">关卡设计</span>
+            <div class="obj__bar"><i data-w="78"></i></div>
+            <p class="obj__ev">证据：乱世三国 · 30 关 RPG 地图</p>
+            <span class="event-text">地图展开了。还有路要走。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第三幕：Demo 精神异常区 -->
+    <section class="act act--battle" data-stop="童话异常地带" id="act3">
+      <div class="sticky-zone">
+        <div class="warp-zone"><canvas id="warp" aria-hidden="true"></canvas></div>
+        <div class="battle-card">
+          <p class="act__tag px" style="color:#b7ded2">CHAPTER 03 / 童话异常地带 · 遭遇战</p>
+          <h2 class="act__title px">野生的可玩 Demo<br />跳了出来！</h2>
+          <p class="act__body" style="color:#e6dcc8">
+            当现实开始扭曲，只有亲手把它玩通，才能让草地恢复颜色。
+            回合制 JRPG 序章——战斗、探索、装备、存档，全都真实可运行。
+          </p>
+          <div class="battle-actions">
+            <a class="btn btn--battle" href="#">▶ 开始试玩</a>
+            <a class="btn btn--ghost" href="#">查看完整项目</a>
+            <a class="btn btn--ghost" href="#">看演示</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第四幕：晚霞公路（其他项目） -->
+    <section class="act act--road" data-stop="旧任务公路" id="act4">
+      <div class="act__inner">
+        <p class="act__tag px">CHAPTER 04 / 旧任务公路</p>
+        <h2 class="act__title px">已经完成的委托</h2>
+        <div class="signs">
+          <a class="sign" href="#">
+            <span class="sign__name px">唤她真名</span>
+            <span class="px" style="font-size:11px;color:#f2d34f">NARRATIVE</span>
+            <span class="sign__type">动画电影剧本 · 组长 / 编剧</span>
+          </a>
+          <a class="sign" href="#">
+            <span class="sign__name px">上元古界</span>
+            <span class="px" style="font-size:11px;color:#f2d34f">WORLD</span>
+            <span class="sign__type">世界观 / 关卡项目 · 主策划</span>
+          </a>
+          <a class="sign" href="#">
+            <span class="sign__name px">乱世三国</span>
+            <span class="px" style="font-size:11px;color:#f2d34f">EARLY</span>
+            <span class="sign__type">Minecraft RPG 地图 · 主制作</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 第四幕续：记忆档案馆（策划文档） -->
+    <section class="act act--archive" data-stop="记忆档案馆" id="act5">
+      <div class="act__inner">
+        <p class="act__tag px" style="color:#f2d34f">CHAPTER 04.5 / 记忆档案馆</p>
+        <h2 class="act__title px">留存下来的调查记录</h2>
+        <a class="file" href="#">
+          <span class="file__no px">NO.01</span>
+          <span class="file__title">童话冒险 DEMO 主策划案</span>
+          <span style="margin-left:auto;font-family:var(--pixel);font-size:11px">翻看 →</span>
+        </a>
+        <a class="file" href="#">
+          <span class="file__no px">NO.02</span>
+          <span class="file__title">各地区发展概论（上元古界）</span>
+          <span style="margin-left:auto;font-family:var(--pixel);font-size:11px">翻看 →</span>
+        </a>
+        <a class="file" href="#">
+          <span class="file__no px">NO.03</span>
+          <span class="file__title">博德之门3 核心系统拆解</span>
+          <span style="margin-left:auto;font-family:var(--pixel);font-size:11px">翻看 →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 第五幕：入队 -->
+    <section class="act act--camp" data-stop="队伍集结点" id="act6">
+      <div class="act__inner">
+        <p class="camp-star px">✦ ✦ ✦ ✦ ✦</p>
+        <p class="fire" aria-hidden="true">🔥</p>
+        <p class="act__tag px" style="color:#f49a8a">FINAL CHAPTER / 夜幕营火</p>
+        <h2 class="act__title px">要让 明鑫 加入队伍吗？</h2>
+        <p class="act__body" style="margin:14px auto 0">这一路看完了出生点、观测站与异常地带。剩下的选择，交给你。</p>
+        <div class="camp-btns">
+          <a class="btn btn--solid" href="#">▶ 要（下载简历）</a>
+          <a class="btn" href="#">直接联系</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ---------- 路线 token 沿 SVG 移动 ----------
+    const path = document.getElementById('route-ink');
+    const token = document.getElementById('token');
+    const stopName = document.getElementById('stop-name');
+    const stops = Array.from(document.querySelectorAll('[data-stop]'));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let len = path.getTotalLength();
+    let cur = 0, target = 0;
+
+    function place(progress) {
+      const p = path.getPointAtLength(progress * len);
+      token.style.top = p.y + 'px';
+      token.style.left = '50%';
+    }
+    function update() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      target = max > 0 ? Math.min(1, scrollY / max) : 0;
+      cur += (target - cur) * 0.08;
+      if (Math.abs(target - cur) < 0.0004) cur = target;
+      place(cur);
+
+      // 当前地标名
+      const probe = document.elementFromPoint(innerWidth / 2, innerHeight * 0.5);
+      let activeStop = null;
+      const midY = scrollY + innerHeight * 0.45;
+      for (const s of stops) {
+        const r = s.getBoundingClientRect();
+        const top = r.top + scrollY;
+        if (top <= midY) activeStop = s;
+      }
+      if (activeStop) {
+        stopName.textContent = activeStop.dataset.stop;
+        stopName.classList.add('is-on');
+      } else stopName.classList.remove('is-on');
+      requestAnimationFrame(update);
+    }
+    addEventListener('scroll', () => { if (!reduce) target = scrollY / (document.documentElement.scrollHeight - innerHeight); }, { passive: true });
+    if (!reduce) requestAnimationFrame(update);
+    else place(1);
+
+    // ---------- 能力对象：进入视口触发计数 + 条形 ----------
+    const objs = Array.from(document.querySelectorAll('.obj'));
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting || e.target.dataset.fired) return;
+        e.target.dataset.fired = '1';
+        const targetN = +e.target.dataset.count || 0;
+        const num = e.target.querySelector('.obj__num');
+        const bar = e.target.querySelector('.obj__bar i');
+        setTimeout(() => { if (bar) bar.style.width = (bar.dataset.w || 0) + '%'; }, 120);
+        const t0 = performance.now();
+        const dur = 900;
+        const tick = (t) => {
+          const k = Math.min(1, (t - t0) / dur);
+          if (num) num.textContent = String(Math.round(targetN * (1 - Math.pow(1 - k, 3)))).padStart(2, '0');
+          if (k < 1) requestAnimationFrame(tick);
+          else if (num) num.textContent = String(targetN);
+        };
+        requestAnimationFrame(tick);
+        setTimeout(() => e.target.classList.add('ev-on'), 1000);
+        setTimeout(() => e.target.classList.remove('ev-on'), 4200);
+      });
+    }, { threshold: .45 });
+    objs.forEach((o) => io.observe(o));
+
+    // ---------- 鼠标在能力对象内轻微倾斜 ----------
+    objs.forEach((o) => {
+      o.addEventListener('mousemove', (e) => {
+        const r = o.getBoundingClientRect();
+        const dx = (e.clientX - r.left) / r.width - .5;
+        const dy = (e.clientY - r.top) / r.height - .5;
+        o.style.transform = `perspective(600px) rotateY(${dx * 5}deg) rotateX(${-dy * 5}deg)`;
+      });
+      o.addEventListener('mouseleave', () => { o.style.transform = ''; });
+    });
+
+    // ---------- 第三幕：精神异常扭曲 Canvas（低饱和暗场） ----------
+    const warp = document.getElementById('warp');
+    const ctx = warp.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      const src = document.createElement('canvas');
+      src.width = img.width; src.height = img.height;
+      const sctx = src.getContext('2d');
+      sctx.drawImage(img, 0, 0);
+      const buf = document.createElement('canvas');
+      const bctx = buf.getContext('2d');
+      const pat = bctx.createPattern(src, 'repeat');
+      const resize = () => {
+        const box = warp.getBoundingClientRect();
+        const dpr = Math.min(2, devicePixelRatio || 1);
+        warp.width = Math.max(1, Math.round(box.width * dpr));
+        warp.height = Math.max(1, Math.round(box.height * dpr));
+      };
+      resize();
+      addEventListener('resize', resize);
+      const th = src.height;
+      const render = (t) => {
+        const W = warp.width, H = warp.height;
+        const bufW = Math.max(th, W + 64);
+        if (buf.width !== bufW) { buf.width = bufW; buf.height = th; bctx.fillStyle = pat; bctx.fillRect(0, 0, bufW, th); }
+        ctx.clearRect(0, 0, W, H);
+        ctx.imageSmoothingEnabled = false;
+        for (let y = 0; y < H; y++) {
+          const off = 16 * Math.sin(.05 * y + .004 * t) + 6 * Math.sin(.09 * y + .002 * t + 2);
+          const shift = ((Math.round(off) % bufW) + bufW) % bufW;
+          const sw = Math.min(W, bufW - shift);
+          ctx.drawImage(buf, shift, y % th, sw, 1, 0, y, sw, 1);
+          if (sw < W) ctx.drawImage(buf, 0, y % th, W - sw, 1, sw, y, W - sw, 1);
+        }
+        if (!reduce) requestAnimationFrame(render);
+      };
+      if (reduce) render(0); else requestAnimationFrame(render);
+    };
+    img.src = '/images/patterns/crystal.png';
+  </script>
+</body>
+</html>

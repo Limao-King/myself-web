@@ -1,0 +1,114 @@
+---
+// 预览：复刻 gpt 版「档案纸张堆叠」组件（archive + paper-sheet）
+// 一堆纸斜叠在一起，每张是一份策划文档/档案；紫色档案室背景。
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>档案纸张堆叠 · 组件预览</title>
+  <style>
+    :root {
+      --ink:#17130f; --paper:#f6f1d1; --purple:#7a5ac8; --yellow:#f2d34f; --red:#f0523d; --pink:#f49a8a; --green:#42a35a;
+    }
+    * { box-sizing:border-box; margin:0; }
+    body { background:var(--ink); color:var(--paper); font-family:"MiSans","PingFang SC","Microsoft YaHei",sans-serif; line-height:1.7; }
+    .px { font-family:"FusionPixel",ui-monospace,monospace; }
+    .kicker { font-family:"FusionPixel"; font-size:.7rem; letter-spacing:.14em; font-weight:700; }
+    a { color:inherit; text-decoration:none; }
+
+    /* ===== 档案室（紫色横带）===== */
+    .archive {
+      position:relative;
+      margin-inline:calc(50% - 50vw);
+      padding:11vh max(20px,calc((100vw - 1120px)/2));
+      background:var(--purple);
+      color:var(--paper);
+      display:grid;
+      grid-template-columns:.6fr 1.4fr;
+      gap:5vw;
+      border-top:8px solid var(--ink);
+    }
+    .archive h3 { font-family:"MiSans"; font-size:clamp(2rem,4vw,4rem); font-weight:900; line-height:.95; margin:1rem 0; }
+    .archive .desc { margin-top:1rem; opacity:.85; }
+    .archive a.enter { display:inline-block; margin-top:1.4rem; text-decoration:underline; }
+
+    /* ===== 纸张堆叠 ===== */
+    .papers { position:relative; min-height:620px; }
+    .paper-sheet {
+      position:absolute;
+      width:min(620px,90%);
+      min-height:420px;
+      padding:2.3rem;
+      background:var(--paper);
+      color:var(--ink);
+      border:4px solid var(--ink);
+      box-shadow:13px 13px rgba(23,19,15,.55);
+      transition:.4s;
+      display:flex;
+      flex-direction:column;
+    }
+    /* 三张纸以不同旋转角+错位堆叠 */
+    .paper-sheet:nth-child(1){ top:0;   transform:rotate(-5deg); }
+    .paper-sheet:nth-child(2){ top:14%; left:5%;  transform:rotate(4deg); z-index:2; }
+    .paper-sheet:nth-child(3){ top:28%; left:10%; transform:rotate(-2deg); z-index:3; }
+    /* 悬停：把这张纸抽出来铺平放大 */
+    .paper-sheet:hover { transform:rotate(0deg) scale(1.03) translateY(-6px); z-index:9; box-shadow:20px 22px rgba(23,19,15,.5); }
+    .paper-sheet em { font-family:"FusionPixel"; font-size:.68rem; color:var(--purple); margin-bottom:1rem; }
+    .paper-sheet h4 { font-family:"MiSans"; font-size:1.7rem; font-weight:900; line-height:1.1; margin-bottom:.9rem; }
+    .paper-sheet p { font-size:.9rem; line-height:1.6; opacity:.9; }
+    .paper-sheet b { font-family:"FusionPixel"; font-size:.72rem; margin-top:auto; padding-top:1.2rem; color:var(--red); }
+
+    /* ===== 简易示例标题 ===== */
+    .title-bar { width:min(1120px,calc(100% - 40px)); margin:0 auto; padding:4vh 0 1vh; }
+    .title-bar h1 { font-family:"MiSans"; font-weight:900; font-size:clamp(1.6rem,3vw,2.4rem); color:var(--paper); }
+    .title-bar p { margin-top:.6rem; opacity:.8; max-width:60ch; }
+
+    @media (max-width:900px) {
+      .archive { grid-template-columns:1fr; }
+      .papers { min-height:1050px; }
+      .paper-sheet { width:92%; min-height:360px; }
+      .paper-sheet:nth-child(2){left:4%;}
+      .paper-sheet:nth-child(3){left:8%;}
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <p class="kicker" style="color:var(--yellow)">ARCHIVE / 记忆档案室 · 纸张堆叠组件</p>
+    <h1>从紫色档案室里，抽出叠着的一页。</h1>
+    <p>多张策划文档像纸一样斜叠在一起，每张是一份档案；悬停可以把那张纸抽出来铺平放大。</p>
+  </div>
+
+  <!-- 档案室区块 -->
+  <div class="archive">
+    <div>
+      <p class="kicker" style="color:var(--paper)">MEMORY ARCHIVE</p>
+      <h3>留存下来的<br/>调查记录。</h3>
+      <p class="desc">已调查 108 款游戏 / 6000+ 小时</p>
+      <a class="enter" href="#">进入完整档案馆 →</a>
+    </div>
+    <div class="papers">
+      <a class="paper-sheet" href="#">
+        <em>策划案 / 01</em>
+        <h4>童话冒险 DEMO 主策划案</h4>
+        <p>回合制 JRPG 的完整规划：战斗、装备、队伍、背包、存档、商店的系统设计。</p>
+        <b>阅读记录 →</b>
+      </a>
+      <a class="paper-sheet" href="#">
+        <em>世界观 / 02</em>
+        <h4>各地区发展概论（上元古界）</h4>
+        <p>按玄沌→晕始→复沌→元启→下元→中元→上元七年代，梳理夏、大漠、扶余、冰原、日耀的文明起承转合。</p>
+        <b>阅读记录 →</b>
+      </a>
+      <a class="paper-sheet" href="#">
+        <em>拆解案 / 03</em>
+        <h4>博德之门3 核心系统拆解</h4>
+        <p>基于 DND 5E 的 D20 核心系统：属性检定、核心循环、轻量化设计与拉氏房规。</p>
+        <b>阅读记录 →</b>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

@@ -43,18 +43,6 @@ const isActive = (href: string) =>
           </li>
         ))
       }
-      {
-        eb && (
-          <li class="ml-1 flex items-center">
-            <button
-              type="button"
-              class="eb-view-toggle link-underline font-pixel rounded-md px-3 py-1.5 text-sm transition-colors"
-            >
-              经典视图
-            </button>
-          </li>
-        )
-      }
       <li class="ml-2 flex items-center">
         <a
           href={siteConfig.resumeUrl}
@@ -102,18 +90,6 @@ const isActive = (href: string) =>
           </li>
         ))
       }
-      {
-        eb && (
-          <li class="mt-1 flex justify-center">
-            <button
-              type="button"
-              class="eb-view-toggle block font-pixel rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-[#262016]/8"
-            >
-              经典视图
-            </button>
-          </li>
-        )
-      }
       <li class="mt-2 flex justify-center">
         <a
           href={siteConfig.resumeUrl}
@@ -137,24 +113,4 @@ const isActive = (href: string) =>
       toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
     });
   }
-
-  // 经典视图开关（RPG ↔ 纸质）：html 类切换 + localStorage 持久化
-  const viewBtns = document.querySelectorAll('.eb-view-toggle');
-  function syncViewLabel() {
-    const classic = document.documentElement.classList.contains('eb-classic');
-    viewBtns.forEach((b) => {
-      b.textContent = classic ? 'RPG 视图' : '经典视图';
-      b.setAttribute('aria-pressed', String(classic));
-    });
-  }
-  viewBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const classic = document.documentElement.classList.toggle('eb-classic');
-      try {
-        localStorage.setItem('eb-view', classic ? 'classic' : 'eb');
-      } catch {}
-      syncViewLabel();
-    });
-  });
-  syncViewLabel();
 </script>

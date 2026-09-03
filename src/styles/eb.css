@@ -10,8 +10,8 @@
   --eb-sky:        #60e0f8;   /* 河水/天空的冷色 EB 蓝 */
   --eb-haze:       #a8d8c8;   /* 雾青过渡（天空到草） */
   --eb-cream:      #d0d0a8;   /* 米黄沙土路与房屋 */
-  --eb-grass:      #b0f878;   /* Onett 镇鲜亮草绿（不是 Onett 之前的 62a844 暗绿） */
-  --eb-grass-dark: #88b878;   /* 草地阴影带 */
+  --eb-grass:      #549a3a;   /* 图1 参考：更自然的中绿（不再亮荧光） */
+  --eb-grass-dark: #35732a;   /* 草地阴影带 */
 
   /* 文字与边框：Onett 镇的强反差黑+奶油 */
   --eb-ink:        #181410;   /* 对话窗、状态栏底：近黑暖墨 */
@@ -51,14 +51,22 @@
          输出 grass-onett.png（透明处仍透明）。整页 background-color 用 #b0f878 兜底。
    注：不用 mask-image，PNG 自身已染色，CSS 直接 background-color + background-image 即可。 */
 .eb-theme body {
-  background-color: var(--eb-grass);
-  background-image: url("/images/patterns/grass-onett.png");
-  background-size: 96px 96px;
-  background-repeat: repeat;
-  background-position: 0 0;
+  background-color: #708650; /* 用户配色：前三页背景色（渐变取中值兜底） */
+  /* 平缓纵向渐变（同色系微调明度）：background-attachment: fixed 让渐变随视口固定 */
+  background-image: linear-gradient(180deg,
+    #7f9660 0%,
+    #708650 45%,
+    #5f7245 100%);
   background-attachment: fixed;
-  image-rendering: pixelated; /* body background 缩放保持像素感 */
-  animation: eb-grass-pan 80s linear infinite;
+  background-size: 100% 100%;
+}
+/* 前三页纹样走 .bg-pattern 的 transform 平移（平滑，不卡顿），速度同原 paper 60s */
+.eb-theme .bg-pattern::before {
+  background-image: url("/images/patterns/spark.png");
+  background-size: 192px 192px;
+  background-repeat: repeat;
+  background-color: transparent;
+  opacity: 0.9;
 }
 
 /* grass.png 平移（96px 整周期无缝循环） */
@@ -67,41 +75,82 @@
   to { background-position: -96px 0; }
 }
 
-.eb-theme .bg-pattern {
-  display: none;
+/* 图2 主题（策划文档 / 关于我）：mail 纹样 + 米灰绿（加平缓纵向渐变，同色系微调） */
+.eb2-theme body {
+  background-color: #b4a88e;
+  background-image: linear-gradient(180deg,
+    #cdc1a3 0%,
+    #b4a88e 45%,
+    #9a8c70 100%);
+  background-attachment: fixed;
+  background-size: 100% 100%;
 }
+.eb2-theme .bg-pattern::before {
+  background-image: url("/images/patterns/mail.png");
+  background-size: 192px 192px;
+  background-repeat: repeat;
+  background-color: transparent;
+  opacity: 0.9;
+}
+.eb2-theme #scroll-progress { background: #405054; }
+.eb2-theme .site-header {
+  background-color: #6b9ca8 !important;
+  /* 底噪：细密像素噪点平铺（32px 原尺寸），避免青底过纯 */
+  background-image: url("/images/patterns/dust.png");
+  background-repeat: repeat;
+  background-size: 32px 32px;
+  background-blend-mode: multiply;
+  color: #405054;
+  border-bottom: 2px solid #4a7580; /* 加深青细线 */
+  box-shadow: 0 2px 0 #262016; /* 其下黑线（同款） */
+}
+.eb2-theme .site-header .link-underline,
+.eb2-theme .site-header #mobile-menu a:not(.nav-resume) { color: #405054 !important; }
+.eb2-theme .site-header .link-underline:hover,
+.eb2-theme .site-header #mobile-menu a:not(.nav-resume):hover { color: #2a3a42 !important; }
+.eb2-theme .site-header .link-underline[aria-current="page"] { color: #2a3a42 !important; text-decoration-color: #2a3a42; }
+/* 后两页主版面（文档/卡片）近白 */
+.eb2-theme .prose-article,
+.eb2-theme .eb-paper-card,
+.eb2-theme .bg-neutral-900 { background: #fffffa !important; }
+
 
 /* 顶栏：浅色告示牌（米黄纸底 + 深褐字 + 底部黑描边）——
    保持 EB 风但跳出全黑：让"导航"也回到 Onett 场景里，黑色只留给
    对话窗/战斗框这类 EB UI 点缀。 */
 .eb-theme .site-header {
-  background-color: #fdf8e4 !important;
-  color: #262016;
-  border-bottom: var(--eb-frame-w) solid var(--eb-brown);
-  /* 底部黑描边：告示牌挂在场景里，下方奶油线用黑线收口才"贴得住" */
-  box-shadow: 0 var(--eb-outline-w) 0 var(--eb-ink);
+  background-color: #b4c586 !important; /* 导航绿 */
+  /* 底噪：细密像素噪点平铺（32px 原尺寸），让导航不至于纯色；
+     multiply 混合使噪点自然透进底色，形成纸面颗粒感 */
+  background-image: url("/images/patterns/dust.png");
+  background-repeat: repeat;
+  background-size: 32px 32px;
+  background-blend-mode: multiply;
+  color: #3a4522;
+  border-bottom: 2px solid #6f8f48; /* 加深绿细线 */
+  box-shadow: 0 2px 0 #262016; /* 其下一道黑线 */
 }
 
 .eb-theme .site-header .link-underline,
 .eb-theme .site-header #mobile-menu a:not(.nav-resume),
 .eb-theme .site-header #mobile-menu .eb-view-toggle {
-  color: #262016 !important;
+  color: #3a4522 !important;
 }
 
 .eb-theme .site-header .link-underline:hover,
 .eb-theme .site-header #mobile-menu a:not(.nav-resume):hover,
 .eb-theme .site-header #mobile-menu .eb-view-toggle:hover {
-  color: var(--eb-red) !important;
+  color: #243a1a !important;
 }
 
 .eb-theme .site-header .link-underline[aria-current="page"],
 .eb-theme .site-header #mobile-menu a:not(.nav-resume)[aria-current="page"] {
-  color: var(--eb-red) !important;
-  text-decoration-color: var(--eb-red);
+  color: #243a1a !important;
+  text-decoration-color: #243a1a;
 }
 
 .eb-theme #mobile-menu {
-  background-color: #fdf8e4 !important;
+  background-color: #b4c586 !important;
 }
 
 /* 移动端汉堡按钮：浅告示牌底上用深褐墨色 */
@@ -157,21 +206,27 @@
    用户反馈：框型没问题，但里面黑色内容太多，黑色只留给对话框。 */
 .eb-window {
   position: relative;
-  /* 浅米黄填充：比奶油框略深，保证奶油粗框与四角方块仍看得见 */
-  background-color: #e8e0c8;
-  /* 四角方块：底变浅后奶油块会糊，改用深褐与正文同色系 */
+  /* 用户配色：主版面 #f5f5db */
+  background-color: #f5f5db;
+  /* 主面板提亮：底层叠白色上高光渐变（色相不变，亮度稍提，不倍乘色值）。
+     层序：最顶是四角方块(brown) → 白高光(下层) → background-color 兜底 */
   background-image:
     linear-gradient(var(--eb-brown) 0 0),
     linear-gradient(var(--eb-brown) 0 0),
     linear-gradient(var(--eb-brown) 0 0),
-    linear-gradient(var(--eb-brown) 0 0);
-  background-size: var(--eb-corner) var(--eb-corner);
+    linear-gradient(var(--eb-brown) 0 0),
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.24) 0%,
+      rgba(255, 255, 255, 0.06) 45%,
+      rgba(255, 255, 255, 0) 100%);
+  background-size: var(--eb-corner) var(--eb-corner), var(--eb-corner) var(--eb-corner), var(--eb-corner) var(--eb-corner), var(--eb-corner) var(--eb-corner), 100% 100%;
   background-position:
     var(--eb-corner-gap) var(--eb-corner-gap),
     calc(100% - var(--eb-corner-gap)) var(--eb-corner-gap),
     var(--eb-corner-gap) calc(100% - var(--eb-corner-gap)),
-    calc(100% - var(--eb-corner-gap)) calc(100% - var(--eb-corner-gap));
-  background-repeat: no-repeat;
+    calc(100% - var(--eb-corner-gap)) calc(100% - var(--eb-corner-gap)),
+    0 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   border: var(--eb-frame-w) solid var(--eb-frame);
   border-radius: var(--eb-radius);
   padding: 1.5rem 1.75rem;
@@ -193,11 +248,11 @@
 }
 /* 面板内文字：底变浅后改用深褐系（奶油字在米黄底上不可读） */
 .eb-window__title { color: #262016; font-size: 1.15rem; font-weight: 700; }
-.eb-pixel { font-family: "FusionPixel", var(--font-sans); color: #6b5a3e; font-size: 0.85rem; }
+.eb-pixel { font-family: "FusionPixel", var(--font-sans); color: #5c4c38; font-size: 0.85rem; }
 .eb-title { color: #262016; font-size: 2.4rem; font-weight: 800; margin-top: 0.5rem; }
-.eb-body { color: #3a3025; line-height: 1.7; font-size: 0.95rem; }
-.eb-ev, .eb-stat__ev { color: #6b5a3e; font-size: 0.75rem; }
-.eb-dialog { color: #3a3025; line-height: 1.7; }
+.eb-body { color: #2b2418; line-height: 1.7; font-size: 0.95rem; font-weight: 500; }
+.eb-ev, .eb-stat__ev { color: #5a4a36; font-size: 0.75rem; font-weight: 500; }
+.eb-dialog { color: #2b2418; line-height: 1.7; font-weight: 500; }
 .eb-link { color: #9a5a1e; text-decoration: underline; }
 /* 对话框（黑底）是唯一保留奶油字的地方 */
 .eb-window--dialog .eb-window__title,
@@ -238,83 +293,53 @@
   align-items: center;
   justify-content: center;
   background: var(--eb-red);
-  color: var(--eb-paper);
-  border: var(--eb-frame-w) solid var(--eb-frame);
-  border-radius: var(--eb-radius-sm);
+  color: #fdfedc;
+  border: 2px solid #262016; /* 单线加厚 */
+  border-radius: 6px;
   padding: 0.6rem 1.4rem;
   line-height: 1;
   min-height: 44px;
-  box-shadow:
-    0 0 0 var(--eb-outline-w) var(--eb-ink),
-    inset 0 0 0 var(--eb-outline-w) var(--eb-red-deep),
-    var(--eb-shadow-sm) var(--eb-shadow-sm) 0 rgba(0, 0, 0, 0.3);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
-.eb-btn-solid:hover {
-  transform: translate(-1px, -1px);
-  box-shadow:
-    0 0 0 var(--eb-outline-w) var(--eb-ink),
-    inset 0 0 0 var(--eb-outline-w) var(--eb-red-deep),
-    5px 5px 0 rgba(0, 0, 0, 0.3);
-}
-.eb-btn-solid:active {
-  transform: translate(1px, 1px);
-  box-shadow:
-    0 0 0 var(--eb-outline-w) var(--eb-ink),
-    inset 0 0 0 var(--eb-outline-w) var(--eb-red-deep),
-    2px 2px 0 rgba(0, 0, 0, 0.3);
-}
+.eb-btn-solid:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3); }
+.eb-btn-solid:active { transform: translate(1px, 1px); box-shadow: none; }
 
 .eb-btn-line {
   font-family: "FusionPixel", var(--font-sans);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 半透明墨底：次按钮落到浅色纸卡上时奶油字也不会糊在纸上 */
   background: rgba(24, 20, 16, 0.45);
   color: var(--eb-paper);
-  border: var(--eb-frame-w) solid var(--eb-frame);
-  border-radius: var(--eb-radius-sm);
+  border: 2px solid #262016; /* 单线加厚 */
+  border-radius: 6px;
   padding: 0.6rem 1.4rem;
   line-height: 1;
   min-height: 44px;
-  box-shadow:
-    0 0 0 var(--eb-outline-w) var(--eb-ink),
-    var(--eb-shadow-sm) var(--eb-shadow-sm) 0 rgba(0, 0, 0, 0.3);
   transition: background 0.1s ease, color 0.1s ease, transform 0.1s ease;
 }
-.eb-btn-line:hover {
-  background: var(--eb-frame);
-  color: var(--eb-ink);
-  transform: translate(-1px, -1px);
-}
+.eb-btn-line:hover { background: var(--eb-frame); color: var(--eb-ink); transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(0,0,0,0.25); }
 
-/* 状态栏（HP/PP 面板）：面板不是对话框 → 浅填充 + 深褐字，
-   但里程条槽底保留近黑，让 HP 绿 / PP 黄 的彩条对比拉满（EB 里程表质感） */
+/* 状态栏（HP/PP 面板）：内层线框 → 1px 像素单线（区别于外层版面框） */
 .eb-stat {
-  background: #d8d0b0;
-  border: var(--eb-frame-w) solid var(--eb-frame);
-  border-radius: var(--eb-radius);
+  background: #ecead3; /* 与主版面 #f5f5db 协调的暖奶油 */
+  border: 2px solid #262016; /* 单线加厚 */
+  border-radius: 4px;
   padding: 0.9rem 1rem;
   color: #262016;
-  box-shadow:
-    0 0 0 var(--eb-outline-w) var(--eb-ink),
-    inset 0 0 0 var(--eb-outline-w) var(--eb-ink),
-    var(--eb-shadow-sm) var(--eb-shadow-sm) 0 rgba(0, 0, 0, 0.3);
   transition: transform 0.12s ease;
 }
 .eb-stat:hover { transform: translateY(-2px); }
 .eb-stat__name { font-weight: 700; }
 .eb-stat__num { font-family: "FusionPixel", var(--font-sans); color: #262016; font-size: 1.4rem; }
-/* 里程条：外黑描边 → 奶油细框 → 内黑槽 */
+/* 里程条：简化成 1px 单线 */
 .eb-stat__bar {
   height: 14px;
   margin-top: 0.5rem;
   background: #0f0a06;
-  border: 2px solid var(--eb-frame);
+  border: 2px solid #262016;
   border-radius: 3px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px var(--eb-ink), inset 0 0 0 1px var(--eb-ink);
 }
 .eb-stat__fill {
   display: block;
@@ -323,6 +348,124 @@
 }
 .eb-stat__fill.hp { background-color: var(--eb-hp); }
 .eb-stat__fill.pp { background-color: var(--eb-pp); }
+
+/* ============ 像素电视机（Demo 展示台） ============ */
+.eb-tv {
+  position: relative;
+  background: #4a433a;              /* 90 年代 CRT 深灰褐塑料壳：与浅色版面形成反色强调 */
+  border: 3px solid #2c2721;        /* 深塑料包边 */
+  border-radius: 18px;
+  padding: 14px 14px 16px;
+  box-shadow:
+    0 0 0 2px rgba(23, 19, 15, 0.8),
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),  /* 顶部微受光，塑料光泽 */
+    inset 0 -3px 0 rgba(0, 0, 0, 0.35),       /* 底部暗影，加深立体 */
+    10px 10px 0 rgba(0, 0, 0, 0.3);
+}
+/* 电视顶部：品牌 + 指示灯（深壳上用浅字） */
+.eb-tv__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px 10px;
+}
+.eb-tv__brand {
+  font-family: "FusionPixel", var(--font-sans);
+  color: #f4eddb;                   /* 浅米白字，在深壳上醒目 */
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-shadow: 2px 2px 0 #000;
+}
+.eb-tv__power {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #e0453a;          /* 默认：待机红灯（未开播） */
+  box-shadow: 0 0 6px #e0453a;
+  animation: eb-tv-power 2s steps(2) infinite;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+/* 点击试玩后：点亮为绿灯（开播状态） */
+.eb-tv__power.is-on {
+  background: #6aff6a;
+  box-shadow: 0 0 8px #6aff6a;
+}
+@keyframes eb-tv-power { 50% { opacity: 0.35; } }
+/* 屏幕：圆角内凹，放 swap 内容 */
+.eb-tv__screen {
+  position: relative;
+  background: #0a0a0a;
+  border-radius: 10px;
+  border: 3px solid #0d0d0d;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+.eb-tv__inner { position: relative; aspect-ratio: 16 / 9; width: 100%; }
+.eb-tv__inner .eb-swap { margin-top: 0; height: 100%; }
+/* 雪花屏容器：铺满屏幕，点击整屏可启动 */
+.eb-tv__static {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+}
+.eb-tv__static .eb-cover-warp {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* 雪花屏主按钮：纯图形「▶」入口（去边框、去文字、去黑色底板，仅留白色三角，作图形语言入口） */
+.eb-tv__play {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  font-family: "FusionPixel", var(--font-sans);
+  font-size: 2.7rem;             /* ▶ 大幅放大，作为图形语言入口 */
+  line-height: 1;
+  padding: 0;                    /* 去底板：无内边距 */
+  color: #ffffff;                /* 白色，保留闪动提示可点 */
+  background: transparent;       /* 去黑色底板 */
+  border: none;                  /* 无描边 */
+  cursor: pointer;
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 0.95),
+    0 0 6px rgba(0, 0, 0, 0.85),
+    2px 2px 0 rgba(0, 0, 0, 0.9); /* 纯白三角叠黑描边，从雪花噪点里跳出来 */
+  transition: transform 0.1s steps(2);
+  animation: eb-tv-play-blink 1.2s steps(2) infinite; /* 白色闪动，提示可点 */
+}
+.eb-tv__play:hover { transform: translateY(1px); animation: none; }
+.eb-tv__play:active { transform: translateY(3px); animation: none; }
+/* 白色「▶」图形的闪动：柔和呼吸式（不彻底消失，免得在雪花屏上刺眼） */
+@keyframes eb-tv-play-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+/* 电视下沿：旋钮装饰 + 控制文案 */
+.eb-tv__controls {
+  padding: 12px 6px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.eb-tv__dialog {
+  font-family: "FusionPixel", var(--font-sans);
+  color: #f4eddb;
+  font-size: 0.95rem;
+  text-align: center;
+  text-shadow: 2px 2px 0 #000;
+}
+/* 电视内游戏/视频 iframe 边框清零（自含屏幕） */
+.eb-tv__inner .eb-video { border: none; box-shadow: none; border-radius: 0; }
+.eb-tv__inner .eb-swap__loading { border-radius: 0; }
+@media (max-width: 560px) {
+  .eb-tv { border-radius: 12px; padding: 10px 10px 12px; }
+}
 
 /* BOSS 战卡片：与对话窗共用同一套夹心框 + 四角方块，保持全站框系统统一 */
 .eb-battle {
@@ -393,17 +536,6 @@
   pointer-events: none;
 }
 /* 远景小灌木（左侧）+ 大灌木（右侧）静态 */
-.eb-battle__stage::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 30%;
-  background:
-    radial-gradient(circle at 8% 100%, var(--eb-grass-dark) 0 18px, transparent 19px),
-    radial-gradient(circle at 92% 100%, var(--eb-grass-dark) 0 24px, transparent 25px),
-    radial-gradient(circle at 50% 100%, var(--eb-grass) 0 22px, transparent 23px);
-  pointer-events: none;
-}
 .eb-battle__enemy {
   position: relative;
   width: 100%;
@@ -439,11 +571,78 @@
   max-height: none;
   height: 100%;
 }
-.eb-swap .eb-video {
+.eb-swap__game {
+  position: relative;
+  inset: 0;
+  height: 100%;
+}
+.eb-swap__game .eb-video {
   position: relative;
   z-index: 1;
   height: 100%;
   border-radius: var(--eb-radius);
+}
+/* 惰性封面：点击开始试玩（点在封面任意处也能启动，按钮居中聚焦） */
+.eb-swap__pane[data-slot="play"] .eb-battle__stage {
+  position: relative;
+  margin-top: 0;
+  height: 100%;
+}
+.eb-battle__stage[data-cover] {
+  cursor: pointer;
+  background: #26201a; /* 深色兜底，纹样未载时也不突兀 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* 纹样视觉：canvas 用 sine 扭曲整体绘制纹样，直接作为封面背景（整屏流动，不再分层垫底） */
+.eb-cover-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3; /* 压暗，让 canvas 高亮纹样更突出，也避免和标题抢 */
+}
+/* 波浪扭曲层：Canvas 整屏逐行按正弦偏移绘制 diamond 纹样，形成流动+弯曲；作为封面唯一动态层 */
+.eb-cover-warp {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+  mix-blend-mode: screen;
+}
+/* 居中标题（进站画面感）：压在 canvas 之上，独立高对比 */
+.eb-cover-title {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  font-family: "FusionPixel", var(--font-sans);
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  color: #ffffff;
+  text-shadow:
+    0 2px 0 #262016,
+    2px 0 0 #262016,
+    -2px 0 0 #262016,
+    0 -2px 0 #262016,
+    0 0 14px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.05em;
+}
+.eb-battle__stage[data-cover] .eb-play-launch {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  margin-top: 1.1rem;
+  z-index: 3;
+  color: #fff;
+  background: rgba(30, 26, 18, 0.96);
+  border: 2px solid #fff;
+  text-shadow: 0 1px 0 #000;
+}
+.eb-play-launch:hover {
+  transform: translateY(-2px);
 }
 .eb-swap__loading {
   position: absolute;
@@ -479,6 +678,12 @@
 }
 
 /* 引导提示：默认态主按钮（试玩）+ 次按钮（观看）；视频态只保留返回 */
+/* 次级按钮（查看完整项目）：比主 CTA 小一号、弱化 */
+.eb-hint__project {
+  font-size: 0.9rem;
+  padding: 0.5rem 1.1rem;
+  opacity: 0.92;
+}
 .eb-hint {
   display: flex;
   align-items: center;
@@ -495,20 +700,53 @@
   font-weight: 600;
   text-decoration: none;
 }
-/* 主按钮（直接打一场试试）：更大、更醒目、居中 */
+/* 主按钮（直接打一场试试）：更大、更醒目、居中（加宽让它在居中行里占主导视觉中心） */
 .eb-play-main {
-  padding: 0.8rem 2rem;
-  font-size: 1.08rem;
+  padding: 0.85rem 2.5rem;
+  font-size: 1.12rem;
   font-weight: 700;
-  box-shadow:
-    0 0 0 3px var(--eb-ink),
-    0 5px 0 rgba(42, 26, 18, 0.35);
+  border: 2px solid #262016; /* 与其它按钮一致：2px 单线 */
+  border-radius: 6px;
 }
 .eb-play-main:hover {
   transform: translateY(-1px);
-  box-shadow:
-    0 0 0 3px var(--eb-ink),
-    0 6px 0 rgba(42, 26, 18, 0.35);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+/* 次按钮（观看演示）更紧凑，突出主按钮的视觉中心 */
+.eb-hint__watch {
+  font-size: 0.82rem;
+  padding: 0.4rem 0.9rem;
+  opacity: 0.9;
+}
+.eb-hint__arrow {
+  width: 44px;
+}
+/* play 作为居中锚点：右侧「观看演示视频」/箭头用绝对定位放到 play 右缘，不推走 play 重心 */
+.eb-hint > .relative {
+  position: relative;
+}
+.eb-hint__side {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .eb-hint { flex-direction: column; }
+  .eb-hint__side { position: static; transform: none; margin: 0.6rem 0 0; justify-content: center; }
+}
+/* 视频态：play 隐藏后 .relative 塌陷，把「返回」按钮从绝对定位改回静态、居中，避免与下方文案重叠 */
+.eb-hint.is-video .eb-hint__side {
+  position: static;
+  transform: none;
+  margin-left: 0;
+  margin-top: 0.5rem;
+  justify-content: center;
 }
 .eb-hint__sep {
   color: var(--eb-muted);
@@ -563,8 +801,43 @@
   0%, 100% { transform: translateX(0); opacity: 0.85; }
   50% { transform: translateX(6px); opacity: 1; }
 }
+/* 返回引导箭头（← ，与 → 同款 nudge，但朝左） */
+.eb-hint__back {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 14px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  animation: eb-hint-back 1.6s ease-in-out infinite;
+}
+.eb-hint__back-line {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 100%;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(to left, transparent 0%, var(--eb-muted) 30%, var(--eb-orange) 100%);
+  border-radius: 2px;
+}
+.eb-hint__back-tip {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 0;
+  margin-top: -5px;
+  border-right: 8px solid var(--eb-orange);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+@keyframes eb-hint-back {
+  0%, 100% { transform: translateX(0); opacity: 0.85; }
+  50% { transform: translateX(-6px); opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .eb-hint__arrow { animation: none; }
+  .eb-hint__arrow, .eb-hint__back { animation: none; }
 }
 /* EarthBound 战斗背景 canvas（懒加载，CSS 草地渐变兜底）
    注意：canvas 本身是暖红棕迷幻战斗底，直接铺会盖掉 Onett 草地配色、两套色打架。
@@ -603,6 +876,20 @@
 }
 .eb-log-row:last-child { border-bottom: 0; }
 .eb-log-row:hover { transform: translateX(2px); }
+.eb-log-date {
+  font-family: "FusionPixel", var(--font-sans);
+  color: var(--eb-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+/* 任务日志右侧组：职位 + 日期一起右对齐 */
+.eb-log-right {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
 
 /* 遭遇战开场 */
 .eb-encounter {
@@ -688,25 +975,101 @@
 }
 .eb-toast__item.is-show { opacity: 1; transform: translateY(0); }
 
-/* ============ 页脚 EB 化：浅米黄"制作名单"条（随面板去黑）+ 草地锯齿花边收尾 ============ */
+/* ============ 右侧导览条（TOC）============ */
+/* 固定在正文右侧（桌面竖屏），滚动跟随当前标题，点击跳转。像素纸质风配 eb2 主题。 */
+.eb-toc {
+  position: fixed;
+  top: 5.5rem;
+  right: 1rem;
+  z-index: 60;
+  width: 13rem;
+  max-height: calc(100vh - 7rem);
+  background: #fffffa;
+  border: 2px solid #d9cdae;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 rgba(42, 26, 18, 0.08), 4px 4px 0 rgba(42, 26, 18, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.eb-toc__toggle {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  background: #fffffa;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #2a3a42;
+  font-family: "FusionPixel", var(--font-sans);
+}
+.eb-toc__icon { font-size: 1rem; }
+.eb-toc__list {
+  padding: 0.7rem 0.85rem 0.9rem;
+  overflow-y: auto;
+}
+.eb-toc__title {
+  margin: 0 0 0.5rem;
+  font-family: "FusionPixel", var(--font-sans);
+  font-size: 0.78rem;
+  color: #405054;
+  opacity: 0.9;
+}
+.eb-toc__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.eb-toc__link {
+  display: block;
+  padding: 0.24rem 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #6b5a3e;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.eb-toc__link:hover { color: #b05a1e; background: #f5efdf; }
+.eb-toc__link--sub { padding-left: 1.1rem; font-size: 0.76rem; color: #8a7a5a; }
+.eb-toc__link.is-active {
+  color: #9a5a1e;
+  border-left-color: #9a5a1e;
+  background: #f5efdf;
+  font-weight: 600;
+}
+.eb-toc.is-empty { display: none; }
+/* 滚动条：像素细条 */
+.eb-toc__list::-webkit-scrollbar { width: 6px; }
+.eb-toc__list::-webkit-scrollbar-thumb { background: #d9cdae; border-radius: 3px; }
+
+/* 桌面内容右缩进，避免被固定 TOC 遮挡 */
+@media (min-width: 1180px) {
+  .eb-toc { right: 1.5rem; }
+}
+
+/* 移动端：折叠成顶部小按钮 */
+@media (max-width: 1023px) {
+  .eb-toc {
+    width: auto;
+    right: 0.75rem;
+    max-height: none;
+  }
+  .eb-toc__toggle { display: flex; }
+  .eb-toc__list { display: none; }
+  .eb-toc.is-open .eb-toc__list { display: block; max-height: 60vh; }
+  .eb-toc.is-open { max-height: 70vh; }
+}
 .eb-theme footer {
   position: relative;
   background: #e8e0c8;
   color: #2a1a12;
   border-top: 4px solid var(--eb-brown);
   margin-top: 3rem;
-}
-/* 像素草地花边：页脚上方一排三角草皮，衔接草地与页脚 */
-.eb-theme footer::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -16px;
-  height: 12px;
-  background:
-    linear-gradient(135deg, var(--eb-grass) 25%, transparent 25%) 0 0 / 24px 24px,
-    linear-gradient(225deg, var(--eb-grass) 25%, transparent 25%) 0 0 / 24px 24px;
 }
 .eb-theme footer .text-neutral-400 { color: #6b5a3e; }
 .eb-theme footer .text-neutral-500 { color: #5b5242; }

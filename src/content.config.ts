@@ -18,13 +18,18 @@ const projects = defineCollection({
     role: z.string().default('游戏策划'), // 我的角色
     teamSize: z.string().default('个人'), // 团队规模
     duration: z.string().default('4 周'), // 周期
+    /** 开始日期（任务日志显示 yy.mm 并排序用；缺省用 date） */
+    start: z.coerce.date().optional(),
     cover: z.string().optional(),      // 封面图（放 public/images/projects/ 下）
     demoUrl: z.string().optional(),    // 演示 / 视频 / 下载链接
     demoLabel: z.string().optional(),  // 演示按钮文案（如「下载 Demo（约 150MB · 网盘）」）
     videoUrl: z.string().optional(),   // 演示视频链接（B站等），如 https://www.bilibili.com/video/BVxxxx
     planDoc: z.string().optional(),    // 关联策划案文档链接（如 /docs/fairytale-plan/）
+    planLabel: z.string().optional(),  // 产出直达按钮文案（默认「查看策划案」）
     featured: z.boolean().default(false), // 是否首页精品项目
     tags: z.array(z.string()).default([]),
+    /** 截图廊：可切换展示，含描述 caption */
+    screenshots: z.array(z.object({ src: z.string(), caption: z.string().optional() })).default([]),
     summary: z.string(),               // 列表卡片上的一句话简介
   }),
 });

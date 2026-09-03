@@ -1,0 +1,119 @@
+---
+// 预览：堆叠记录纸项目卡（修正版）
+// 解决反馈：①纸做成横线记录纸(非日记本格) ②去掉独立木桌(纸直接摊在背景上)
+// ③真实交叠堆叠 + 悬停"翻出来"(压平/放大/提到最前)
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>堆叠记录纸项目卡 · 预览</title>
+  <style>
+    :root {
+      --ink:#262016; --paper:#f6efdb; --line:#cbb890; --frame:#f8f8d8;
+      --brown:#785028; --orange:#e88858;
+      --bg:#708650; /* eb 主题橄榄绿 */
+    }
+    * { box-sizing:border-box; margin:0; }
+    body { background:var(--bg); color:var(--ink); font-family:"MiSans","PingFang SC","Microsoft YaHei",sans-serif; padding:48px 20px 90px; }
+    .px { font-family:"FusionPixel",ui-monospace,monospace; }
+    a { color:inherit; text-decoration:none; }
+
+    /* 页头 */
+    .page-head { max-width:1080px; margin:0 auto 34px; }
+    .page-head h1 { font-family:"FusionPixel"; font-size:1.4rem; color:var(--frame); text-shadow:3px 3px 0 var(--ink); }
+    .page-head p { margin-top:8px; color:#dbe6ce; font-size:.9rem; max-width:64ch; }
+
+    /* 堆叠容器：纸绝对定位交叠 */
+    .stack { position:relative; max-width:1080px; margin:0 auto; height:960px; }
+    /* 记录纸：奶油底 + 横线(不是方格) + 顶部折痕 + 左侧打孔 */
+    .note {
+      position:absolute;
+      width:min(520px,86%);
+      padding:28px 30px 24px;
+      border:3px solid var(--ink);
+      border-radius:3px;
+      background:
+        /* 距顶一行稍深的抬头线 */
+        linear-gradient(transparent 0 30px, rgba(0,0,0,.05) 30px 31px),
+        /* 横线记录纸 */
+        repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 30px),
+        var(--paper);
+      box-shadow:
+        0 0 0 2px var(--frame),
+        14px 14px 0 rgba(0,0,0,.3);
+      transform:rotate(var(--r,0deg));
+      transition:transform .45s cubic-bezier(.2,1,.3,1), box-shadow .45s, z-index 0s;
+      z-index:calc(var(--z,1)*1);
+      cursor:pointer;
+    }
+    /* 顶部折痕（纸的卷折感） */
+    .note:after { content:""; position:absolute; right:0; top:0; width:26px; height:26px;
+      background:linear-gradient(135deg, var(--paper) 50%, rgba(0,0,0,.12) 50%);
+      border-left:2px solid rgba(0,0,0,.12); }
+    /* 悬停：把这张纸"抽出来"——压平、放大、提到最前、阴影加深 */
+    .note:hover {
+      transform:rotate(0deg) translateY(-10px) scale(1.04);
+      box-shadow:0 0 0 2px var(--frame), 30px 30px 0 rgba(0,0,0,.24);
+      z-index:99;
+    }
+
+    /* 交叠位置：后面的纸压住前面的纸一角（用 top/left/rotate 营造堆叠） */
+    .n1 { --r:-3deg;  top:20px;  left:2%;   --z:1; background-color:#f6efdb; }
+    .n2 { --r:2.4deg; top:220px; left:20%;  --z:2; background-color:#f3ecd8; }
+    .n3 { --r:-1.8deg;top:470px; left:8%;   --z:3; background-color:#f8f2e4; }
+    .n4 { --r:3deg;   top:700px; left:30%;  --z:4; background-color:#f2ead4; }
+
+    .note em { font-family:"FusionPixel"; font-size:.6rem; letter-spacing:.12em; color:var(--brown); }
+    .note h3 { font-size:1.6rem; font-weight:900; line-height:1.05; margin:.6rem 0 .6rem; }
+    .note .meta { font-family:"FusionPixel"; font-size:.7rem; color:#6b5a3e; margin-bottom:.8rem; }
+    .note p { font-size:.86rem; line-height:1.7; opacity:.94; }
+    .note .tag { display:inline-block; font-family:"FusionPixel"; font-size:.6rem; background:var(--ink); color:var(--frame); padding:3px 8px; border-radius:3px; margin:1rem .4rem 0 0; }
+    .note .cta { font-family:"FusionPixel"; font-size:.72rem; color:var(--orange); display:block; margin-top:1.1rem; }
+
+    @media (max-width:700px){ .stack{height:1400px;} .note{width:90%;} }
+  </style>
+</head>
+<body>
+  <div class="page-head">
+    <h1 class="px">▍项目任务 · 堆叠记录纸</h1>
+    <p>多张横线记录纸交叠堆在页面上（不再是木台）。每张是一份任务记录——后面的纸压住前面的，悬停就能把那张纸"抽出来"铺平放大查看。</p>
+  </div>
+
+  <div class="stack">
+    <a class="note n1" href="#">
+      <em>QUEST / 01</em>
+      <h3>童话冒险 DEMO</h3>
+      <div class="meta px">2026 · 独立游戏 · 制作人/主策划</div>
+      <p>回合制 JRPG 序章：战斗、装备、队伍、背包、存档、商店，Godot 可运行原型。</p>
+      <span class="tag">JRPG</span><span class="tag">回合制</span>
+      <span class="cta">▶ 查看详情</span>
+    </a>
+    <a class="note n2" href="#">
+      <em>QUEST / 02</em>
+      <h3>唤她真名</h3>
+      <div class="meta px">2026 · 动画电影剧本 · 组长/编剧</div>
+      <p>心理悬疑 × 民俗童话动画电影剧本（120 分钟），组长，负责结局撰写。</p>
+      <span class="tag">剧本</span><span class="tag">组长</span>
+      <span class="cta">▶ 查看详情</span>
+    </a>
+    <a class="note n3" href="#">
+      <em>QUEST / 03</em>
+      <h3>上元古界</h3>
+      <div class="meta px">2019 · 开放世界世界观 · 主策划</div>
+      <p>体素风国风世界观开放世界 RPG，主导世界观构建与多角色主线剧情。</p>
+      <span class="tag">世界观</span><span class="tag">主策划</span>
+      <span class="cta">▶ 查看详情</span>
+    </a>
+    <a class="note n4" href="#">
+      <em>QUEST / 04</em>
+      <h3>乱世三国</h3>
+      <div class="meta px">2017 · Minecraft 地图 · 主制作</div>
+      <p>大型线性 RPG 地图，30 关，职业与身份系统；10 万+ 浏览、3000 下载。</p>
+      <span class="tag">Minecraft</span><span class="tag">主制作</span>
+      <span class="cta">▶ 查看详情</span>
+    </a>
+  </div>
+</body>
+</html>

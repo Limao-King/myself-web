@@ -1,0 +1,150 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const patterns = [
+  { id: 'none', label: '无（纯色）' },
+  { id: 'paper', label: '暖纸纹' },
+  { id: 'grass', label: '草地纹' },
+  { id: 'tile', label: '蓝砖纹' },
+];
+---
+<Layout panel={false} title="配色预览">
+  <div class="pv">
+    <h1 class="pv__title">◆ 配色预览</h1>
+    <p class="pv__desc">**拖入 PNG 换背景纹样**（或点选择），改下面任意颜色会**实时**反映在下方预览卡。调好后复制配置发我即可。</p>
+
+    <div class="pv__controls">
+      <div class="pv__ctl pv__ctl--wide">
+        <label class="pv__label">背景纹样（拖 PNG 或选择）</label>
+        <div class="pv__drop" id="pv-drop" tabindex="0">把 PNG 拖到这里，或点击选择</div>
+        <input type="file" id="pv-file" accept="image/*" hidden />
+        <select id="pv-bgimg" class="pv__select">
+          {patterns.map((p) => <option value={p.id}>{p.label}</option>)}
+        </select>
+      </div>
+      <div class="pv__ctl">
+        <label class="pv__label">背景颜色</label>
+        <input type="color" id="pv-bgcolor" value="#f4eddb" />
+      </div>
+      <div class="pv__ctl">
+        <label class="pv__label">导航背景</label>
+        <input type="color" id="pv-navbg" value="#f2e8d4" />
+      </div>
+      <div class="pv__ctl">
+        <label class="pv__label">导航文字</label>
+        <input type="color" id="pv-navfg" value="#2a1a12" />
+      </div>
+      <div class="pv__ctl">
+        <label class="pv__label">主板面背景</label>
+        <input type="color" id="pv-panelbg" value="#fbf7ec" />
+      </div>
+      <div class="pv__ctl">
+        <label class="pv__label">主板面文字</label>
+        <input type="color" id="pv-panelfg" value="#262016" />
+      </div>
+    </div>
+
+    <!-- 实时预览卡（含背景流动） -->
+    <div class="pv__stage" id="pv-stage">
+      <div class="pv__nav" id="pv-nav"><span>导航栏预览</span></div>
+      <div class="pv__panel" id="pv-panel">
+        <h2>主板面预览</h2>
+        <p>这里实时展示背景色/纹样、导航色、主版面文字色。调整任何一项都会即时变化。</p>
+        <button type="button" class="pv__btn">示例按钮</button>
+      </div>
+    </div>
+
+    <div class="pv__values" id="pv-values"></div>
+  </div>
+</Layout>
+
+<style>
+  .pv { max-width: 980px; margin: 0 auto; }
+  .pv__title { font-family: "FusionPixel", var(--font-sans); font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .pv__desc { color: #6b5a3e; font-size: 0.9rem; margin-bottom: 1.3rem; }
+  .pv__controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.1rem; margin-bottom: 1.6rem; }
+  .pv__ctl { display: flex; flex-direction: column; gap: 0.4rem; }
+  .pv__ctl--wide { grid-column: 1 / -1; }
+  .pv__label { font-size: 0.8rem; color: #6b5a3e; }
+  .pv__select { padding: 0.5rem; border: 2px solid #d9cdae; border-radius: 8px; background: #fff; font-size: 0.9rem; }
+  .pv__drop { padding: 1.2rem; border: 2px dashed #b9a87f; border-radius: 10px; color: #7b7160; font-size: 0.88rem; text-align: center; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; }
+  .pv__drop:hover, .pv__drop.is-over { border-color: #35601f; background: #eef3e2; }
+  /* 预览卡 */
+  .pv__stage { position: relative; min-height: 440px; border: 4px solid #8a5a34; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 0 rgba(0,0,0,.15); background-color: var(--pv-bgcolor, #f4eddb); }
+  .pv__stage::before { content: ""; position: absolute; inset: -200px; background-image: var(--pv-bgimg, none); background-size: 192px 192px; background-repeat: repeat; image-rendering: pixelated; animation: pv-drift 60s linear infinite; z-index: 0; }
+  @keyframes pv-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-192px,-192px,0); } }
+  .pv__nav, .pv__panel { position: relative; z-index: 1; }
+  .pv__nav { background: var(--pv-navbg, #f2e8d4); color: var(--pv-navfg, #2a1a12); padding: 1.1rem 1.6rem; border-bottom: 4px solid #8a5a34; font-weight: 700; font-size: 1.05rem; }
+  .pv__panel { margin: 2rem; padding: 2rem; background: var(--pv-panelbg, #fbf7ec); color: var(--pv-panelfg, #262016); border: 3px solid #d9cdae; border-radius: 14px; }
+  .pv__panel h2 { font-family: "FusionPixel", var(--font-sans); font-size: 1.4rem; margin-bottom: .8rem; }
+  .pv__panel p { font-size: 1rem; line-height: 1.8; }
+  .pv__btn { margin-top: 1rem; padding: .6rem 1.3rem; border: none; border-radius: 10px; background: var(--pv-panelfg, #262016); color: var(--pv-panelbg, #fbf7ec); font-weight: 700; cursor: pointer; font-size: .95rem; }
+  .pv__values { margin-top: 1.4rem; font-size: .85rem; color: #6b5a3e; white-space: pre-wrap; word-break: break-all; }
+  @media (prefers-reduced-motion: reduce) { .pv__stage::before { animation: none; } }
+</style>
+
+<script>
+  const stage = document.getElementById('pv-stage');
+  const nav = document.getElementById('pv-nav');
+  const panel = document.getElementById('pv-panel');
+  const values = document.getElementById('pv-values');
+  const drop = document.getElementById('pv-drop');
+  const fileInput = document.getElementById('pv-file');
+
+  const PATTERNS = {
+    none: 'none',
+    paper: 'url("/images/bg/paper.png")',
+    grass: 'url("/images/patterns/grass-onett.png")',
+    tile: 'repeating-linear-gradient(0deg, #c3d3e4 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, #c3d3e4 0 1px, transparent 1px 64px)',
+  };
+
+  function setCustom(url, name) {
+    stage.dataset.customBg = url;
+    stage.dataset.customName = name || '自定义';
+    document.getElementById('pv-bgimg').value = 'none';
+    apply();
+  }
+  function apply() {
+    const custom = stage.dataset.customBg;
+    // 自定义(dataURL) 要包 url() 才能作为 background-image；预设纹样已带 url()
+    const bgimg = custom ? `url("${custom}")` : (PATTERNS[document.getElementById('pv-bgimg').value] || 'none');
+    const bgcolor = document.getElementById('pv-bgcolor').value;
+    const navbg = document.getElementById('pv-navbg').value;
+    const navfg = document.getElementById('pv-navfg').value;
+    const panelbg = document.getElementById('pv-panelbg').value;
+    const panelfg = document.getElementById('pv-panelfg').value;
+    stage.style.setProperty('--pv-bgcolor', bgcolor);
+    stage.style.setProperty('--pv-bgimg', bgimg);
+    nav.style.setProperty('--pv-navbg', navbg);
+    nav.style.setProperty('--pv-navfg', navfg);
+    panel.style.setProperty('--pv-panelbg', panelbg);
+    panel.style.setProperty('--pv-panelfg', panelfg);
+    const imgLabel = custom ? `自定义PNG(${stage.dataset.customName})` : (document.getElementById('pv-bgimg').selectedOptions[0]?.textContent || '无');
+    values.textContent =
+      `背景纹样: ${imgLabel}\n背景颜色: ${bgcolor}\n导航背景: ${navbg} / 导航文字: ${navfg}\n主板面背景: ${panelbg} / 主板面文字: ${panelfg}`;
+  }
+
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); drop.classList.add('is-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    drop.classList.remove('is-over');
+    const f = e.dataTransfer?.files?.[0] || e.dataTransfer?.items?.[0];
+    if (f && f.kind !== 'string') {
+      const r = new FileReader();
+      r.onload = () => setCustom(r.result, f.name || 'PNG');
+      r.readAsDataURL(f.getAsFile ? f.getAsFile() : f);
+    }
+  });
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files[0];
+    if (f) { const r = new FileReader(); r.onload = () => setCustom(r.result, f.name); r.readAsDataURL(f); }
+  });
+
+  document.querySelectorAll('#pv-bgcolor, #pv-navbg, #pv-navfg, #pv-panelbg, #pv-panelfg, #pv-bgimg').forEach((el) => {
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);
+  });
+  apply();
+</script>
