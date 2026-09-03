@@ -24,7 +24,7 @@ const abilities = [
 <Layout panel={false} theme="eb">
   <!-- 遭遇战开场 -->
   <div id="eb-encounter" class="eb-encounter" aria-hidden="true">
-    <p class="eb-encounter__line">招聘方 出现了！</p>
+    <p class="eb-encounter__line">求职的大学生 出现了！</p>
     <button id="eb-start" type="button" class="eb-start">▶ PRESS START</button>
   </div>
 
@@ -79,13 +79,13 @@ const abilities = [
           </div>
           {
             (playerUrl || feature.data.demoUrl) && (
-              <p class="eb-hint mt-3" id="eb-hint">
+              <div class="eb-hint mt-3" id="eb-hint">
                 <a
                   id="eb-play-cta"
-                  class="eb-btn-solid eb-hint__play"
-                  href={feature.data.demoUrl ?? `/projects/${feature.id}/`}
-                  target={feature.data.demoUrl ? '_blank' : undefined}
-                  rel={feature.data.demoUrl ? 'noopener' : undefined}
+                  class="eb-btn-solid eb-play-main"
+                  href="/games/fairytale/"
+                  target="_blank"
+                  rel="noopener"
                   data-slot-active="stage"
                 >
                   ▶ 直接打一场试试
@@ -104,7 +104,7 @@ const abilities = [
                     </>
                   )
                 }
-              </p>
+              </div>
             )
           }
           <p class="eb-dialog mt-3">野生的 可玩 Demo 跳了出来！—— 回合制 JRPG 序章，战斗、探索、装备、存档系统可运行。</p>
@@ -170,22 +170,33 @@ const abilities = [
 </Layout>
 
 <script>
-  const el = document.getElementById('eb-encounter');
-  const skip =
-    localStorage.getItem('eb-seen') === '1' ||
-    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  if (el && skip) el.remove();
-  const start = document.getElementById('eb-start');
-  if (el && start) {
-    const dismiss = () => {
-      el.classList.add('is-leaving');
-      localStorage.setItem('eb-seen', '1');
-      setTimeout(() => el.remove(), 700);
-    };
-    start.addEventListener('click', dismiss);
-    document.addEventListener('keydown', dismiss, { once: true });
-    setTimeout(dismiss, 3000);
+  // 遭遇战开场：只在首次真正进入站点时出现一次，之后不再出现。
+  // 用 initEncounter() + astro:after-swap 处理客户端平滑导航（点「首页」等）：
+  // 否则切换后覆盖层被重新注入却没有移除/绑定逻辑，会卡住整个首页。
+  function initEncounter() {
+    let el = document.getElementById('eb-encounter');
+    const skip =
+      localStorage.getItem('eb-seen') === '1' ||
+      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (el && skip) {
+      el.remove();
+      el = null;
+    }
+    const start = el && document.getElementById('eb-start');
+    if (el && start && !start.dataset.bound) {
+      start.dataset.bound = '1';
+      const dismiss = () => {
+        el.classList.add('is-leaving');
+        localStorage.setItem('eb-seen', '1');
+        setTimeout(() => el.remove(), 700);
+      };
+      start.addEventListener('click', dismiss);
+      document.addEventListener('keydown', dismiss, { once: true });
+      setTimeout(dismiss, 3000);
+    }
   }
+  initEncounter();
+  document.addEventListener('astro:after-swap', initEncounter);
   const noBtn = document.getElementById('eb-no');
   const noMsg = document.getElementById('eb-no-msg');
   noBtn?.addEventListener('click', () => { noMsg.hidden = false; noBtn.disabled = true; });
