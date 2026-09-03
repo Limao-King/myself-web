@@ -251,7 +251,7 @@
 .eb-pixel { font-family: "FusionPixel", var(--font-sans); color: #5c4c38; font-size: 0.85rem; }
 .eb-title { color: #262016; font-size: 2.4rem; font-weight: 800; margin-top: 0.5rem; }
 .eb-body { color: #2b2418; line-height: 1.7; font-size: 0.95rem; font-weight: 500; }
-.eb-ev, .eb-stat__ev { color: #5a4a36; font-size: 0.75rem; font-weight: 500; }
+.eb-ev, .eb-stat__ev { color: #5b4a34; font-size: 0.78rem; font-weight: 600; }
 .eb-dialog { color: #2b2418; line-height: 1.7; font-weight: 500; }
 .eb-link { color: #9a5a1e; text-decoration: underline; }
 /* 对话框（黑底）是唯一保留奶油字的地方 */
@@ -465,6 +465,12 @@
 .eb-tv__inner .eb-swap__loading { border-radius: 0; }
 @media (max-width: 560px) {
   .eb-tv { border-radius: 12px; padding: 10px 10px 12px; }
+  .eb-window { padding: 1.35rem 1.25rem; }
+  .eb-window__title { line-height: 1.5; }
+  .eb-log-row { align-items: flex-start; padding-block: .8rem; }
+  .eb-log-right { width: 100%; margin-left: 0; justify-content: space-between; white-space: normal; }
+  .eb-hint__sep { display: none; }
+  .eb-hint > a, .eb-hint > button { width: min(100%, 17rem); }
 }
 
 /* BOSS 战卡片：与对话窗共用同一套夹心框 + 四角方块，保持全站框系统统一 */
@@ -582,6 +588,18 @@
   height: 100%;
   border-radius: var(--eb-radius);
 }
+/* 视频槽：iframe 铺满并压过 loading 覆盖层，让 bilibili 播放器自身的缓冲/暂停/播放正常显示 */
+.eb-swap__pane[data-slot="video"] .eb-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 /* 惰性封面：点击开始试玩（点在封面任意处也能启动，按钮居中聚焦） */
 .eb-swap__pane[data-slot="play"] .eb-battle__stage {
   position: relative;
@@ -878,7 +896,7 @@
 .eb-log-row:hover { transform: translateX(2px); }
 .eb-log-date {
   font-family: "FusionPixel", var(--font-sans);
-  color: var(--eb-muted);
+  color: #66543c;
   font-size: 0.8rem;
   white-space: nowrap;
 }
@@ -896,7 +914,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: var(--eb-ink);
+  background: #2b3a1f;              /* 深苔绿：与挂毯绿/深棕衔接，不再像黑屏出错页 */
   color: var(--eb-paper);
   display: flex;
   flex-direction: column;
@@ -904,6 +922,28 @@
   justify-content: center;
   gap: 1.5rem;
 }
+/* 像素星星：散落成片的复古点光（桌面端若干粒） */
+.eb-encounter::before,
+.eb-encounter::after {
+  content: "";
+  position: absolute;
+  width: 6px; height: 6px;
+  background: rgba(248, 248, 216, 0.85);   /* 白奶油点 */
+  box-shadow:
+    /* 上排 */
+    18vw 18vh 0 0 rgba(248,248,216,.7),
+    62vw 12vh 0 0 rgba(248,248,216,.55),
+    84vw 30vh 0 0 rgba(248,248,216,.8),
+    8vw 52vh 0 0 rgba(248,248,216,.6),
+    42vw 62vh 0 0 rgba(248,248,216,.75),
+    72vw 70vh 0 0 rgba(248,248,216,.55),
+    26vw 84vh 0 0 rgba(248,248,216,.7),
+    90vw 78vh 0 0 rgba(248,248,216,.6),
+    55vw 34vh 0 0 rgba(248,248,216,.5);
+}
+.eb-encounter::before { animation: eb-star-flicker 1.6s steps(2) infinite; }
+.eb-encounter::after { transform: scale(0.7); opacity: 0.55; animation: eb-star-flicker 2.1s steps(2) infinite; }
+@keyframes eb-star-flicker { 50% { opacity: 0.25; } }
 .eb-encounter__line { font-family: "FusionPixel", var(--font-sans); font-size: 1.4rem; color: var(--eb-paper); }
 .eb-start {
   font-family: "FusionPixel", var(--font-sans);
@@ -914,7 +954,7 @@
   cursor: pointer;
   animation: eb-blink 1s steps(2) infinite;
 }
-@keyframes eb-blink { 50% { opacity: 0; } }
+@keyframes eb-blink { 50% { opacity: 0.35; } }
 .eb-encounter.is-leaving { animation: eb-leave 0.7s steps(6) forwards; }
 @keyframes eb-leave { to { opacity: 0; transform: scale(1.4); } }
 
@@ -1048,12 +1088,13 @@
 .eb-toc__list::-webkit-scrollbar-thumb { background: #d9cdae; border-radius: 3px; }
 
 /* 桌面内容右缩进，避免被固定 TOC 遮挡 */
-@media (min-width: 1180px) {
+@media (min-width: 768px) {
   .eb-toc { right: 1.5rem; }
+  .prose-article { padding-right: 13rem; }   /* 正文给侧边 TOC 让位 */
 }
 
 /* 移动端：折叠成顶部小按钮 */
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .eb-toc {
     width: auto;
     right: 0.75rem;
@@ -1211,4 +1252,48 @@
   .eb-level { transition: none; }
   .eb-swap__pane { transition: none; }
   .eb-swap.is-swapping .eb-swap__flash { animation: none; }
+}
+
+/* ============ 移动端开场：竖屏专属 ============ */
+@media (max-width: 640px) {
+  .eb-encounter {
+    padding-top: 18vh;              /* 上下留黑边（深苔绿留白区） */
+    padding-bottom: 24vh;
+    justify-content: flex-start;
+    gap: 3.2rem;
+  }
+  .eb-encounter__line {
+    font-size: 1.25rem;
+    color: rgba(248, 248, 216, 0.85);   /* 弱化标题字，突出气泡 */
+  }
+  /* 对话气泡框：包住 PRESS START，作为最强的视觉锚点 */
+  .eb-start {
+    position: relative;
+    padding: 1.1rem 2rem;
+    color: #f8f8d8;
+    background: #2b3a1f;
+    border: 3px solid #f8f8d8;
+    border-radius: 14px;
+    font-size: 1.15rem;
+    animation: none;                    /* 竖屏气泡不闪，稳定可点 */
+  }
+  .eb-start::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -20px;
+    transform: translateX(-50%);
+    border: 20px solid transparent;
+    border-top-color: #f8f8d8;          /* 气泡尾巴 */
+  }
+  /* 星星：沿对角线散落 3-4 颗（竖屏更聚焦） */
+  .eb-encounter::before,
+  .eb-encounter::after {
+    box-shadow:
+      8vw 14vh 0 0 rgba(248,248,216,.85),
+      80vw 30vh 0 0 rgba(248,248,216,.65),
+      24vw 46vh 0 0 rgba(248,248,216,.6),
+      72vw 62vh 0 0 rgba(248,248,216,.75);
+  }
+  .eb-encounter::after { opacity: 0.4; }
 }

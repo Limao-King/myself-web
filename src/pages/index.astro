@@ -26,21 +26,47 @@ const abilities = [
 
 <Layout panel={false} theme="eb">
   <!-- 遭遇战开场 -->
-  <div id="eb-encounter" class="eb-encounter" aria-hidden="true">
-    <p class="eb-encounter__line">求职的大学生 出现了！</p>
+  <div id="eb-encounter" class="eb-encounter" role="dialog" aria-modal="true" aria-labelledby="eb-encounter-title">
+    <p id="eb-encounter-title" class="eb-encounter__line">求职的大学生 出现了！</p>
     <button id="eb-start" type="button" class="eb-start">▶ PRESS START</button>
   </div>
 
-  <div class="flex flex-col gap-6">
-    <!-- Hero 对话窗 -->
-    <section class="eb-window">
-      <p class="eb-pixel">你好！我是 {siteConfig.name} 求职意向：</p>
-      <h1 class="eb-title">{siteConfig.hero.role}</h1>
-      <p class="eb-body">{siteConfig.hero.tagline}</p>
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a href={`/projects/${feature?.id}/`} class="eb-btn-solid">▶ 查看代表项目</a>
-        <a href={siteConfig.resumeUrl} target="_blank" class="eb-btn-line">下载简历</a>
+  <div class="home-flow flex flex-col gap-7">
+    <!-- Hero：先用招聘方最关心的定位、能力与证据建立第一印象 -->
+    <section class="eb-window home-hero">
+      <div class="home-hero__content">
+        <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true"></span>2027 届 · 寻找游戏策划实习 / 校招机会</p>
+        <p class="eb-pixel home-greeting">你好，我是 {siteConfig.name}。</p>
+        <h1 class="eb-title">把设计写进文档，<br /><span>也把它做成能玩的游戏。</span></h1>
+        <p class="eb-body home-lead">{siteConfig.hero.tagline}</p>
+        <ul class="home-proof" aria-label="个人经历摘要">
+          <li><strong>4</strong><span>个完整项目</span></li>
+          <li><strong>1</strong><span>款可玩 Demo</span></li>
+          <li><strong>6000+</strong><span>小时游戏体验</span></li>
+        </ul>
+        <div class="home-actions mt-6 flex flex-wrap gap-3">
+          <a href={`/projects/${feature?.id}/`} class="eb-btn-solid">查看代表项目 <span aria-hidden="true">→</span></a>
+          <a href={siteConfig.resumeUrl} target="_blank" rel="noopener" class="eb-btn-line">下载简历</a>
+          <a href={`mailto:${siteConfig.email}`} class="home-text-link">联系我</a>
+        </div>
       </div>
+      <aside class="home-docs" aria-label="精品文档">
+        <div class="home-docs__stack">
+          {
+            featureDocs.map((d, i) => (
+              <a
+                href={`/docs/${d.id}/`}
+                class:list={['home-doc', `home-doc--${i + 1}`]}
+                aria-label={d.data.title}
+              >
+                <span class="home-doc__em">{d.data.category ?? '文档'}</span>
+                <strong class="home-doc__title">{d.data.title}</strong>
+                <span class="home-doc__cta">阅读 <b aria-hidden="true">→</b></span>
+              </a>
+            ))
+          }
+        </div>
+      </aside>
     </section>
 
     <!-- 能力：角色状态栏 -->
@@ -80,14 +106,14 @@ const abilities = [
                   <!-- 游戏本体：仅点击后挂 src（惰性，避免首屏加载 40MB） -->
                   <div class="eb-swap__game" data-game hidden>
                     <p class="eb-swap__loading" aria-hidden="true">正在召唤试玩…</p>
-                    <iframe data-src="https://play.limao.site/" title="童话冒险 DEMO 在线试玩" class="eb-video" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+                    <iframe data-src="https://play.limao.site/" title="童话冒险 DEMO 在线试玩" class="eb-video" allow="autoplay; fullscreen; gamepad"></iframe>
                   </div>
                 </div>
                 {
                   playerUrl && (
                     <div class="eb-battle__video eb-swap__pane" data-slot="video">
                       <p class="eb-swap__loading" aria-hidden="true">正在召唤演示视频…</p>
-                      <iframe data-src={playerUrl} title="童话冒险 DEMO 演示视频" class="eb-video" allowfullscreen allow="fullscreen; accelerometer; encrypted-media; picture-in-picture"></iframe>
+                      <iframe data-src={playerUrl} title="童话冒险 DEMO 演示视频" class="eb-video" allow="fullscreen; accelerometer; encrypted-media; picture-in-picture"></iframe>
                     </div>
                   )
                 }
@@ -101,6 +127,7 @@ const abilities = [
               (playerUrl || feature.data.demoUrl) && (
                 <div class="eb-hint mt-3" id="eb-hint">
                   <a href={`/projects/${feature.id}/`} class="eb-btn-line eb-hint__project" data-slot-active="play">查看完整项目</a>
+                  <span class="eb-hint__sep" aria-hidden="true">/</span>
                   <a
                     id="eb-play-cta"
                     class="eb-btn-solid eb-play-main"
@@ -163,7 +190,7 @@ const abilities = [
     <!-- 游戏经历：冒险记录 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 至今的冒险（游戏经历）</h2>
-      <p class="eb-dialog mt-2">已收集图鉴 <span class="eb-pixel">{totalGameCount}</span> 款游戏，累计 6000+ 小时 —— 做游戏的体验者，也做游戏的思考者。回合制游戏爱好者，长期关注回合制游戏中的地形利用/行动经济/构筑配置等博弈点，可以敏锐地察觉游戏中的系统创新点，并尝试思考系统设计的思路和复现路径；长期保持阅读习惯，熟习电影、剧作、文学、游戏文本创作理论并会思考文字，镜头等媒介于游戏媒介的运用与交集。持续保持对叙事驱动类游戏中剧本结构/人物塑造/世界观/冲突设计/叙事创新等多个维度的观察，思考文本如何黏着融入游戏，如何塑造游戏的核心气质。</p>
+      <p class="eb-dialog mt-2 home-experience">已收集 <span class="eb-pixel">{totalGameCount}</span> 款游戏、累计 6000+ 小时。我不只记录“玩过什么”，也持续拆解回合制游戏中的地形利用、行动经济与构筑博弈，以及叙事驱动游戏中的结构、人物、世界观和冲突设计。对我来说，游戏经历最终要转化成可复用的设计判断。</p>
       <div class="mt-3 flex flex-wrap gap-2">
         {['回合制', '叙事驱动', '机制创新', '剧情结构','行动经济'].map((t) => (
           <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
@@ -185,30 +212,110 @@ const abilities = [
   </div>
 </Layout>
 
+<style>
+  .home-flow { padding-block: .25rem 1rem; }
+  .home-hero { display:grid; grid-template-columns:minmax(0,1fr) 15rem; gap:2.5rem; align-items:stretch; padding:clamp(2rem,5vw,3.6rem); overflow:hidden; }
+  .home-hero::after { content:""; position:absolute; width:18rem; height:18rem; right:-7rem; top:-9rem; border-radius:50%; border:2px solid rgba(120,80,40,.14); box-shadow:0 0 0 2rem rgba(120,80,40,.035),0 0 0 5rem rgba(120,80,40,.025); pointer-events:none; }
+  .home-hero__content { position:relative; z-index:1; }
+  .home-eyebrow { display:flex; align-items:center; gap:.55rem; color:#50643b; font-size:.78rem; font-weight:700; letter-spacing:.06em; margin-bottom:1.35rem; }
+  .home-eyebrow__dot { width:.55rem; height:.55rem; background:#5f913d; border:2px solid #26311d; border-radius:50%; box-shadow:0 0 0 3px rgba(95,145,61,.16); }
+  .home-greeting { margin-bottom:.25rem; }
+  .home-hero .eb-title { font-size:clamp(2.25rem,5.5vw,4.35rem); line-height:1.08; max-width:13em; letter-spacing:-.025em; text-wrap:balance; }
+  .home-hero .eb-title span { color:#9b472c; }
+  .home-lead { max-width:46rem; margin-top:1.35rem; font-size:1rem; line-height:1.9; color:#514535; }
+  .home-proof { display:flex; flex-wrap:wrap; margin-top:1.75rem; }
+  .home-proof li { display:flex; flex-direction:column; min-width:7.5rem; padding:0 1.35rem; border-left:1px solid rgba(42,26,18,.18); }
+  .home-proof li:first-child { padding-left:0; border-left:0; }
+  .home-proof strong { font-family:"FusionPixel",var(--font-sans); color:#262016; font-size:1.45rem; line-height:1; }
+  .home-proof span { margin-top:.4rem; color:#6a5b45; font-size:.72rem; }
+  .home-actions { align-items:center; }
+  .home-text-link { min-height:44px; display:inline-flex; align-items:center; padding-inline:.65rem; color:#74411f; font-size:.85rem; font-weight:700; text-decoration:underline; text-underline-offset:.3em; }
+  /* 精品文档：折叠票据堆（3 张层叠错开，悬停抽出，点击跳转） */
+  /* 精品文档：三张修长卡片折叠成一叠（上下交叠露边，悬停抽出，点击跳转） */
+  .home-docs {
+    position:relative; z-index:1; align-self:stretch; display:flex; flex-direction:column;
+    padding:.25rem 0; justify-content:stretch;
+  }
+  /* 纸条叠：相对定位，纸条绝对定位，从顶部开始叠 */
+  .home-docs__stack { position:relative; flex:1; min-height:22rem; }
+  /* 每张纸条：修长长条卡片，叠放露顶边；颜色逐张变化 */
+  .home-doc {
+    position:absolute; left:0; right:0; top:0; height:92%; display:flex; flex-direction:column; gap:.5rem;
+    padding:1.25rem 1.25rem 1rem; border-radius:8px; cursor:pointer; text-decoration:none;
+    border:3px solid var(--doc-edge); outline:2px solid var(--doc-outline);
+    background:var(--doc-bg); color:var(--doc-ink); box-shadow:5px 5px 0 rgba(24,20,16,.2);
+    transform:rotate(var(--r,0deg));
+    transition:transform .32s cubic-bezier(.2,1,.3,1), box-shadow .32s;
+  }
+  /* 三张叠放：每张下移一点点，让后面的露顶边 */
+  .home-doc--1 { --r:.6deg;   top:calc(3% ); z-index:3; }
+  .home-doc--2 { --r:-0.5deg; top:calc(7%); z-index:2; }
+  .home-doc--3 { --r:0deg;    top:calc(11%); z-index:1; }
+  /* 逐张换色：深绿 → 米金Beige → 暖米纸（协调于全站色板） */
+  .home-doc--1 {
+    --doc-bg:#27341f; --doc-ink:#f8f4dc; --doc-edge:#f8f4dc; --doc-outline:#1b2117;
+    --doc-em:#a9b98a; --doc-cta:#e0c98a;
+  }
+  .home-doc--2 {
+    --doc-bg:#f5f5dc; --doc-ink:#3a2a10; --doc-edge:#3a2a10; --doc-outline:#262016;
+    --doc-em:#6b4f1c; --doc-cta:#74411f;
+  }
+  .home-doc--3 {
+    --doc-bg:#f6efdb; --doc-ink:#2b2418; --doc-edge:#262016; --doc-outline:#262016;
+    --doc-em:#9b472c; --doc-cta:#74411f;
+  }
+  /* 悬停：抽出当前卡片，浮起 */
+  .home-doc:hover { transform:rotate(0deg) translateY(-14px) scale(1.02); z-index:9; box-shadow:9px 13px 0 rgba(24,20,16,.22); }
+  .home-doc__em { font-family:"FusionPixel",var(--font-sans); font-size:.6rem; letter-spacing:.12em; color:var(--doc-em); }
+  .home-doc__title { font-size:1.02rem; font-weight:800; line-height:1.4; color:var(--doc-ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .home-doc__cta { margin-top:auto; padding-top:.4rem; color:var(--doc-cta); font-size:.74rem; font-weight:700; }
+  .home-experience { max-width:56rem; }
+  @media (max-width:760px) {
+    .home-flow { gap:1.25rem; }
+    .home-hero { grid-template-columns:1fr; gap:1.5rem; padding:1.75rem 1.55rem; }
+    .home-hero .eb-title { font-size:clamp(2rem,10vw,3rem); }
+    .home-lead { font-size:.92rem; line-height:1.8; }
+    .home-hero__quest, .home-docs { display:none; }
+    .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
+    .home-proof li { min-width:0; padding-inline:.75rem; }
+    .home-proof strong { font-size:1.15rem; }
+    .home-proof span { font-size:.64rem; }
+    .home-actions > * { flex:1 1 auto; }
+    .home-text-link { justify-content:center; flex-basis:100%; }
+  }
+</style>
+
 <script>
   // 遭遇战开场：只在首次真正进入站点时出现一次，之后不再出现。
   // 用 initEncounter() + astro:after-swap 处理客户端平滑导航（点「首页」等）：
   // 否则切换后覆盖层被重新注入却没有移除/绑定逻辑，会卡住整个首页。
   function initEncounter() {
     let el = document.getElementById('eb-encounter');
-    const skip =
-      localStorage.getItem('eb-seen') === '1' ||
-      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    if (el && skip) {
-      el.remove();
-      el = null;
-    }
+    let seen = false;
+    try { seen = localStorage.getItem('eb-seen') === '1'; } catch {}
+    const skip = seen || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (el && skip) { el.remove(); el = null; }
     const start = el && document.getElementById('eb-start');
     if (el && start && !start.dataset.bound) {
       start.dataset.bound = '1';
+      let dismissed = false;
+      let timer;
+      const onKey = (event) => {
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') dismiss();
+      };
       const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
+        clearTimeout(timer);
+        document.removeEventListener('keydown', onKey);
         el.classList.add('is-leaving');
-        localStorage.setItem('eb-seen', '1');
+        try { localStorage.setItem('eb-seen', '1'); } catch {}
         setTimeout(() => el.remove(), 700);
       };
-      start.addEventListener('click', dismiss);
-      document.addEventListener('keydown', dismiss, { once: true });
-      setTimeout(dismiss, 3000);
+      start.addEventListener('click', dismiss, { once: true });
+      document.addEventListener('keydown', onKey);
+      timer = setTimeout(dismiss, 3000);
+      start.focus();
     }
   }
   initEncounter();
@@ -226,13 +333,18 @@ const abilities = [
   bindNoBtn();
   document.addEventListener('astro:after-swap', bindNoBtn);
 
-  // BOSS 战：惰性封面 → 在线试玩 ⇄ 演示视频
-  const swapBox = document.getElementById('eb-battle-swap');
-  const videoTog = document.getElementById('eb-video-toggle');
-  const playLaunch = document.getElementById('eb-play-launch');
-  const hintBox = document.getElementById('eb-hint');
-  const playCta = document.getElementById('eb-play-cta');
-  if (swapBox && (videoTog || playLaunch)) {
+  // BOSS 战：每次 ClientRouter 回到首页都初始化新 DOM；离开前主动销毁媒体与监听。
+  function initBattleMedia() {
+    const swapBox = document.getElementById('eb-battle-swap');
+    const videoTog = document.getElementById('eb-video-toggle');
+    const playLaunch = document.getElementById('eb-play-launch');
+    const hintBox = document.getElementById('eb-hint');
+    const playCta = document.getElementById('eb-play-cta');
+    if (!swapBox || swapBox.dataset.bound || !(videoTog || playLaunch)) return;
+    swapBox.dataset.bound = '1';
+    const controller = new AbortController();
+    const { signal } = controller;
+    {
     const video = swapBox.querySelector('[data-slot="video"]');
     const play = swapBox.querySelector('[data-slot="play"]');
     const cover = play?.querySelector('[data-cover]');
@@ -259,18 +371,28 @@ const abilities = [
       if (gameWrap) gameWrap.hidden = false;
     };
 
-    // 切换到试玩/视频态
+    // 切换到试玩/视频态。离开试玩即销毁实例；返回时停在封面，必须再次主动点击才加载。
+    // 这样既不会后台残留音乐，也不会因「返回」动作自动创建新的 Godot 音频上下文。
     const showSlot = (slot) => {
-      if (slot === 'video') kill(playIframe); else kill(videoIframe);
+      if (slot === 'video') {
+        kill(playIframe);
+        started = false;
+        if (gameWrap) gameWrap.hidden = true;
+        document.getElementById('eb-tv-power')?.classList.remove('is-on');
+      } else {
+        kill(videoIframe);
+      }
       video?.classList.remove('is-active');
       play?.classList.remove('is-active');
       if (slot === 'video') {
+        // 切到视频：隐藏雪花屏封面，避免视频缓冲/加载期底下雪花透出或闪现
+        if (cover) cover.style.display = 'none';
         if (videoIframe && !videoIframe.src) videoIframe.src = videoIframe.dataset.src;
         video?.classList.add('is-active');
       } else {
         play?.classList.add('is-active');
-        // 若曾启动过，回玩态时重新挂 src 恢复游戏；若未启动，保持封面等待点击
-        if (started && playIframe) playIframe.src = 'https://play.limao.site/';
+        if (cover) cover.style.display = '';
+        if (gameWrap) gameWrap.hidden = true;
       }
       // 视频态：隐藏主 CTA 与查看完整项目 + 只留返回
       const isVideo = slot === 'video';
@@ -284,35 +406,43 @@ const abilities = [
     };
 
     // 惰性封面点击（含启动按钮）→ 启动游戏
-    cover?.addEventListener('click', launch);
+    cover?.addEventListener('click', launch, { signal });
     // 视频切换：视频态点它回试玩态，试玩态点它进视频态
     videoTog?.addEventListener('click', () => {
       if (busy) return;
       busy = true;
       const target = video?.classList.contains('is-active') ? 'play' : 'video';
-      const run = () => { if (target === 'play') launch(); showSlot(target); busy = false; };
+      const run = () => { showSlot(target); busy = false; };
       if (reduce) run();
       else {
         swapBox.classList.add('is-swapping');
         setTimeout(run, 140);
         setTimeout(() => { swapBox.classList.remove('is-swapping'); busy = false; }, 400);
       }
-    });
+    }, { signal });
 
     // 离开页面/切经典视图时也清掉音频
     const killAll = () => { kill(videoIframe); kill(playIframe); };
-    window.addEventListener('pagehide', killAll);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) killAll(); });
+    const onVisibility = () => { if (document.hidden) killAll(); };
+    window.addEventListener('pagehide', killAll, { signal });
+    document.addEventListener('visibilitychange', onVisibility, { signal });
     const classicObserver = new MutationObserver(() => {
       if (document.documentElement.classList.contains('eb-classic')) killAll();
     });
     classicObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    // 若嵌入的是 Godot web demo，每 800ms 探测一次 iframe 状态，确保不残留 audio 上下文
-    setInterval(() => {
+    const interval = window.setInterval(() => {
       if (videoIframe?.src && video?.classList.contains('is-active')) pauseGodot(videoIframe);
-      if (playIframe?.src && play?.classList.contains('is-active')) pauseGodot(playIframe);
     }, 800);
+    document.addEventListener('astro:before-swap', () => {
+      killAll();
+      window.clearInterval(interval);
+      classicObserver.disconnect();
+      controller.abort();
+    }, { once: true, signal });
+    }
   }
+  initBattleMedia();
+  document.addEventListener('astro:after-swap', initBattleMedia);
 
   // ============ 雪花屏（老电视未调台画面）：低分辨率随机噪点 + 扫描扰动 ============
   // 替代原正弦纹样预览面：作为试玩的前置画面，点击 TUNE IN 后直启游戏（无中间封面）。

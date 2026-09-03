@@ -21,13 +21,26 @@
     const getRoot = () => {
       const r = document.getElementById('eb-toc');
       if (!r) return null;
-      // 只绑定一次 toggle（根节点每次新换，直接绑在多处也无妨）
+      // 根节点可能被 ClientRouter 换新；每个新节点只绑定一次。
       const toggle = r.querySelector('.eb-toc__toggle');
-      toggle?.addEventListener('click', () => {
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', String(!expanded));
-        r.classList.toggle('is-open', !expanded);
-      });
+      if (toggle && !toggle.dataset.bound) {
+        toggle.dataset.bound = '1';
+        const close = () => {
+          toggle.setAttribute('aria-expanded', 'false');
+          r.classList.remove('is-open');
+        };
+        toggle.addEventListener('click', () => {
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', String(!expanded));
+          r.classList.toggle('is-open', !expanded);
+        });
+        r.addEventListener('click', (event) => {
+          if (event.target.closest('.eb-toc__link')) close();
+        });
+        r.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') { close(); toggle.focus(); }
+        });
+      }
       return r;
     };
     let root = getRoot();

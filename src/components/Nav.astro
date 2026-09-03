@@ -20,12 +20,14 @@ const isActive = (href: string) =>
 ---
 
 <header class="site-header">
-  <nav class="flex items-center justify-between px-6 py-3 md:justify-end">
-    <!-- 移动端站点名（顶栏左侧，桌面端隐藏） -->
-    <a href="/" class="nav-brand font-pixel text-sm font-bold tracking-wide md:hidden">
-      {siteConfig.name} · 作品集
+  <nav class="site-nav">
+    <a href="/" class="nav-brand" aria-label={`${siteConfig.name}作品集首页`}>
+      <span class="nav-brand__char" role="img" aria-label="像素角色头像"></span>
+      <span class="nav-brand__copy">
+        <strong>{siteConfig.name}</strong>
+        <small>GAME DESIGN PORTFOLIO</small>
+      </span>
     </a>
-    <!-- 桌面导航（贴屏幕最右缘） -->
     <ul class="hidden items-center gap-1 md:flex">
       {
         links.map((link) => (
@@ -104,13 +106,28 @@ const isActive = (href: string) =>
 </header>
 
 <script>
-  const toggle = document.getElementById('nav-toggle');
-  const menu = document.getElementById('mobile-menu');
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const open = menu.classList.toggle('hidden') === false;
+  function initNav() {
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('mobile-menu');
+    if (!toggle || !menu || toggle.dataset.bound) return;
+    toggle.dataset.bound = '1';
+
+    const setOpen = (open) => {
+      menu.classList.toggle('hidden', !open);
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+      document.body.classList.toggle('nav-open', open);
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    menu.addEventListener('click', (event) => {
+      if (event.target.closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setOpen(false);
     });
   }
+
+  initNav();
+  document.addEventListener('astro:after-swap', initNav);
 </script>

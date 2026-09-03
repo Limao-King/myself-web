@@ -328,6 +328,7 @@ h2 {
    策划文档 · 轻量筛选（filter-chip）
    ---------------------------------------------------------------------------- */
 .filter-chip {
+  min-height: 42px;
   border: 2px solid #262016;
   border-radius: 9999px;
   background-color: #fbf7ec;
@@ -546,6 +547,11 @@ h2 {
 
 .prose-article table {
   @apply my-6 w-full border-collapse text-sm;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-color: var(--color-violet-500) var(--color-neutral-800);
 }
 
 .prose-article th,
@@ -747,6 +753,56 @@ h2 {
   margin: 0;
 }
 
+/* 导航内部统一限宽；品牌与内容形成稳定的左/右锚点 */
+.site-nav {
+  width: min(100%, 1120px);
+  min-height: 66px;
+  margin-inline: auto;
+  padding: .65rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--nav-ink);
+  flex: 0 0 auto;
+}
+
+/* 导航品牌像素角色：金发蓝衣（char02.png，金发小人 = 3列×4行，帧起 x288 y0，每帧48×72）。
+   头像用「向下」第一帧（行0 帧0 = x288 y0）。用整数比 0.75 等比映射，逐像素对齐，不露邻格。 */
+.nav-brand__char {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 54px;
+  background-image: url("/images/char02.png");
+  background-size: 432px 378px;      /* 原图 576*0.75 × 504*0.75 */
+  background-position: -216px 0;     /* 帧0 x288*0.75 */
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+}
+
+.nav-brand__copy { display: flex; flex-direction: column; line-height: 1.05; }
+.nav-brand__copy strong { font-family: "FusionPixel", var(--font-sans); font-size: .95rem; }
+.nav-brand__copy small { margin-top: .28rem; font-size: .52rem; font-weight: 700; letter-spacing: .13em; opacity: .72; }
+
+@media (max-width: 767px) {
+  .site-nav { min-height: 62px; padding: .6rem 1rem; }
+  .nav-brand__copy small { display: none; }
+  body.nav-open { overflow: hidden; }
+  .site-header #mobile-menu {
+    position: fixed;
+    inset: 62px 0 auto;
+    max-height: calc(100dvh - 62px);
+    overflow-y: auto;
+    box-shadow: 0 12px 24px rgba(38,32,22,.22);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-header {
     transition: none;
@@ -851,20 +907,35 @@ main.page-panel {
     3px 3px 0 rgba(38, 32, 22, 0.12);
 }
 
-/* 时长徽章：默认浅绿，悬停时反转成实色 */
+/* 时长徽章：旧金「集换式卡牌稀有度」质感（深棕字 + 像素描边），全程统一 */
 .game-chip__hours {
   border-radius: 6px;
   padding: 0.05rem 0.4rem;
   font-size: 0.65rem;
   font-weight: 600;
-  background-color: #e3eec9;
+  background-color: #e3eec9;   /* 默认：原版亮绿（>50h 且 ≤100h） */
   color: #3a6920;
-  transition: background-color 0.14s ease, color 0.14s ease;
+  box-shadow: 0 0 0 1.5px #a9c47e;
+  transition: background-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+
+/* 超过 100h 的「深度」体验：改用暗金 */
+.game-chip__hours.is-deep {
+  background-color: #c89a3a;
+  color: #3a2a10;
+  font-weight: 700;
+  box-shadow: 0 0 0 1.5px #1f140d;
 }
 
 .game-chip:hover .game-chip__hours {
-  background-color: #4c8a30;
-  color: #fdfaf1;
+  background-color: #d7e9b4;
+  color: #2f5a16;
+  box-shadow: 0 0 0 1.5px #93b567;
+}
+.game-chip:hover .game-chip__hours.is-deep {
+  background-color: #d9ad47;
+  color: #2a1d0a;
+  box-shadow: 0 0 0 1.5px #262016;
 }
 
 /* ✦ 标记：带评述的游戏（悬停出点评） */

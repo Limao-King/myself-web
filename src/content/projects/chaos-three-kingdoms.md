@@ -14,11 +14,11 @@ screenshots:
   - src: /images/projects/sanguo/cover.jpg
     caption: 新手教程战斗点
   - src: /images/projects/sanguo/battle.jpg
-    caption: 据点攻城战 · 关卡战斗
+    caption: 山寨攻防战：水晶胜负系统
   - src: /images/projects/sanguo/equipment.jpg
-    caption: 装备陈列室 · 职业与武器系统
+    caption: 排布的敌人的弩阵
   - src: /images/projects/sanguo/village.jpg
-    caption: 村落攻防 · 野外战斗
+    caption: 战场中的局部营地攻防小战役
 ---
 
 # 乱世三国（Minecraft RPG 地图）

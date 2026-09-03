@@ -5,7 +5,7 @@ export const siteConfig = {
   /** 名字（导航栏 / 页脚 / 浏览器标签页） */
   name: '明鑫',
   /** 线上站点地址（用于 OG / 分享） */
-  siteUrl: 'https://myself-web-3w8.pages.dev',
+  siteUrl: 'https://www.limao.site',
   /** 浏览器标签页后缀 */
   title: '游戏策划 · 作品集',
   /** 首页与分享时的站点描述 */

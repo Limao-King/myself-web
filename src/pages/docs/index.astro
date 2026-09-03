@@ -31,7 +31,7 @@ const writingGroups = [
       <SectionHeading
         as="h1"
         title="策划文档"
-        description="拆解案与策划案置顶，剧本 / 对白 / 世界观归为「剧本文档」一类。"
+        description={`共 ${docs.length} 篇。这里收录系统拆解、完整策划案，以及剧本、对白与世界观写作样本。`}
       />
     </Reveal>
 
@@ -46,11 +46,12 @@ const writingGroups = [
           aria-label="搜索文档"
         />
         <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="按类型筛选文档">
-          <button type="button" data-filter-type="all" class="filter-chip is-active">全部</button>
+          <button type="button" data-filter-type="all" class="filter-chip is-active" aria-pressed="true">全部</button>
           {['拆解案', '策划案', '剧本', '对白', '世界观'].map((t) => (
-            <button type="button" data-filter-type={t} class="filter-chip">{t}</button>
+            <button type="button" data-filter-type={t} class="filter-chip" aria-pressed="false">{t}</button>
           ))}
         </div>
+        <p id="doc-results" class="mt-3 text-sm text-neutral-400" role="status" aria-live="polite">显示全部 {docs.length} 篇文档</p>
       </div>
     </Reveal>
 
@@ -158,25 +159,37 @@ const writingGroups = [
 </Layout>
 
 <script>
-  const input = document.getElementById('doc-search');
-  const btns = document.querySelectorAll('[data-filter-type]');
-  let curType = 'all';
+  function initDocFilters() {
+    const input = document.getElementById('doc-search');
+    const btns = [...document.querySelectorAll('[data-filter-type]')];
+    const status = document.getElementById('doc-results');
+    if (!input || input.dataset.bound) return;
+    input.dataset.bound = '1';
+    let curType = 'all';
 
-  function apply() {
-    const kw = (input?.value || '').trim().toLowerCase();
-    document.querySelectorAll('.doc-item').forEach((el) => {
-      const okType = curType === 'all' || el.dataset.type === curType;
-      const okKw = !kw || (el.dataset.text || '').toLowerCase().includes(kw);
-      el.style.display = okType && okKw ? '' : 'none';
-    });
-  }
+    const apply = () => {
+      const kw = (input.value || '').trim().toLowerCase();
+      let count = 0;
+      document.querySelectorAll('.doc-item').forEach((el) => {
+        const visible = (curType === 'all' || el.dataset.type === curType) && (!kw || (el.dataset.text || '').toLowerCase().includes(kw));
+        el.hidden = !visible;
+        if (visible) count += 1;
+      });
+      if (status) status.textContent = count ? `找到 ${count} 篇文档` : '没有找到匹配的文档，请尝试其他关键词。';
+    };
 
-  input?.addEventListener('input', apply);
-  btns.forEach((b) =>
-    b.addEventListener('click', () => {
-      curType = b.dataset.filterType;
-      btns.forEach((x) => x.classList.toggle('is-active', x === b));
+    input.addEventListener('input', apply);
+    btns.forEach((button) => button.addEventListener('click', () => {
+      curType = button.dataset.filterType || 'all';
+      btns.forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
       apply();
-    })
-  );
+    }));
+    apply();
+  }
+  initDocFilters();
+  document.addEventListener('astro:after-swap', initDocFilters);
 </script>

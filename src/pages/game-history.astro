@@ -2,6 +2,15 @@
 import Layout from '../layouts/Layout.astro';
 import { gameCategories, totalGameCount, findGame } from '../data/games';
 
+// 解析 hours 字符串（如 "80"、"100+"、"500+"）为数值，用于判断徽章是否「深度」暗金
+const parseHours = (h?: string): number => {
+  if (!h) return 0;
+  const n = parseInt(h.replace(/[^\d]/g, ''), 10);
+  return isNaN(n) ? 0 : n;
+};
+// 超过 100 小时才算「深度」体验（暗金徽章）；其余用亮金
+const isDeep = (h?: string) => parseHours(h) > 100;
+
 // 长评：为用户重点书写的两则深度评述（完整展开）
 const longReviewNames = ['骑马与砍杀系列', '博德之门3'];
 const longReviews = longReviewNames
@@ -9,7 +18,7 @@ const longReviews = longReviewNames
   .filter((g): g is NonNullable<typeof g> => Boolean(g?.comment));
 
 // 短评：挑体验时间长、评述体现系统理解的几则，紧凑排布
-const shortReviewNames = ['杀戮尖塔系列', '暗黑地牢系列', '我的世界', '土豆兄弟', '饥荒'];
+const shortReviewNames = ['杀戮尖塔系列', '暗黑地牢系列', '如龙7 / 如龙8', '土豆兄弟', '饥荒'];
 const shortReviews = shortReviewNames
   .map((n) => findGame(n))
   .filter((g): g is NonNullable<typeof g> => Boolean(g?.comment));
@@ -18,11 +27,17 @@ const shortReviews = shortReviewNames
 <Layout panel={false} theme="eb" title="游戏经历" description="我的游戏履历与游戏理解">
   <div class="flex flex-col gap-6">
     <!-- 头部 -->
-    <section class="eb-window">
-      <h1 class="eb-window__title">◆ 游戏经历</h1>
-      <p class="eb-dialog mt-2">
-        累计单机游戏 <span class="eb-pixel">{totalGameCount}</span> 款 · 6000+ 小时。
-      </p>
+    <section class="eb-window history-hero">
+      <div>
+        <p class="history-kicker">PLAYER LOG / DESIGN OBSERVATION</p>
+        <h1>玩过之后，留下设计判断。</h1>
+        <p class="eb-dialog mt-3">这里不是单纯的游戏清单，而是我长期观察系统、叙事与机制创新的素材库。</p>
+      </div>
+      <dl class="history-stats">
+        <div><dt>{totalGameCount}</dt><dd>款单机游戏</dd></div>
+        <div><dt>6000+</dt><dd>小时体验</dd></div>
+        <div><dt>3</dt><dd>类设计命题</dd></div>
+      </dl>
     </section>
 
     <!-- 长期关注 -->
@@ -39,6 +54,11 @@ const shortReviews = shortReviewNames
           持续保持对叙事驱动类游戏中剧本结构 / 人物塑造 / 世界观 / 冲突设计 / 叙事创新等多个维度的观察，思考文本如何黏着融入游戏，如何塑造游戏的核心气质。
         </p>
       </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {['回合制', '叙事驱动', '机制创新', '剧情结构', '行动经济'].map((t) => (
+          <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
+        ))}
+      </div>
     </section>
 
     <!-- 深度体验 · 评述摘选 -->
@@ -47,54 +67,34 @@ const shortReviews = shortReviewNames
         <section class="eb-window">
           <h2 class="eb-window__title">◆ 深度体验 · 评述摘选</h2>
 
-          {
-            longReviews.length > 0 && (
-              <div class="mt-4 grid gap-3 lg:grid-cols-2">
-                {longReviews.map((g) => (
-                  <div
-                    class="rounded-lg p-5"
-                    style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
-                  >
-                    <p class="flex items-baseline justify-between gap-2">
-                      <span class="eb-pixel text-base">{g.name}</span>
-                      {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
-                    </p>
-                    <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
-                  </div>
-                ))}
+          <div class="reviews mt-4">
+            {[
+              ...longReviews.map((g) => ({ ...g, large: true })),
+              ...shortReviews.map((g) => ({ ...g, large: false })),
+            ].map((g) => (
+              <div
+                class:list={['rounded-lg', g.large ? 'p-5' : 'p-4', 'break-inside-avoid']}
+                style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
+              >
+                <p class="flex items-baseline justify-between gap-2">
+                  <span class:list={['eb-pixel', g.large && 'text-base']}>{g.name}</span>
+                  {g.hours && <span class="rounded px-1.5 py-0.5 text-xs font-semibold" style="background:#c89a3a;color:#3a2a10;box-shadow:0 0 0 2px #1f140d">{g.hours}h</span>}
+                </p>
+                <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
               </div>
-            )
-          }
-
-          {
-            shortReviews.length > 0 && (
-              <div class="mt-4">
-                <p class="mb-2 text-xs uppercase tracking-wide" style="color:#6b5a3e">更多深度体验</p>
-                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {shortReviews.map((g) => (
-                    <div
-                      class="rounded-lg p-4"
-                      style="background:#fdf8e4;border:2px solid var(--eb-brown);box-shadow:0 0 0 2px var(--eb-frame);"
-                    >
-                      <p class="flex items-baseline justify-between gap-2">
-                        <span class="eb-pixel">{g.name}</span>
-                        {g.hours && <span class="rounded px-1.5 py-0.5 text-xs" style="background:#1f140d;color:var(--eb-frame)">{g.hours}h</span>}
-                      </p>
-                      <p class="mt-2 text-sm leading-6" style="color:#2a1a12">{g.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          }
+            ))}
+          </div>
         </section>
       )
     }
 
     <!-- 图鉴扫描 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title">◆ 图鉴扫描</h2>
-      <div id="scan-area" class="game-scan mt-3">
+    <details class="eb-window game-catalog">
+      <summary>
+        <span><b>◆ 完整游戏图鉴</b><small>{totalGameCount} 款 · 按类型整理</small></span>
+        <span class="game-catalog__action">展开图鉴 ＋</span>
+      </summary>
+      <div id="scan-area" class="game-scan mt-6">
         <div id="scan-light" class="game-scan__light" aria-hidden="true"></div>
         <div class="space-y-8">
           {
@@ -113,16 +113,18 @@ const shortReviews = shortReviewNames
                       {g.subtitle && <p class="mb-2 text-xs font-semibold uppercase tracking-wide" style="color:#6b5a3e">{g.subtitle}</p>}
                       <div class="flex flex-wrap gap-2">
                         {g.items.map((item) => (
-                          <button
-                            type="button"
-                            class="game-chip"
-                            data-tip={item.comment}
-                            aria-label={item.comment ? `${item.name}：${item.comment}` : item.name}
-                          >
-                            {item.name}
-                            {item.hours && <span class="game-chip__hours">{item.hours}h</span>}
-                            {item.comment && <span class="game-chip__mark" aria-hidden="true">✦</span>}
-                          </button>
+                          item.comment ? (
+                            <button type="button" class="game-chip" data-tip={item.comment} aria-label={`${item.name}：${item.comment}`}>
+                              {item.name}
+                              {item.hours && <span class:list={['game-chip__hours', isDeep(item.hours) && 'is-deep']}>{item.hours}h</span>}
+                              <span class="game-chip__mark" aria-hidden="true">✦</span>
+                            </button>
+                          ) : (
+                            <span class="game-chip game-chip--static">
+                              {item.name}
+                              {item.hours && <span class:list={['game-chip__hours', isDeep(item.hours) && 'is-deep']}>{item.hours}h</span>}
+                            </span>
+                          )
                         ))}
                       </div>
                     </div>
@@ -133,22 +135,70 @@ const shortReviews = shortReviewNames
           }
         </div>
       </div>
-    </section>
+    </details>
   </div>
 </Layout>
 
+<style>
+  .game-catalog > summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; cursor:pointer; list-style:none; min-height:44px; color:#262016; }
+  .game-catalog > summary::-webkit-details-marker { display:none; }
+  .game-catalog > summary span:first-child { display:flex; flex-direction:column; gap:.35rem; }
+  .game-catalog > summary b { font-family:"FusionPixel",var(--font-sans); font-size:1.1rem; }
+  .game-catalog > summary small { color:#66543c; font-size:.75rem; }
+  .game-catalog__action { color:#8c4c26; font-size:.78rem; font-weight:700; white-space:nowrap; }
+  .game-catalog[open] .game-catalog__action { font-size:0; }
+  .game-catalog[open] .game-catalog__action::after { content:"收起图鉴 －"; font-size:.78rem; }
+  .game-chip--static { cursor:default; }
+  .game-chip--static:hover { transform:none; background-color:#fbf7ec; border-color:#262016; box-shadow:none; color:#4a4134; }
+
+  .history-hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2rem; align-items:end; padding:clamp(1.75rem,4vw,3rem); }
+  .history-kicker { color:#5a7041; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
+  .history-hero h1 { max-width:12em; margin-top:.6rem; color:#241d14; font-size:clamp(2rem,5vw,3.5rem); font-weight:800; line-height:1.12; }
+  .history-hero .eb-dialog { max-width:40rem; color:#5b4c38; }
+  .history-stats { display:grid; grid-template-columns:repeat(3,6.5rem); border:2px solid #2b2418; background:#283720; color:#f8f4dc; box-shadow:5px 5px 0 rgba(0,0,0,.18); }
+  .history-stats div { padding:1rem .75rem; text-align:center; border-left:1px solid rgba(248,244,220,.2); }
+  .history-stats div:first-child { border-left:0; }
+  .history-stats dt { font-family:"FusionPixel",var(--font-sans); font-size:1.3rem; color:#f1d55c; }
+  .history-stats dd { margin-top:.35rem; color:#d9dec8; font-size:.65rem; }
+  @media (max-width:800px) { .history-hero { grid-template-columns:1fr; } .history-stats { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:480px) { .history-stats { grid-template-columns:1fr; } .history-stats div { display:flex; justify-content:space-between; align-items:center; border-left:0; border-top:1px solid rgba(248,244,220,.2); } .history-stats div:first-child { border-top:0; } }
+
+  /* 长评：左右两栏并排（骑马与砍杀在左、博德之门3在右） */
+  .long-reviews {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: 1fr;
+  }
+  /* 评述瀑布流：长评(骑砍/博德)与短评统一进多列，框高随文字、从左到右上下错落填满 */
+  .reviews {
+    columns: 2;
+    column-gap: 0.9rem;
+  }
+  .reviews > * {
+    margin: 0 0 0.9rem;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  @media (max-width: 640px) {
+    .reviews { columns: 1; }
+  }
+</style>
+
 <script>
-  const area = document.getElementById('scan-area');
-  const light = document.getElementById('scan-light');
-  if (area && light) {
-    area.addEventListener('mousemove', (e) => {
-      const r = area.getBoundingClientRect();
-      light.style.left = `${e.clientX - r.left}px`;
-      light.style.top = `${e.clientY - r.top}px`;
+  function initGameScan() {
+    const area = document.getElementById('scan-area');
+    const light = document.getElementById('scan-light');
+    if (!area || !light || area.dataset.bound) return;
+    area.dataset.bound = '1';
+    area.addEventListener('pointermove', (event) => {
+      if (event.pointerType === 'touch') return;
+      const rect = area.getBoundingClientRect();
+      light.style.left = `${event.clientX - rect.left}px`;
+      light.style.top = `${event.clientY - rect.top}px`;
       light.style.opacity = '1';
     });
-    area.addEventListener('mouseleave', () => {
-      light.style.opacity = '0';
-    });
+    area.addEventListener('pointerleave', () => { light.style.opacity = '0'; });
   }
+  initGameScan();
+  document.addEventListener('astro:after-swap', initGameScan);
 </script>
