@@ -162,7 +162,7 @@ export const gameCategories: GameCategory[] = [
       {
         subtitle: '',
         items: [
-          { name: '饥荒', hours: '100+', comment: '饥饿/精神/生命的管理带来基本的生存压力，季节/区域的动态拓展游戏的深层内容' },
+          { name: '饥荒', hours: '200+', comment: '饥饿/精神/生命的管理带来基本的生存压力，季节/区域的动态拓展游戏的深层内容' },
           { name: '泰拉瑞亚' },
           { name: '我的世界', hours: '1000+', comment: '像素方块的硬核才是王道' },
           { name: '勇者斗恶龙：创世小玩家2', hours: '70+', comment: '凭丰富的JRPG基底，用任务、剧情驱动玩家进行建造，享受创造' },
