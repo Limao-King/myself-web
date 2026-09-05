@@ -26,33 +26,31 @@ const writingGroups = [
 
 <Layout title="策划文档" description="拆解案、策划案、剧本、对白与世界观文档" theme="eb2">
   <div class="py-12">
-    <Reveal>
-      <SectionHeading
-        as="h1"
-        title="策划文档"
-        description={`共 ${docs.length} 篇。这里收录系统拆解、完整策划案，以及剧本、对白与世界观写作文档，随写作实时更新。`}
-      />
-    </Reveal>
+    {/* 首屏标题与筛选器直接渲染（Reveal 豁免）：慢设备上 IO 回调被字体解析
+        拖慢时会先看到半透明鬼影。下方列表保留滚动入场。 */}
+    <SectionHeading
+      as="h1"
+      title="策划文档"
+      description={`共 ${docs.length} 篇。这里收录系统拆解、完整策划案，以及剧本、对白与世界观写作文档，随写作实时更新。`}
+    />
 
     <!-- 轻量筛选：关键词 + 类型 -->
-    <Reveal delay={20}>
-      <div class="mb-8">
-        <input
-          id="doc-search"
-          type="search"
-          placeholder="搜索文档标题 / 摘要 / 标签…"
-          class="w-full max-w-sm rounded-lg border-2 border-[#262016] bg-white px-3 py-2 text-sm text-[#262016] outline-none focus:border-[#4c8a30]"
-          aria-label="搜索文档"
-        />
-        <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="按类型筛选文档">
-          <button type="button" data-filter-type="all" class="filter-chip is-active" aria-pressed="true">全部</button>
-          {['拆解案', '策划案', '剧本', '世界观'].map((t) => (
-            <button type="button" data-filter-type={t} class="filter-chip" aria-pressed="false">{t}</button>
-          ))}
-        </div>
-        <p id="doc-results" class="mt-3 text-sm text-neutral-400" role="status" aria-live="polite">显示全部 {docs.length} 篇文档</p>
+    <div class="mb-8">
+      <input
+        id="doc-search"
+        type="search"
+        placeholder="搜索文档标题 / 摘要 / 标签…"
+        class="w-full max-w-sm rounded-lg border-2 border-[#262016] bg-white px-3 py-2 text-sm text-[#262016] outline-none focus:border-[#4c8a30]"
+        aria-label="搜索文档"
+      />
+      <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="按类型筛选文档">
+        <button type="button" data-filter-type="all" class="filter-chip is-active" aria-pressed="true">全部</button>
+        {['拆解案', '策划案', '剧本', '世界观'].map((t) => (
+          <button type="button" data-filter-type={t} class="filter-chip" aria-pressed="false">{t}</button>
+        ))}
       </div>
-    </Reveal>
+      <p id="doc-results" class="mt-3 text-sm text-neutral-400" role="status" aria-live="polite">显示全部 {docs.length} 篇文档</p>
+    </div>
 
     <!-- 置顶：拆解案 + 策划案 -->
     {

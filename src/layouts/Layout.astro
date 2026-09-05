@@ -31,6 +31,8 @@ const pageDescription = description ?? siteConfig.description;
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* 移动端浏览器顶栏跟随主题色（paper/eb 用导航绿，eb2 用青） */}
+    <meta name="theme-color" content={theme === 'eb2' ? '#6b9ca8' : '#b4c586'} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     <meta property="og:type" content="website" />
@@ -41,19 +43,13 @@ const pageDescription = description ?? siteConfig.description;
     <script>
       // 尽早标记 JS 可用：.js 前缀才隐藏 reveal 初始态，保证无 JS 时内容可见
       document.documentElement.classList.add('js');
-      // 经典视图（纸质模式）偏好：绘制前应用，避免闪烁
-      try {
-        if (localStorage.getItem('eb-view') === 'classic') {
-          document.documentElement.classList.add('eb-classic');
-        }
-      } catch {}
     </script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
     <div class="bg-pattern" aria-hidden="true"></div>
     <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
-    <Nav eb={theme === 'eb'} />
+    <Nav />
     <main id="main" class:list={['mx-auto w-full max-w-5xl px-6 py-8', panel ? 'page-panel' : '']}>
       <slot />
     </main>

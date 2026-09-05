@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import { formatPeriod } from '../../utils/format';
 
 // 按开始时间从新到旧排（缺省退回 date），保证叠纸与日志顺序一致
 const projects = (await getCollection('projects')).sort(
@@ -33,7 +34,7 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
               {coverOf(p) ? <img src={coverOf(p)} alt="" loading={i === 0 ? 'eager' : 'lazy'} /> : <span aria-hidden="true">QUEST {String(i + 1).padStart(2, '0')}</span>}
             </div>
             <div class="project-feature__body">
-              <p class="project-feature__meta">{new Date(p.data.date).getFullYear()} · {p.data.type}</p>
+              <p class="project-feature__meta">{formatPeriod(p.data.start, p.data.date)} · {p.data.type}</p>
               <h2>{p.data.title}</h2>
               <p class="project-feature__role">我的职责 · {roleOf(p)}</p>
               <p class="project-feature__summary">{p.data.summary}</p>
@@ -53,7 +54,7 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
   .project-board::before { content:""; position:absolute; inset:0; background:linear-gradient(rgba(120,80,40,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(120,80,40,.055) 1px,transparent 1px); background-size:24px 24px; pointer-events:none; }
   .project-board__head { position:relative; display:flex; justify-content:space-between; gap:2rem; align-items:flex-start; margin-bottom:2rem; }
   .project-board__eyebrow { color:#6c573d; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
-  .project-board__head h1 { margin-top:.45rem; color:#201a12; font-size:clamp(2rem,5vw,3.4rem); font-weight:800; letter-spacing:-.025em; }
+  .project-board__head h1 { margin-top:.45rem; color:#201a12; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:800; letter-spacing:-.025em; } /* 上限 60px=12 网格 ×5 */
   .project-board__head p:last-child { max-width:42rem; margin-top:.75rem; color:#5d503f; font-size:.92rem; line-height:1.8; }
   .project-board__stamp { flex:none; display:grid; place-items:center; width:5.2rem; height:5.2rem; border:3px double #7e351d; border-radius:50%; color:#7e351d; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; line-height:1.45; text-align:center; transform:rotate(8deg); opacity:.9; }
   .project-showcase { position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }

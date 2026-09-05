@@ -3,12 +3,12 @@ import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import { siteConfig } from '../site.config';
 import { totalGameCount } from '../data/games';
+import { formatPeriod } from '../utils/format';
 
 const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const docs = await getCollection('docs');
 const feature = projects.find((p) => p.data.featured) ?? projects[0];
 // 任务日志：按开始日期从新到旧排（缺省退回 date）
-const fmtYm = (d?: Date) => (d ? `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` : '');
 const otherProjects = projects
   .filter((p) => p.id !== feature?.id)
   .sort((a, b) => (b.data.start ?? b.data.date).valueOf() - (a.data.start ?? a.data.date).valueOf());
@@ -92,7 +92,7 @@ const abilities = [
       feature && (
         <section class="eb-tv">
           <div class="eb-tv__top">
-            <span class="eb-tv__brand px">童话冒险 DEMO</span>
+            <span class="eb-tv__brand">童话冒险 DEMO</span>
             <span id="eb-tv-power" class="eb-tv__power" aria-hidden="true"></span>
           </div>
           <div class="eb-tv__screen">
@@ -102,7 +102,7 @@ const abilities = [
                   <!-- 雪花屏：电视开机未调台画面（点击开始 → 直启游戏，无中间封面） -->
                   <div class="eb-tv__static" data-cover>
                     <canvas class="eb-cover-warp" id="eb-cover-warp" aria-hidden="true"></canvas>
-                    <button id="eb-play-launch" type="button" class="eb-tv__play px" aria-label="开始试玩">▶</button>
+                    <button id="eb-play-launch" type="button" class="eb-tv__play" aria-label="开始试玩">▶</button>
                   </div>
                   <!-- 游戏本体：仅点击后挂 src（惰性，避免首屏加载 40MB） -->
                   <div class="eb-swap__game" data-game hidden>
@@ -123,7 +123,7 @@ const abilities = [
             </div>
           </div>
           <div class="eb-tv__controls">
-            <p class="eb-tv__dialog px">野生的 可玩 Demo 跳了出来！—— 要做些什么呢？</p>
+            <p class="eb-tv__dialog">野生的 可玩 Demo 跳了出来！—— 要做些什么呢？</p>
             {
               (playerUrl || feature.data.demoUrl) && (
                 <div class="eb-hint mt-3" id="eb-hint">
@@ -166,7 +166,7 @@ const abilities = [
             <span class="eb-body">{p.data.title}</span>
             <span class="eb-log-right">
               <span class="eb-ev">{p.data.type} · {p.data.role}</span>
-              <span class="eb-log-date">{fmtYm(p.data.start ?? p.data.date)}</span>
+              <span class="eb-log-date">{formatPeriod(p.data.start, p.data.date)}</span>
             </span>
           </a>
         ))}
@@ -176,7 +176,6 @@ const abilities = [
     <!-- 代表策划文档：图鉴 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 图鉴（代表策划文档）</h2>
-      <p class="eb-pixel mt-1 text-sm">剧本文档收集度 <span id="eb-collect">0</span>/5</p>
       <div class="mt-3 space-y-3">
         {featureDocs.map((d) => (
           <a href={`/docs/${d.id}/`} class="eb-log-row eb-log-row--doc">
@@ -224,7 +223,7 @@ const abilities = [
   .home-eyebrow { display:flex; align-items:center; gap:.55rem; color:#50643b; font-size:.78rem; font-weight:700; letter-spacing:.06em; margin-bottom:1.35rem; }
   .home-eyebrow__dot { width:.55rem; height:.55rem; background:#5f913d; border:2px solid #26311d; border-radius:50%; box-shadow:0 0 0 3px rgba(95,145,61,.16); }
   .home-greeting { margin-bottom:.25rem; }
-  .home-hero .eb-title { font-size:clamp(2.25rem,5.5vw,4.35rem); line-height:1.08; max-width:13em; letter-spacing:-.025em; text-wrap:balance; }
+  .home-hero .eb-title { font-size:clamp(2.25rem,5.5vw,4.5rem); line-height:1.08; max-width:13em; letter-spacing:-.025em; text-wrap:balance; } /* 上限 4.5rem=72px=12 网格 ×6，像素颗粒均匀 */
   .home-hero .eb-title span { color:#9b472c; }
   .home-lead { max-width:46rem; margin-top:1.35rem; font-size:1rem; line-height:1.9; color:#514535; }
   .home-proof { display:flex; flex-wrap:wrap; margin-top:1.75rem; }
@@ -289,18 +288,20 @@ const abilities = [
     .home-lead { font-size:.92rem; line-height:1.8; }
     .home-hero__quest { display:none; }
     .home-docs { display:flex; margin-top:.5rem; }
-    /* 移动端：三张精品文档垂直紧凑列表，整体缩到约50%（更小巧） */
+    /* 移动端：三张精品文档垂直紧凑列表。
+       字号不再跟着"缩到 50%"——0.58rem(≈9.3px) 低于可读底线；
+       只压缩间距，摘要保住 0.68rem(≈11px) 一档。 */
     .home-docs__stack { display:flex; flex-direction:column; gap:.4rem; min-height:0; flex:0 0 auto; }
     .home-doc {
       position:static; height:auto; width:100%; left:auto; right:auto;
-      transform:none; padding:.5rem .55rem .45rem; gap:.15rem;
+      transform:none; padding:.65rem .75rem .55rem; gap:.2rem;
     }
     .home-doc--1,.home-doc--2,.home-doc--3 { top:auto; transform:none; }
     .home-doc:hover { transform:none; box-shadow:5px 5px 0 rgba(24,20,16,.2); }
-    .home-doc__em { font-size:.5rem; letter-spacing:.08em; }
-    .home-doc__title { font-size:.72rem; -webkit-line-clamp:2; }
-    .home-doc__sum { font-size:.58rem; line-height:1.4; -webkit-line-clamp:2; }
-    .home-doc__cta { font-size:.6rem; padding-top:.2rem; }
+    .home-doc__em { font-size:.62rem; letter-spacing:.08em; }
+    .home-doc__title { font-size:.82rem; -webkit-line-clamp:2; }
+    .home-doc__sum { font-size:.68rem; line-height:1.45; -webkit-line-clamp:2; }
+    .home-doc__cta { font-size:.66rem; padding-top:.25rem; }
     .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
     .home-proof li { min-width:0; padding-inline:.75rem; }
     .home-proof strong { font-size:1.15rem; }
@@ -340,7 +341,8 @@ const abilities = [
       };
       start.addEventListener('click', dismiss, { once: true });
       document.addEventListener('keydown', onKey);
-      timer = setTimeout(dismiss, 3000);
+      // 自动消失兜底：3s 太急（文案没读完就被吞掉），延长到 6s 保留"不点也能进"的出口
+      timer = setTimeout(dismiss, 6000);
       start.focus();
     }
   }
@@ -385,14 +387,25 @@ const abilities = [
     const kill = (f) => { if (f) f.removeAttribute('src'); };
     const pauseGodot = (f) => { try { f?.contentWindow?.postMessage({ type: 'pause' }, '*'); } catch {} };
 
-    // 启动游戏（惰性触发）：隐藏封面，显示游戏层并挂 src
+    // 启动游戏（惰性触发）：隐藏封面，显示游戏层并挂 src。
+    // 加载反馈：iframe 挂 src 后到游戏就绪有几秒空白（40MB 本体），期间保持
+    // "NOW LOADING"文字可见（iframe 先藏起来），onload 后再亮出来，避免死等白屏。
     const launch = () => {
       if (started) return;
       started = true;
       // 电视电源灯：开播 → 红变绿
       const power = document.getElementById('eb-tv-power');
       if (power) power.classList.add('is-on');
-      if (playIframe && !playIframe.src) playIframe.src = 'https://play.limao.site/';
+      if (playIframe && !playIframe.src) {
+        const loading = gameWrap?.querySelector('.eb-swap__loading');
+        if (loading) loading.style.display = ''; // 二次启动时恢复加载层
+        playIframe.style.visibility = 'hidden';
+        playIframe.addEventListener('load', () => {
+          if (loading) loading.style.display = 'none';
+          playIframe.style.visibility = 'visible';
+        }, { once: true });
+        playIframe.src = 'https://play.limao.site/';
+      }
       if (cover) cover.style.display = 'none';
       if (gameWrap) gameWrap.hidden = false;
     };
@@ -447,22 +460,17 @@ const abilities = [
       }
     }, { signal });
 
-    // 离开页面/切经典视图时也清掉音频
+    // 离开页面时也清掉音频
     const killAll = () => { kill(videoIframe); kill(playIframe); };
     const onVisibility = () => { if (document.hidden) killAll(); };
     window.addEventListener('pagehide', killAll, { signal });
     document.addEventListener('visibilitychange', onVisibility, { signal });
-    const classicObserver = new MutationObserver(() => {
-      if (document.documentElement.classList.contains('eb-classic')) killAll();
-    });
-    classicObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     const interval = window.setInterval(() => {
       if (videoIframe?.src && video?.classList.contains('is-active')) pauseGodot(videoIframe);
     }, 800);
     document.addEventListener('astro:before-swap', () => {
       killAll();
       window.clearInterval(interval);
-      classicObserver.disconnect();
       controller.abort();
     }, { once: true, signal });
     }
@@ -513,10 +521,11 @@ const abilities = [
         noiseSeed = ctx.createImageData(W, H);
       }
       const d = noiseSeed.data;
-      // 每帧只重绘约 55% 像素（其余保留上一帧），视觉上是持续的雪花扰动而非爆闪
+      // 每帧只重绘约 55% 像素（其余保留上一帧），视觉上是持续的雪花扰动而非爆闪。
+      // 灰阶收窄到 56~208：全幅高对比黑白噪点过于刺眼，也压过了 ▶ 入口
       for (let i = 0; i < d.length; i += 4) {
         if (Math.random() < 0.55) {
-          const v = Math.random() * 255;
+          const v = 56 + Math.random() * 152;
           d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
         }
       }

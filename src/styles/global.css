@@ -159,8 +159,6 @@ h2 {
    像素硬边按钮是本站的"游戏感"签名，其余组件保持现代圆角，形成协调对比。
    ---------------------------------------------------------------------------- */
 .btn-primary,
-.btn-ghost,
-.btn-accent,
 .btn-white {
   font-family: "FusionPixel", var(--font-sans);
   position: relative;
@@ -185,8 +183,6 @@ h2 {
 }
 
 .btn-primary::after,
-.btn-ghost::after,
-.btn-accent::after,
 .btn-white::after {
   position: absolute;
   top: -4px;
@@ -265,29 +261,6 @@ h2 {
   box-shadow: inset 4px 4px rgba(0, 0, 0, 0.22);
 }
 
-/* 琥珀按钮：专属「行动」色 —— 用于最终 CTA 等需要把用户推向动作的位置 */
-.btn-accent {
-  color: #2b2418;
-  background-color: var(--color-amber);
-}
-
-.btn-accent::after {
-  box-shadow: inset -4px -4px rgba(0, 0, 0, 0.18);
-}
-
-.btn-accent:hover {
-  background-color: #e5a23d;
-  transform: translateY(-1px);
-}
-
-.btn-accent:active:not(.is-disabled) {
-  transform: translateY(0);
-}
-
-.btn-accent:active:not(.is-disabled)::after {
-  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.32);
-}
-
 /* ----------------------------------------------------------------------------
    页面过渡（View Transitions）
    ---------------------------------------------------------------------------- */
@@ -319,17 +292,20 @@ h2 {
 
 /* ----------------------------------------------------------------------------
    滚动进入动画（仅当 JS 可用时隐藏初始态，脚本失败/禁用时内容默认可见）
+   调校记录：原 0.7s / 24px 位移在慢设备上会呈现明显的"半透明鬼影"——
+   首屏元素从 IO 触发到动画完成可能拖到 2s 以上，招聘方看到的是幽灵内容。
+   现在：过渡缩短、位移减小，且首屏关键内容已在页面模板里豁免 Reveal。
    ---------------------------------------------------------------------------- */
 .js .reveal {
   opacity: 0;
   transition:
-    opacity 0.7s var(--ease-out-quint),
-    transform 0.7s var(--ease-out-quint);
+    opacity 0.45s var(--ease-out-quint),
+    transform 0.45s var(--ease-out-quint);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
 .js .reveal-up {
-  transform: translateY(24px);
+  transform: translateY(14px);
 }
 
 .js .reveal-left {
@@ -436,6 +412,7 @@ h2 {
 
 /* ----------------------------------------------------------------------------
    顶部阅读进度条
+   颜色走变量：默认绿→橙渐变（paper 主题），各主题在 eb.css 里覆盖单色。
    ---------------------------------------------------------------------------- */
 .scroll-progress {
   position: fixed;
@@ -443,7 +420,7 @@ h2 {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #4c8a30, #d98c2b);
+  background: var(--progress-bg, linear-gradient(90deg, #4c8a30, #d98c2b));
   transform-origin: 0 50%;
   transform: scaleX(0);
   z-index: 60;
@@ -482,6 +459,13 @@ h2 {
    ---------------------------------------------------------------------------- */
 .prose-article {
   @apply text-neutral-300 leading-relaxed;
+}
+
+/* 行长控制（全主题统一）：中文舒适行长 35~45 字。
+   此前只对 .eb-theme 的直接子级 p 限宽，li / blockquote 内段落 /
+   .eb-dialog 等一直通栏 70+ 字/行；现在对正文容器内所有文本元素生效。 */
+.prose-article :is(p, li, blockquote) {
+  max-width: 42em;
 }
 
 .prose-article h1,
@@ -538,12 +522,17 @@ h2 {
 }
 
 .prose-article pre {
-  @apply my-6 overflow-x-auto rounded-xl bg-neutral-900 border border-neutral-700 p-4 text-sm;
+  @apply my-6 overflow-x-auto rounded-xl border p-4 text-sm;
+  /* 代码块写死深底：此前用 bg-neutral-900（本站反向 token 里是浅米色）
+     与下方强制浅色文字自相矛盾，全靠 nes.css 的规则兜底才没变成浅底浅字。
+     显式声明深底，不再赌级联顺序。 */
+  background: #24292e;
+  border-color: #30363d;
 }
 
 .prose-article pre code {
   @apply bg-transparent p-0 text-neutral-200;
-  /* 强制 pre 内代码为浅色，防止被 .prose-article code 的深色文字规则覆盖（深底上会看不清） */
+  /* 深底上的浅色代码文字（配合上方写死的深底） */
   color: #e1e4e8 !important;
 }
 
@@ -708,20 +697,30 @@ h2 {
    参考 RonenNess/RPGUI 的"金色标题条"视觉语言，配色换成本站暖色系。
    ---------------------------------------------------------------------------- */
 .site-header {
-  /* 导航主题变量：改这些即整条导航（背景/文字）统一变色 */
-  --nav-bg: #b4c586;
-  --nav-ink: #262016;
-  --nav-link: #3a4522;
-  --nav-link-active: #262016;
+  /* 导航主题变量：改这些即整条导航（背景/文字/底噪）统一变色。
+     eb / eb2 只在这里覆盖变量，不再用 !important 对轰特异性。 */
+  --nav-bg: #b4c586;          /* 头部底色 */
+  --nav-ink: #262016;         /* 品牌文字 */
+  --nav-link: #3a4522;        /* 链接 */
+  --nav-link-active: #262016; /* 链接悬停 / 当前页 */
+  --header-border-w: 3px;     /* 底部描边宽 */
+  --header-border: #262016;   /* 底部描边色 */
+  --header-shadow: inset 0 2px 0 rgba(255, 242, 210, 0.4),
+    inset 0 -2px 0 rgba(90, 55, 10, 0.28); /* 顶部受光斜角 + 底部暗角 */
+  --header-image: none;       /* 底噪纹理 */
+  --header-blend: normal;     /* 底噪混合模式 */
+  --header-img-size: auto;    /* 底噪平铺尺寸 */
   position: sticky;
   top: 0;
   z-index: 40;
   background-color: var(--nav-bg);
+  background-image: var(--header-image);
+  background-repeat: repeat;
+  background-size: var(--header-img-size);
+  background-blend-mode: var(--header-blend);
   color: var(--nav-ink);
-  border-bottom: 3px solid #262016; /* 硬边深描边 */
-  box-shadow:
-    inset 0 2px 0 rgba(255, 242, 210, 0.4), /* 顶部受光斜角 */
-    inset 0 -2px 0 rgba(90, 55, 10, 0.28); /* 底部暗角 */
+  border-bottom: var(--header-border-w) solid var(--header-border);
+  box-shadow: var(--header-shadow);
 }
 
 /* 导航链接颜色跟随变量（覆盖 .link-underline[aria-current] 的全站绿色规则） */
