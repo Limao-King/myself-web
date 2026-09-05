@@ -25,35 +25,35 @@ const isDialogue = category === '对白';
       <a href="/docs/" class="link-underline text-neutral-400 transition-colors hover:text-green-text">← 返回策划文档</a>
     </nav>
 
-    <Reveal>
-      <header class="doc-head mt-6">
-        <h1 class="font-body text-3xl font-bold text-neutral-100">{title}</h1>
-        <p class="mt-3 text-sm text-neutral-400">{formatDate(date)} · {category}</p>
-        {
-          tags.length > 0 && (
-            <div class="mt-3 flex flex-wrap gap-2">
-              {tags.map((t) => (
-                <span class="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-300">{t}</span>
-              ))}
-            </div>
-          )
-        }
-        {
-          pdf && (
-            <div class="mt-6">
-              <a
-                href={pdf}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-primary"
-              >
-                下载 PDF 版
-              </a>
-            </div>
-          )
-        }
-      </header>
-    </Reveal>
+    {/* 首屏头部不做 Reveal：IO 回调被字体解析拖慢时，读者会先看到
+        "半透明鬼影"标题（慢设备上可长达 2s+）。标题直接渲染，正文保留入场。 */}
+    <header class="doc-head mt-6">
+      <h1 class="font-body text-3xl font-bold text-neutral-100">{title}</h1>
+      <p class="mt-3 text-sm text-neutral-400">{formatDate(date)} · {category}</p>
+      {
+        tags.length > 0 && (
+          <div class="mt-3 flex flex-wrap gap-2">
+            {tags.map((t) => (
+              <span class="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-300">{t}</span>
+            ))}
+          </div>
+        )
+      }
+      {
+        pdf && (
+          <div class="mt-6">
+            <a
+              href={pdf}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-primary"
+            >
+              下载 PDF 版
+            </a>
+          </div>
+        )
+      }
+    </header>
 
     <Reveal delay={120}>
       <div class:list={['prose-article mt-10', isDialogue && 'dialogue-box']}>

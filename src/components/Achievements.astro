@@ -1,18 +1,13 @@
 ---
 // 成就系统彩蛋（v2 4.7）：
 // 下载简历 → 「获得了 简历.pdf ×1！」；看完三个项目 → 「成就解锁：尽职调查」；
-// EXP 满级（滚到底）→ 「升到了 Lv.5！……好像学会了「钻研到底」！」；
-// 剧本文档收集度 n/5（剧本 ×5，看一篇算一篇）。
+// EXP 满级（滚到底）→ 「升到了 Lv.5！……好像学会了「钻研到底」！」。
 // localStorage 键 eb-achv 持久记录；所有监听随 ClientRouter 切换存活。
 ---
 <div id="eb-toast" class="eb-toast" role="status" aria-live="polite"></div>
 
 <script>
   const STORE = 'eb-achv';
-  // 5 篇剧本文档（对白 3 篇已并入/删除）
-  const LIBRARY = [
-    'huan-tazhenming', 'jinchuan', 'keluomi', 'nanliang', 'three-pigs',
-  ];
 
   const read = () => {
     try {
@@ -68,7 +63,7 @@
     if (a) fire('resume', '获得了 简历.pdf ×1！');
   });
 
-  // 2) 看过三个项目页 / 3) 剧本文档收集度 / 4) 首页滚到底升 Lv.5
+  // 2) 看过三个项目页 / 3) 首页滚到底升 Lv.5
   let lv5Bound = false;
   function bindLv5() {
     // 仅首页（BOSS 战舞台）：EXP 满级才算升到 Lv.5
@@ -83,6 +78,17 @@
       }
     };
     window.addEventListener('scroll', check, { passive: true });
+    // 离开首页即注销判定并复位标记：否则监听跨页面残留，
+    // 在别的页面滚到底也会触发（成就只应在首页"钻研到底"时解锁）；
+    // 复位 lv5Bound 让下次回到首页时重新绑定。
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        window.removeEventListener('scroll', check);
+        lv5Bound = false;
+      },
+      { once: true }
+    );
     check();
   }
 
@@ -92,10 +98,6 @@
       record('projects', pm[1]);
       if ((read().projects || []).length >= 3) fire('dueDiligence', '成就解锁：尽职调查');
     }
-    const dm = location.pathname.match(/^\/docs\/([^/]+)\//);
-    if (dm && LIBRARY.includes(dm[1])) record('library', dm[1]);
-    const collect = document.getElementById('eb-collect');
-    if (collect) collect.textContent = String((read().library || []).length);
     bindLv5();
   }
 

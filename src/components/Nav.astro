@@ -1,12 +1,6 @@
 ---
 import { siteConfig } from '../site.config';
 
-interface Props {
-  /** 当前页是否 EB 主题（决定是否显示「经典视图」开关） */
-  eb?: boolean;
-}
-const { eb = false } = Astro.props;
-
 const links = [
   { href: '/', label: '首页' },
   { href: '/projects/', label: '项目' },

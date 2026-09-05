@@ -31,14 +31,13 @@ const skillGroups = [
 
 <Layout title="关于我" description="我的个人简介、教育背景与技能栈" theme="eb2">
   <div class="py-12 about-page">
-    <Reveal>
-      <section class="about-hero">
-        <div>
-          <h1>你好，我是明鑫。</h1>
-          <p>只是一名认真的大学生，但是认真地很想当策划。不过此页是策划之外的世界。</p>
-        </div>
-      </section>
-    </Reveal>
+    {/* 首屏 hero 直接渲染（Reveal 豁免，避免慢设备上的半透明鬼影） */}
+    <section class="about-hero">
+      <div>
+        <h1>你好，我是明鑫。</h1>
+        <p>只是一名认真的大学生，但是认真地很想当策划。不过此页是策划之外的世界。</p>
+      </div>
+    </section>
 
     <!-- 个人简介 -->
     <Reveal>
@@ -115,7 +114,7 @@ const skillGroups = [
   .about-page { max-width:58rem; margin-inline:auto; }
   .about-hero { margin-bottom:3.5rem; padding:clamp(1.75rem,4vw,3rem); background:#fffffa; border:2px solid #c8bda2; border-radius:14px; box-shadow:8px 8px 0 rgba(64,80,84,.12); }
   .about-kicker { color:#537984; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
-  .about-hero h1 { margin-top:.6rem; color:#222c2f; font-size:clamp(2.2rem,5vw,3.7rem); font-weight:800; }
+  .about-hero h1 { margin-top:.6rem; color:#222c2f; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:800; } /* 上限 60px=12 网格 ×5 */
   .about-hero > div > p:last-of-type { max-width:42rem; margin-top:1rem; color:#536064; line-height:1.9; }
   .about-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.5rem; }
   .about-bio { max-width: 42rem; }  /* 与上方对话气泡同宽，右缘对齐 */
