@@ -271,7 +271,7 @@ export const gameCategories: GameCategory[] = [
         subtitle: '其他',
         items: [
           { name: '王国：80年代' },
-          { name: '10年时期QQ游戏', hours: '500+' },
+          { name: '10年代QQ游戏', hours: '500+' },
           { name: '4399 网站游戏', hours: '500+' },
           { name: 'JavaScript 手机游戏', hours: '100+' },
           { name: '梦幻魔法公主' },

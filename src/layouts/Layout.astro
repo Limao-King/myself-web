@@ -81,8 +81,6 @@ const pageDescription = description ?? siteConfig.description;
       <span class="eb-hp-meter__bar"><span class="eb-hp-meter__fill"></span></span>
       <span class="eb-hp-meter__num"><span id="eb-hp-num">0</span><em>/100</em></span>
     </div>
-    <!-- 充满时弹出的 Lit 表情：独立于 meter，移动端 meter 淡出时它仍可显示 -->
-    <span id="eb-energy-emoji" class="eb-energy-emoji" aria-hidden="true"></span>
     <!-- 通用表情反馈（Tiny RPG Emoji Pack I · CC0）：点击简历/邮件/「不要」等触发 -->
     <div id="eb-emoji-pop" class="eb-emoji-pop" aria-hidden="true"></div>
 
@@ -137,32 +135,9 @@ const pageDescription = description ?? siteConfig.description;
         meter.dataset.bound = '1';
         const fill = meter.querySelector('.eb-hp-meter__fill');
         const num = document.getElementById('eb-hp-num');
-        const emoji = document.getElementById('eb-energy-emoji');
         const controller = new AbortController();
         const { signal } = controller;
         let ticking = false;
-        let wasMax = false;
-        let emojiTimer = 0;
-        const playEmoji = () => {
-          if (!emoji) return;
-          clearInterval(emojiTimer);
-          let f = 0;
-          const TOTAL = 20; /* Lit sheet = 5列×4行，拼成 640×32 横向 20 帧 */
-          const STEP = 32;
-          emoji.style.opacity = '1';
-          emoji.style.transform = 'scale(1)';
-          emoji.style.backgroundPosition = '0 0';
-          emojiTimer = setInterval(() => {
-            f += 1;
-            if (f >= TOTAL) {
-              clearInterval(emojiTimer);
-              emoji.style.opacity = '0';
-              emoji.style.transform = 'scale(0.6)';
-              return;
-            }
-            emoji.style.backgroundPosition = `-${f * STEP}px 0`;
-          }, 70);
-        };
         const apply = () => {
           ticking = false;
           const el = document.documentElement;
@@ -172,11 +147,7 @@ const pageDescription = description ?? siteConfig.description;
           const p = Math.min(1, Math.max(0, el.scrollTop / max));
           if (fill) fill.style.transform = `scaleX(${p.toFixed(4)})`;
           if (num) num.textContent = String(Math.round(p * 100));
-          const isMax = p >= 0.995;
-          meter.classList.toggle('is-max', isMax);
-          // 只在"由未满变为满"的瞬间触发一次，避免停在底部反复播放
-          if (isMax && !wasMax) playEmoji();
-          wasMax = isMax;
+          meter.classList.toggle('is-max', p >= 0.995);
         };
         const onScroll = () => {
           if (!ticking) {
@@ -210,9 +181,12 @@ const pageDescription = description ?? siteConfig.description;
           const reels = digits.map((d) => {
             const reel = document.createElement('span');
             reel.className = 'eb-odo__reel';
+            // 滚轮只是视觉动画：整体对读屏隐藏，避免 0~9 十位数字被逐个念出
+            reel.setAttribute('aria-hidden', 'true');
             for (let i = 0; i < 10; i++) {
               const c = document.createElement('i');
               c.textContent = String(i);
+              c.setAttribute('aria-hidden', 'true');
               reel.appendChild(c);
             }
             el.appendChild(reel);

@@ -239,30 +239,9 @@
 .eb-hp-meter.is-max { animation: eb-lvup 0.45s steps(3); }
 .eb-hp-meter.is-max .eb-hp-meter__fill { background-color: var(--eb-pp); }
 
-/* Energy 充满时弹出的 Lit 表情（Tiny RPG Emoji Pack I · CC0）：
-   20 帧横向条，JS 逐帧切换 background-position；独立 fixed 定位（在 meter 上方），
-   这样移动端 meter 淡出时表情仍能显示 */
-.eb-energy-emoji {
-  position: fixed;
-  right: 1rem;
-  bottom: 3.7rem;
-  width: 32px;
-  height: 32px;
-  background-image: url("/images/emoji/lit-strip.png");
-  background-size: 640px 32px;
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
-  opacity: 0;
-  transform: scale(0.6);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  pointer-events: none;
-  z-index: 81;
-}
-/* 移动端：屏幕小、进度条常驻会遮挡视野——直接关闭（Energy 满格表情是独立元素，
-   仍会在右下角正常弹出）。桌面端不受影响。 */
+/* 移动端：屏幕小、进度条常驻会遮挡视野——直接关闭。桌面端不受影响。 */
 @media (max-width: 767px) {
   .eb-hp-meter { display: none; }
-  .eb-energy-emoji { right: 0.6rem; bottom: 1rem; }
 }
 
 /* 通用表情反馈：跟随点击位置弹出（未传坐标时落在右上角） */
@@ -513,7 +492,7 @@
   background: #e8e0c8;
   border: 2px solid var(--eb-brown);
   border-radius: var(--eb-radius-sm);
-  padding: 0.25rem 0.7rem;
+  padding: 0.55rem 0.75rem; /* 触控热区 ≥44px（原 0.25rem 只有 34px 高） */
   text-decoration: none;
   box-shadow:
     0 0 0 2px var(--eb-ink),
@@ -667,10 +646,16 @@
   z-index: 2;
   display: inline-block;
   font-family: "FusionPixel", var(--font-sans);
-  font-size: 3.6rem;             /* ▶ 再放大一档：迷幻色带上唯一焦点 */
+  font-size: 4.5rem;             /* 72px = 12 网格 ×6：迷幻色带上唯一焦点，也是最大的点击目标 */
   line-height: 1;
   padding: 0;                    /* 去底板：无内边距 */
   color: #ffffff;                /* 白色，保留闪动提示可点 */
+  /* 像素描边：四向硬投影拼出 EB 式轮廓，避免裸白三角在色带上"太平面" */
+  filter:
+    drop-shadow(2px 0 0 #1b2117)
+    drop-shadow(-2px 0 0 #1b2117)
+    drop-shadow(0 2px 0 #1b2117)
+    drop-shadow(0 -2px 0 #1b2117);
   background: transparent;       /* 去黑色底板 */
   border: none;                  /* 无描边 */
   cursor: pointer;
@@ -989,8 +974,10 @@
   justify-content: center;
 }
 .eb-hint__sep {
-  color: var(--eb-muted);
-  opacity: 0.5;
+  /* 对比度合规：原 var(--eb-muted) + opacity .5 实测仅 3.57:1（低于 AA 4.5:1），
+     改为不透明亮米色（≈5.1:1），仍保持"弱化的分隔符"观感 */
+  color: #c8bd9c;
+  opacity: 1;
   font-weight: 300;
   user-select: none;
   transition: opacity 0.2s ease;
@@ -1380,7 +1367,7 @@
 .eb-theme footer .border-neutral-700\/70,
 .eb2-theme footer .border-neutral-700\/70 { border-color: rgba(42, 26, 18, 0.35); border-top-width: 2px; }
 .eb-theme footer a,
-.eb2-theme footer a { color: #9a5a1e; }
+.eb2-theme footer a { color: #7d4514; }  /* 对比度 5.6:1（原 #9a5a1e 仅 4.13:1，低于 AA） */
 .eb-theme footer a:hover,
 .eb2-theme footer a:hover { color: #b05a1e !important; }
 @media (prefers-reduced-motion: reduce) {

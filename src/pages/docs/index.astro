@@ -58,11 +58,8 @@ const writingGroups = [
         group.items.length > 0 ? (
           <Reveal delay={gi * 80}>
             <section class="mb-10">
-              <h2 class="mb-1 flex items-center gap-3 text-xl font-bold text-neutral-100">
-                <span class="inline-block h-4 w-1.5 bg-violet-500" aria-hidden="true"></span>
-                {group.title}
-              </h2>
-              <p class="mb-4 pl-[1.125rem] text-sm text-neutral-400">{group.desc}</p>
+              <h2 class="eb-window__title mb-1">◆ {group.title}</h2>
+              <p class="mb-4 text-sm text-[#66543c]">{group.desc}</p>
               <div class="doc-grid grid gap-5 sm:grid-cols-2">
                 {
                   group.items.map((d) => (
@@ -87,11 +84,8 @@ const writingGroups = [
     <!-- 剧本文档 -->
     <Reveal delay={160}>
       <section>
-        <h2 class="mb-1 flex items-center gap-3 text-xl font-bold text-neutral-100">
-          <span class="inline-block h-4 w-1.5 bg-violet-500" aria-hidden="true"></span>
-          剧本文档
-        </h2>
-        <p class="mb-5 pl-[1.125rem] text-sm text-neutral-400">剧本与世界观写作样本</p>
+        <h2 class="eb-window__title mb-1">◆ 剧本文档</h2>
+        <p class="mb-5 text-sm text-[#66543c]">剧本与世界观写作样本</p>
 
         <div class="space-y-8">
           {
