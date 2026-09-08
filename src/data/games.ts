@@ -32,7 +32,6 @@ export const gameCategories: GameCategory[] = [
           { name: '空之轨迹', hours: '60+', comment: 'JRPG经典之作，Second发售我一定也要玩' },
           { name: '如龙7 / 如龙8', hours: '90+', comment: '回合制拓展与创新的典范，7代的剧本扎实，8代改革的回合制战斗体验爽快' },
           { name: '八方旅人2', comment: '弱点破防的战斗系统与八位角色带来的迥异剧情体验' },
-          { name: '古剑奇谭' },
           { name: '星之海', comment: '炸穿地球的美术表现规格，战斗体验有待商榷' },
           { name: '地球冒险系列' },
         ],
@@ -68,6 +67,7 @@ export const gameCategories: GameCategory[] = [
       {
         subtitle: '回合制 RPG',
         items: [
+          { name: '古剑奇谭' },
           { name: '传说之下' },
           { name: '吞食天地系列', hours: '50+', comment: 'FC时代经典回合制游戏，剧情流程量大管饱，体验从桃园结义到一统天下' },
           { name: '暗黑地牢系列', hours: '250+', comment: '压力系统配合暗黑的气质带给了玩家独特的记忆' },
