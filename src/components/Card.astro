@@ -14,52 +14,111 @@ interface Props {
 const { href, title, meta, summary, tags = [], cover, coverFallback } = Astro.props;
 ---
 
-<a
-  href={href}
-  class="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-700 bg-[#fdfbf5] shadow-[0_1px_2px_rgba(38,32,22,0.06),0_8px_20px_-12px_rgba(38,32,22,0.18)] transition duration-200 hover:-translate-y-0.5 hover:border-violet-500/50 hover:shadow-[0_2px_4px_rgba(38,32,22,0.08),0_14px_28px_-14px_rgba(38,32,22,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
->
+<a href={href} class="eb-card group relative flex flex-col overflow-hidden">
   {
     cover ? (
       <img
         src={cover}
         alt={`${title} 封面`}
         loading="lazy"
-        class="w-full border-b-2 border-[#262016]/15 transition-transform duration-300 group-hover:scale-[1.03]"
-        style="image-rendering: pixelated;"
+        class="eb-card__cover transition-transform duration-300 group-hover:scale-[1.03]"
       />
     ) : coverFallback ? (
-      <div class="flex h-32 items-center justify-center border-b-2 border-[#262016]/15 bg-[#e3eec9]">
+      <div class="eb-card__fallback">
         <span class="font-pixel text-sm text-[#3a6920]">{coverFallback}</span>
       </div>
     ) : null
   }
 
-  <div class="flex flex-1 flex-col p-6">
+  <div class="flex flex-1 flex-col p-5">
     <!-- 右上角提示箭头（悬停出现，提示可点击） -->
-    <span
-      class="absolute right-5 top-5 text-neutral-500 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-green-text group-hover:opacity-100"
-      aria-hidden="true"
-    >
-      →
-    </span>
+    <span class="eb-card__arrow" aria-hidden="true">→</span>
 
-    {meta && (
-      <p class="pr-6 text-xs font-medium tracking-wide text-neutral-400">{meta}</p>
-    )}
-    <h3 class="mt-2.5 text-lg font-semibold text-neutral-100 transition-colors group-hover:text-green-text">
-      {title}
-    </h3>
-    {summary && (
-      <p class="mt-2 text-sm leading-relaxed text-neutral-400">{summary}</p>
-    )}
+    {meta && <p class="eb-card__meta">{meta}</p>}
+    <h3 class="eb-card__title">{title}</h3>
+    {summary && <p class="eb-card__sum">{summary}</p>}
     {
       tags.length > 0 && (
         <div class="mt-4 flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <span class="rounded-full bg-green-tint px-2.5 py-0.5 text-xs font-medium text-green-text">{tag}</span>
+            <span class="eb-card__tag">{tag}</span>
           ))}
         </div>
       )
     }
   </div>
 </a>
+
+<style>
+  /* 与首页「图鉴」卡同一套语言：奶油底 + 棕描边 + 硬阴影
+     （替代原先的 rounded-xl + violet 悬停——那套是现代 SaaS 文档卡语言，不在 EB 色板内） */
+  .eb-card {
+    background: #f4ecd8;
+    border: 2px solid #8a6a3a;
+    border-radius: 6px;
+    box-shadow: 3px 3px 0 rgba(38, 32, 22, 0.14);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+  }
+  .eb-card:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgba(38, 32, 22, 0.2);
+    background: #faf3e2;
+  }
+  .eb-card:active { transform: translate(1px, 1px); box-shadow: none; }
+
+  .eb-card__cover {
+    width: 100%;
+    border-bottom: 2px solid rgba(38, 32, 22, 0.15);
+    image-rendering: pixelated;
+  }
+  .eb-card__fallback {
+    display: flex;
+    height: 8rem;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid rgba(38, 32, 22, 0.15);
+    background: #e3eec9;
+  }
+  .eb-card__arrow {
+    position: absolute;
+    right: 1.1rem;
+    top: 1.1rem;
+    font-family: "FusionPixel", var(--font-sans);
+    color: #9a5a1e;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .eb-card:hover .eb-card__arrow { opacity: 1; transform: translateX(2px); }
+
+  .eb-card__meta {
+    padding-right: 1.5rem;
+    font-family: "FusionPixel", var(--font-sans);
+    font-size: 0.72rem;
+    color: #66543c;
+  }
+  .eb-card__title {
+    margin-top: 0.5rem;
+    font-family: "FusionPixel", var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #2b2418;
+    transition: color 0.12s ease;
+  }
+  .eb-card:hover .eb-card__title { color: #9a5a1e; }
+  .eb-card__sum {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #4a3f30;
+  }
+  .eb-card__tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: #1f140d;
+    color: #f5f5db;
+    border-radius: 4px;
+    font-family: "FusionPixel", var(--font-sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+  }
+</style>

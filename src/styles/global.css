@@ -566,7 +566,7 @@ h2 {
   margin: -1.1rem auto 1.5rem;
   border: none;
   background: none;
-  padding: 0.2rem 0.6rem;
+  padding: 0.7rem 0.9rem; /* 触控热区 ≥44px（原 0.2rem 只有 27px 高） */
   font-size: 0.72rem;
   color: #8a7a5a;
   cursor: pointer;
