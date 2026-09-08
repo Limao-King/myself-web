@@ -275,7 +275,7 @@ const pageDescription = description ?? siteConfig.description;
           const check = () => {
             if (!img.naturalWidth || !img.naturalHeight) return;
             img.dataset.tallMarked = '1';
-            if (img.naturalWidth / img.naturalHeight < 0.65) {
+            if (img.naturalWidth / img.naturalHeight < 0.72) {
               img.classList.add('eb-tall');
               const hint = document.createElement('button');
               hint.type = 'button';
