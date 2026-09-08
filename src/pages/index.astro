@@ -15,7 +15,10 @@ const otherProjects = projects
 const bvMatch = feature?.data.videoUrl?.match(/BV[0-9A-Za-z]{10}/);
 const playerUrl = bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=0` : null;
 const pickDoc = (id: string) => docs.find((d) => d.id === id);
+/** Hero 右侧「精品文档」折叠卡：主编精选 3 篇 */
 const featureDocs = ['death-stranding', 'fairytale-plan', 'world-regions'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
+/** 下方「图鉴」区：换另外 3 篇，避免与 Hero 卡同屏重复，并把曝光扩到 6 篇 */
+const codexDocs = ['bg3', 'world-timeline', 'keluomi'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
 
 const abilities = [
   { name: '系统设计', ev: '「系统策划案」发挥了效果！→', href: '/docs/fairytale-plan/', value: 86, kind: 'hp' },
@@ -25,18 +28,17 @@ const abilities = [
 ---
 
 <Layout panel={false} theme="eb">
-  <!-- 遭遇战开场 -->
-  <div id="eb-encounter" class="eb-encounter" role="dialog" aria-modal="true" aria-labelledby="eb-encounter-title">
+  <!-- 遭遇战开场：非模态提示（无焦点陷阱，故不声明 aria-modal，避免读屏把背景当作不可访问） -->
+  <div id="eb-encounter" class="eb-encounter" role="dialog" aria-labelledby="eb-encounter-title">
     <p id="eb-encounter-title" class="eb-encounter__line">求职的大学生 出现了！</p>
     <button id="eb-start" type="button" class="eb-start">▶ PRESS START</button>
   </div>
 
   <div class="home-flow flex flex-col gap-7">
-    <!-- Hero：先用招聘方最关心的定位、能力与证据建立第一印象 -->
+    <!-- Hero：先用招聘方最关心的定位（届别/求职状态）建立第一印象，再给能力陈述与证据 -->
     <section class="eb-window home-hero">
       <div class="home-hero__content">
         <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true"></span>2027 届 · 寻找游戏策划实习 / 校招机会</p>
-        <p class="eb-pixel home-greeting">你好，我是 {siteConfig.name}。</p>
         <h1 class="eb-title">把想象变成设计，<br /><span>再让它落地成可玩的游戏。</span></h1>
         <p class="eb-body home-lead">{siteConfig.hero.tagline}</p>
         <ul class="home-proof" aria-label="个人经历摘要">
@@ -57,11 +59,10 @@ const abilities = [
               <a
                 href={`/docs/${d.id}/`}
                 class:list={['home-doc', `home-doc--${i + 1}`]}
-                aria-label={d.data.title}
               >
                 <span class="home-doc__em">{d.data.category ?? '文档'}</span>
                 <strong class="home-doc__title">{d.data.title}</strong>
-                <span class="home-doc__sum">{d.data.summary}</span>
+                <span class="home-doc__sum" aria-hidden="true">{d.data.summary}</span>
                 <span class="home-doc__cta">阅读 <b aria-hidden="true">→</b></span>
               </a>
             ))
@@ -106,7 +107,7 @@ const abilities = [
                   </div>
                   <!-- 游戏本体：仅点击后挂 src（惰性，避免首屏加载 40MB） -->
                   <div class="eb-swap__game" data-game hidden>
-                    <p class="eb-swap__loading" aria-hidden="true">正在召唤试玩…</p>
+                    <p class="eb-swap__loading" aria-hidden="true">正在召唤试玩…（约 40MB，首次加载 10–30 秒）</p>
                     <iframe data-src="https://play.limao.site/" title="童话冒险 DEMO 在线试玩" class="eb-video" allow="autoplay; fullscreen; gamepad"></iframe>
                   </div>
                 </div>
@@ -162,7 +163,10 @@ const abilities = [
       <h2 class="eb-window__title">◆ 任务日志（其他项目）</h2>
       <div class="mt-3 space-y-3">
         {otherProjects.map((p) => (
-          <a href={`/projects/${p.id}/`} class="eb-log-row">
+          <a href={`/projects/${p.id}/`} class="eb-log-row eb-log-row--thumb">
+            {p.data.cover && (
+              <img src={p.data.cover} alt="" class="eb-log-thumb" loading="lazy" decoding="async" />
+            )}
             <span class="eb-body">{p.data.title}</span>
             <span class="eb-log-right">
               <span class="eb-ev">{p.data.type} · {p.data.role}</span>
@@ -173,17 +177,18 @@ const abilities = [
       </div>
     </section>
 
-    <!-- 代表策划文档：图鉴 -->
+    <!-- 代表策划文档：图鉴（与上方 Hero 精品卡取不同篇目，避免同屏重复）
+         每条做成独立图块：分类 chip + 「标题 ……… 查看 →」同一行对齐 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 图鉴（代表策划文档）</h2>
-      <div class="mt-3 space-y-3">
-        {featureDocs.map((d) => (
-          <a href={`/docs/${d.id}/`} class="eb-log-row eb-log-row--doc">
-            <span class="eb-body">
-              <span class="eb-chip">{d.data.category}</span>
-              <span class="home-log-title">{d.data.title}</span>
+      <div class="codex-grid mt-3">
+        {codexDocs.map((d) => (
+          <a href={`/docs/${d.id}/`} class="codex-card">
+            <span class="eb-chip">{d.data.category}</span>
+            <span class="codex-card__row">
+              <span class="codex-card__title">{d.data.title}</span>
+              <span class="codex-card__more">查看 <b aria-hidden="true">→</b></span>
             </span>
-            <span class="eb-ev">查看 →</span>
           </a>
         ))}
       </div>
@@ -210,7 +215,7 @@ const abilities = [
         <button id="eb-no" type="button" class="eb-btn-line">不要</button>
         <a href={`mailto:${siteConfig.email}`} class="eb-btn-line">直接联系</a>
       </div>
-      <p id="eb-no-msg" class="eb-dialog mt-3 text-center" hidden>……真是遗憾呢。（那就看看项目吧 → <a href="/projects/" class="eb-link">任务日志</a>）</p>
+      <p id="eb-no-msg" class="eb-dialog mt-3 text-center" role="status" aria-live="polite" hidden>……真是遗憾呢。（那就看看项目吧 → <a href="/projects/" class="eb-link">任务日志</a>）</p>
     </section>
   </div>
 </Layout>
@@ -272,11 +277,41 @@ const abilities = [
   .home-doc__em { font-family:"FusionPixel",var(--font-sans); font-size:.72rem; letter-spacing:.12em; color:var(--doc-em); }
   .home-doc__title { font-size:1rem; font-weight:800; line-height:1.4; color:var(--doc-ink); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   /* 摘要：填满卡片中段，顺便让招聘方多看到一句内容 */
-  .home-doc__sum { font-size:.72rem; line-height:1.55; color:var(--doc-sum); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .home-doc__sum { font-size:13px; line-height:1.55; color:var(--doc-sum); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .home-doc__cta { margin-top:auto; padding-top:.4rem; color:var(--doc-cta); font-size:.74rem; font-weight:700; }
   .home-experience { max-width:46rem; }
-  /* 图鉴条目：分类 chip 独占一行（块级），标题不再被顶出参差缩进 */
-  .eb-log-row--doc .eb-body { display:flex; flex-direction:column; align-items:flex-start; gap:.35rem; min-width:0; }
+  /* 图鉴：每条独立成块（奶油底 + 棕描边 + 硬阴影），比任务日志的分隔线列表更有"藏品"感；
+     分类 chip 独占一行，标题与「查看 →」在下一行按 baseline 对齐 */
+  .codex-grid { display:grid; gap:.75rem; }
+  .codex-card {
+    display:block;
+    padding:.8rem .95rem .85rem;
+    background:#f4ecd8;
+    border:2px solid #8a6a3a;
+    border-radius:6px;
+    box-shadow:3px 3px 0 rgba(38,32,22,.14);
+    text-decoration:none;
+    transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+  }
+  .codex-card:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 rgba(38,32,22,.2); background:#faf3e2; }
+  .codex-card:active { transform:translate(1px,1px); box-shadow:none; }
+  .codex-card__row { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-top:.45rem; }
+  .codex-card__title {
+    flex:1 1 auto;
+    min-width:0;
+    font-family:"FusionPixel", var(--font-sans);
+    color:#2b2418;
+    font-size:1rem;
+    line-height:1.5;
+    overflow-wrap:anywhere;
+  }
+  .codex-card__more {
+    flex:0 0 auto;
+    font-family:"FusionPixel", var(--font-sans);
+    font-size:.8rem;
+    color:#9a5a1e;
+    white-space:nowrap;
+  }
   .home-log-title { overflow-wrap:anywhere; }
   .eb-chip { border-radius:4px; padding:.12rem .5rem; font-size:.68rem; letter-spacing:.05em; background:#1f140d; color:var(--eb-frame); }
   /* 面板级"更多"入口：与条目级"查看 →"链接拉开层级 */
@@ -300,7 +335,7 @@ const abilities = [
     .home-doc:hover { transform:none; box-shadow:5px 5px 0 rgba(24,20,16,.2); }
     .home-doc__em { font-size:.62rem; letter-spacing:.08em; }
     .home-doc__title { font-size:.82rem; -webkit-line-clamp:2; }
-    .home-doc__sum { font-size:.68rem; line-height:1.45; -webkit-line-clamp:2; }
+    .home-doc__sum { font-size:12px; line-height:1.45; -webkit-line-clamp:2; }
     .home-doc__cta { font-size:.66rem; padding-top:.25rem; }
     .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
     .home-proof li { min-width:0; padding-inline:.75rem; }
@@ -340,9 +375,11 @@ const abilities = [
         setTimeout(() => el.remove(), 700);
       };
       start.addEventListener('click', dismiss, { once: true });
+      // 点击遮罩任意处也可关闭（求职场景下不让人被开场卡住）
+      el.addEventListener('click', dismiss);
       document.addEventListener('keydown', onKey);
-      // 自动消失兜底：3s 太急（文案没读完就被吞掉），延长到 6s 保留"不点也能进"的出口
-      timer = setTimeout(dismiss, 6000);
+      // 自动消失兜底：2.2s——文案短、不点也能进，尽量少占用招聘方的首屏时间
+      timer = setTimeout(dismiss, 2200);
       start.focus();
     }
   }
@@ -355,7 +392,17 @@ const abilities = [
     const noMsg = document.getElementById('eb-no-msg');
     if (noBtn && noMsg && !noBtn.dataset.bound) {
       noBtn.dataset.bound = '1';
-      noBtn.addEventListener('click', () => { noMsg.hidden = false; noBtn.disabled = true; });
+      noBtn.addEventListener('click', (e) => {
+        noMsg.hidden = false;
+        // 用 aria-disabled 而非原生 disabled：保留键盘焦点不丢到 body，
+        // 并把焦点移到刚出现的消息上，读屏能立即读到（配合 role=status）
+        noBtn.setAttribute('aria-disabled', 'true');
+        noBtn.style.pointerEvents = 'none';
+        noBtn.style.opacity = '0.55';
+        noMsg.setAttribute('tabindex', '-1');
+        noMsg.focus();
+        window.__ebPop?.('silence', e.clientX, e.clientY); /* 表情反馈：无语 */
+      });
     }
   }
   bindNoBtn();
@@ -392,6 +439,12 @@ const abilities = [
     // "NOW LOADING"文字可见（iframe 先藏起来），onload 后再亮出来，避免死等白屏。
     const launch = () => {
       if (started) return;
+      // 移动端 / 触屏：页内加载 40MB Godot 包基本必然白屏或失败——
+      // 改为新窗口打开游戏，避免把人卡在死等状态。
+      if (window.matchMedia && window.matchMedia('(max-width: 820px), (pointer: coarse)').matches) {
+        window.open('https://play.limao.site/', '_blank', 'noopener');
+        return;
+      }
       started = true;
       // 电视电源灯：开播 → 红变绿
       const power = document.getElementById('eb-tv-power');

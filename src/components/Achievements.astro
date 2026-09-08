@@ -59,7 +59,7 @@
 
   // 1) 下载简历（document 级委托，ClientRouter 切换后依然生效）
   document.addEventListener('click', (e) => {
-    const a = e.target.closest('a[href$="resume.pdf"]');
+    const a = e.target.closest('a[href$=".pdf"]');
     if (a) fire('resume', '获得了 简历.pdf ×1！');
   });
 

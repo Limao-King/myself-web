@@ -75,13 +75,16 @@ const pageDescription = description ?? siteConfig.description;
     <slot name="floating" />
     <Footer />
     <Achievements />
-    <!-- HP 里程计：全站阅读进度 = 掉血滚数（fixed 层挂在 main 外，规避 page-panel
-         backdrop-filter 对 fixed 定位的影响）；非滚动页自动隐藏 -->
+    <!-- Energy 里程计：全站阅读进度 = 充能（非滚动页自动隐藏）；
+         移动端"滚动时显示、停下淡出"，避免常驻遮挡视野 -->
     <div id="eb-hp-meter" class="eb-hp-meter" aria-hidden="true">
-      <span class="eb-hp-meter__label">HP</span>
       <span class="eb-hp-meter__bar"><span class="eb-hp-meter__fill"></span></span>
       <span class="eb-hp-meter__num"><span id="eb-hp-num">0</span><em>/100</em></span>
     </div>
+    <!-- 充满时弹出的 Lit 表情：独立于 meter，移动端 meter 淡出时它仍可显示 -->
+    <span id="eb-energy-emoji" class="eb-energy-emoji" aria-hidden="true"></span>
+    <!-- 通用表情反馈（Tiny RPG Emoji Pack I · CC0）：点击简历/邮件/「不要」等触发 -->
+    <div id="eb-emoji-pop" class="eb-emoji-pop" aria-hidden="true"></div>
 
     <script>
       // 滚动进入动画（IntersectionObserver 模式，社区主流做法）
@@ -127,16 +130,39 @@ const pageDescription = description ?? siteConfig.description;
 
     <script>
       // ============ HP 里程计（全站）：阅读进度掉血滚数 ============
-      // 非滚动页（内容不足一屏）自动隐藏；滚到底 is-max 三帧抖动（变金黄）。
+      // 非滚动页（内容不足一屏）自动隐藏；充满到 100 时弹出 Lit 表情（约 1.4s 后收起）。
       function initHpMeter() {
         const meter = document.getElementById('eb-hp-meter');
         if (!meter || meter.dataset.bound) return;
         meter.dataset.bound = '1';
         const fill = meter.querySelector('.eb-hp-meter__fill');
         const num = document.getElementById('eb-hp-num');
+        const emoji = document.getElementById('eb-energy-emoji');
         const controller = new AbortController();
         const { signal } = controller;
         let ticking = false;
+        let wasMax = false;
+        let emojiTimer = 0;
+        const playEmoji = () => {
+          if (!emoji) return;
+          clearInterval(emojiTimer);
+          let f = 0;
+          const TOTAL = 20; /* Lit sheet = 5列×4行，拼成 640×32 横向 20 帧 */
+          const STEP = 32;
+          emoji.style.opacity = '1';
+          emoji.style.transform = 'scale(1)';
+          emoji.style.backgroundPosition = '0 0';
+          emojiTimer = setInterval(() => {
+            f += 1;
+            if (f >= TOTAL) {
+              clearInterval(emojiTimer);
+              emoji.style.opacity = '0';
+              emoji.style.transform = 'scale(0.6)';
+              return;
+            }
+            emoji.style.backgroundPosition = `-${f * STEP}px 0`;
+          }, 70);
+        };
         const apply = () => {
           ticking = false;
           const el = document.documentElement;
@@ -146,7 +172,11 @@ const pageDescription = description ?? siteConfig.description;
           const p = Math.min(1, Math.max(0, el.scrollTop / max));
           if (fill) fill.style.transform = `scaleX(${p.toFixed(4)})`;
           if (num) num.textContent = String(Math.round(p * 100));
-          meter.classList.toggle('is-max', p >= 0.995);
+          const isMax = p >= 0.995;
+          meter.classList.toggle('is-max', isMax);
+          // 只在"由未满变为满"的瞬间触发一次，避免停在底部反复播放
+          if (isMax && !wasMax) playEmoji();
+          wasMax = isMax;
         };
         const onScroll = () => {
           if (!ticking) {
@@ -173,6 +203,9 @@ const pageDescription = description ?? siteConfig.description;
           const digits = raw.replace(/\D/g, '').split('').map(Number);
           if (!digits.length) return;
           el.textContent = '';
+          // role=img + aria-label：让读屏把滚轮整体读成目标数字，
+          // 而不是逐个朗读内部的 0~9 数字轮（否则会念成「0123456789 个项目」）。
+          el.setAttribute('role', 'img');
           el.setAttribute('aria-label', raw);
           const reels = digits.map((d) => {
             const reel = document.createElement('span');
@@ -213,6 +246,60 @@ const pageDescription = description ?? siteConfig.description;
       }
       initOdometers();
       document.addEventListener('astro:after-swap', initOdometers);
+    </script>
+
+    <script>
+      // ============ 通用表情反馈（Tiny RPG Emoji Pack I · CC0）============
+      // 20 帧横向条（640×32），逐帧切 background-position；右上角弹一次后收起。
+      // 供点击「下载简历」/邮件链接/「不要」按钮、以及 404 页调用（window.__ebPop）。
+      function initEmojiPop() {
+        const el = document.getElementById('eb-emoji-pop');
+        if (!el || el.dataset.bound) return;
+        el.dataset.bound = '1';
+        const TOTAL = 20;
+        const SIZE = 48; /* 放大到 48px，让反馈更容易被察觉 */
+        const play = (name, x, y) => {
+          clearInterval(el._t);
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          /* 定位：优先跟随点击位置（居中在点击点上方），否则落在右上角 */
+          let px, py;
+          if (typeof x === 'number' && typeof y === 'number') {
+            px = Math.min(Math.max(8, x - SIZE / 2), vw - SIZE - 8);
+            py = Math.min(Math.max(8, y - SIZE - 14), vh - SIZE - 8);
+          } else {
+            px = vw - SIZE - 22;
+            py = 86;
+          }
+          el.style.left = `${Math.round(px)}px`;
+          el.style.top = `${Math.round(py)}px`;
+          el.style.backgroundImage = `url("/images/emoji/${name}.png")`;
+          let f = 0;
+          el.style.opacity = '1';
+          el.style.transform = 'scale(1)';
+          el.style.backgroundPosition = '0 0';
+          el._t = setInterval(() => {
+            f += 1;
+            if (f >= TOTAL) {
+              clearInterval(el._t);
+              el.style.opacity = '0';
+              el.style.transform = 'scale(0.6)';
+              return;
+            }
+            el.style.backgroundPosition = `-${f * SIZE}px 0`;
+          }, 70);
+        };
+        window.__ebPop = play;
+        document.addEventListener('click', (e) => {
+          const a = e.target.closest('a[href]');
+          if (!a) return;
+          const href = a.getAttribute('href') || '';
+          if (href.endsWith('.pdf')) { play('ok', e.clientX, e.clientY); return; }
+          if (href.startsWith('mailto:')) { play('yes', e.clientX, e.clientY); }
+        });
+      }
+      initEmojiPop();
+      document.addEventListener('astro:after-swap', initEmojiPop);
     </script>
 
     <script>

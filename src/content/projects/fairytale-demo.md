@@ -9,6 +9,8 @@ duration: 2026.08.20~2026.08.30
 featured: true
 cover: /images/projects/fairytale/01-title.jpg
 planDoc: /docs/fairytale-plan/
+playUrl: 'https://play.limao.site/'
+playLabel: '▶ 在线试玩'
 demoUrl: 'https://pan.baidu.com/s/1L2zQ2hUVPqM05ViGb74iow?pwd=abee'
 demoLabel: '下载 Demo（约 150MB · 百度网盘）'
 videoUrl: 'https://www.bilibili.com/video/BV1oJtu6tEs9/'

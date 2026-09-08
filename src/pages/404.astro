@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="页面不存在" theme="eb">
-  <section class="py-32 text-center">
+  <section class="py-32 text-center" data-page-404>
     <p class="font-pixel text-sm tracking-widest text-neutral-500">野生的「404」跳了出来！</p>
     <h1 class="mt-3 text-5xl font-bold text-neutral-100">404</h1>
     <p class="mt-4 text-neutral-400">这个页面不存在……看来是走错了地图区域。</p>
@@ -12,3 +12,14 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 </Layout>
+
+<script>
+  // 走错地图的眩晕表情（Tiny RPG Emoji Pack I · CC0）。
+  // 必须用页面标记判定——astro:after-swap 监听是全局的，
+  // 若只靠本脚本注册就会在之后每次导航时都误触发。
+  const pop404 = () => {
+    if (document.querySelector('[data-page-404]')) window.__ebPop?.('dizzy');
+  };
+  setTimeout(pop404, 500);
+  document.addEventListener('astro:after-swap', () => setTimeout(pop404, 300));
+</script>

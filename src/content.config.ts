@@ -21,6 +21,8 @@ const projects = defineCollection({
     /** 开始日期（任务日志显示 yy.mm 并排序用；缺省用 date） */
     start: z.coerce.date().optional(),
     cover: z.string().optional(),      // 封面图（放 public/images/projects/ 下）
+    playUrl: z.string().optional(),    // 在线试玩地址（页内/新窗直启，如 https://play.limao.site/）
+    playLabel: z.string().optional(),  // 试玩按钮文案（默认「▶ 在线试玩」）
     demoUrl: z.string().optional(),    // 演示 / 视频 / 下载链接
     demoLabel: z.string().optional(),  // 演示按钮文案（如「下载 Demo（约 150MB · 网盘）」）
     videoUrl: z.string().optional(),   // 演示视频链接（B站等），如 https://www.bilibili.com/video/BVxxxx
