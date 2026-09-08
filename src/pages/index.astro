@@ -15,7 +15,7 @@ const otherProjects = projects
 const bvMatch = feature?.data.videoUrl?.match(/BV[0-9A-Za-z]{10}/);
 const playerUrl = bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=0` : null;
 const pickDoc = (id: string) => docs.find((d) => d.id === id);
-const featureDocs = ['bg3', 'fairytale-plan', 'world-regions'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
+const featureDocs = ['death-stranding', 'fairytale-plan', 'world-regions'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
 
 const abilities = [
   { name: '系统设计', ev: '「系统策划案」发挥了效果！→', href: '/docs/fairytale-plan/', value: 86, kind: 'hp' },
@@ -40,9 +40,9 @@ const abilities = [
         <h1 class="eb-title">把想象变成设计，<br /><span>再让它落地成可玩的游戏。</span></h1>
         <p class="eb-body home-lead">{siteConfig.hero.tagline}</p>
         <ul class="home-proof" aria-label="个人经历摘要">
-          <li><strong>4</strong><span>个项目</span></li>
-          <li><strong>1</strong><span>款可玩 Demo</span></li>
-          <li><strong>6000+</strong><span>小时游戏体验</span></li>
+          <li><strong><span class="eb-odo" data-odo="4">4</span></strong><span>个项目</span></li>
+          <li><strong><span class="eb-odo" data-odo="1">1</span></strong><span>款可玩 Demo</span></li>
+          <li><strong><span class="eb-odo" data-odo="6000">6000</span>+</strong><span>小时游戏体验</span></li>
         </ul>
         <div class="home-actions mt-6 flex flex-wrap gap-3">
           <a href={`/projects/${feature?.id}/`} class="eb-btn-solid">查看代表项目</a>
@@ -78,7 +78,7 @@ const abilities = [
           <a href={a.href} class="eb-stat block">
             <div class="flex items-baseline justify-between">
               <span class="eb-stat__name">{a.name}</span>
-              <span class="eb-stat__num">{a.value}</span>
+              <span class="eb-stat__num"><span class="eb-odo" data-odo={String(a.value)}>{a.value}</span></span>
             </div>
             <div class="eb-stat__bar" aria-hidden="true"><span class={`eb-stat__fill ${a.kind}`} style={`width:${a.value}%`}></span></div>
             <span class="eb-ev">{a.ev}</span>
@@ -193,7 +193,7 @@ const abilities = [
     <!-- 游戏经历：冒险记录 -->
     <section class="eb-window">
       <h2 class="eb-window__title">◆ 至今的冒险（游戏经历）</h2>
-      <p class="eb-dialog mt-2 home-experience">已收集 <span class="eb-pixel">{totalGameCount}</span> 款游戏、累计 6000+ 小时。不只于体验，我会保持思考。在回合制游戏中思考地形利用、行动经济与构筑博弈。在叙事驱动游戏中考察结构、人物、世界观和冲突设计。优秀的游戏设计会进入我的灵感库，成为我设计时的辅助。</p>
+      <p class="eb-dialog mt-2 home-experience">已收集 <span class="eb-pixel"><span class="eb-odo" data-odo={String(totalGameCount)}>{totalGameCount}</span></span> 款游戏、累计 <span class="eb-pixel"><span class="eb-odo" data-odo="6000">6000</span>+</span> 小时。不只于体验，我会保持思考。在回合制游戏中思考地形利用、行动经济与构筑博弈。在叙事驱动游戏中考察结构、人物、世界观和冲突设计。优秀的游戏设计会进入我的灵感库，成为我设计时的辅助。</p>
       <div class="mt-3 flex flex-wrap gap-2">
         {['回合制', '叙事驱动', '机制创新', '剧情结构','行动经济'].map((t) => (
           <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
@@ -230,7 +230,7 @@ const abilities = [
   .home-proof li { display:flex; flex-direction:column; min-width:7.5rem; padding:0 1.35rem; border-left:1px solid rgba(42,26,18,.18); }
   .home-proof li:first-child { padding-left:0; border-left:0; }
   .home-proof strong { font-family:"FusionPixel",var(--font-sans); color:#262016; font-size:1.45rem; line-height:1; }
-  .home-proof span { margin-top:.4rem; color:#6a5b45; font-size:.72rem; }
+  .home-proof li > span { margin-top:.4rem; color:#6a5b45; font-size:.72rem; }  /* 仅标签 span；.eb-odo 在 strong 内不受影响 */
   .home-actions { align-items:center; }
   .home-text-link { min-height:44px; display:inline-flex; align-items:center; padding-inline:.65rem; color:#74411f; font-size:.85rem; font-weight:700; text-decoration:underline; text-underline-offset:.3em; }
   /* 精品文档：折叠票据堆（3 张层叠错开，悬停抽出，点击跳转） */
@@ -305,7 +305,7 @@ const abilities = [
     .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
     .home-proof li { min-width:0; padding-inline:.75rem; }
     .home-proof strong { font-size:1.15rem; }
-    .home-proof span { font-size:.64rem; white-space:nowrap; }  /* 标签不再拆出孤字（如"小时游戏体/验"） */
+    .home-proof li > span { font-size:.64rem; white-space:nowrap; }  /* 标签不再拆出孤字（如"小时游戏体/验"） */
     .home-actions > * { flex:1 1 auto; }
     .home-text-link { justify-content:center; flex-basis:100%; }
     .home-eyebrow { font-size:.72rem; letter-spacing:.02em; white-space:nowrap; }  /* "校招机会"不拆行 */
@@ -478,10 +478,10 @@ const abilities = [
   initBattleMedia();
   document.addEventListener('astro:after-swap', initBattleMedia);
 
-  // ============ 雪花屏（老电视未调台画面）：低分辨率随机噪点 + 扫描扰动 ============
-  // 替代原正弦纹样预览面：作为试玩的前置画面，点击后直启游戏（无中间封面）。
-  // 注意：必须是可重入的 initCoverWarp()（IIFE 只跑一次）——ClientRouter 软导航回到首页时
-  // canvas 是全新 DOM 节点，不重新绑定的话雪花屏会变成一块空白，这就是"偶尔不显示"的根因。
+  // ============ 迷幻色带封面（电视开机画面）：低分辨率斜向行波 + 鼠标调相 ============
+  // 替代旧雪花噪点：4 色斜向色带做两层正弦"扭动"，色相随鼠标 X 在洋红↔金↔青间缓移。
+  // 注意：必须是可重入的 initCoverWarp()——ClientRouter 软导航回到首页时
+  // canvas 是全新 DOM 节点，不重新绑定的话封面会变成一块空白。
   function initCoverWarp() {
     const warp = document.getElementById('eb-cover-warp');
     if (!warp || !('getContext' in warp)) return;
@@ -493,71 +493,94 @@ const abilities = [
     const controller = new AbortController();
     const { signal } = controller;
     let raf = 0;
-    let started = false;
+    let running = false;
     let last = 0;
+    let t = 0;
 
-    // 电视雪花用低分辨率再放大：天然像素噪点，效果接近 CRT 雪花
-    let W = 0, H = 0;
+    // 低分辨率绘制 + CSS 放大：天然像素颗粒
+    let W = 0, H = 0, img = null;
     const resize = () => {
       const box = warp.getBoundingClientRect();
-      const cols = Math.max(48, Math.min(96, Math.round(box.width / 8)));
-      const rows = Math.max(30, Math.min(60, Math.round(box.height / 8)));
+      const cols = Math.max(64, Math.min(144, Math.round(box.width / 7)));
+      const rows = Math.max(36, Math.min(82, Math.round(box.height / 7)));
       warp.width = cols;
       warp.height = rows;
       W = cols; H = rows;
+      img = ctx.createImageData(W, H);
     };
     resize();
     window.addEventListener('resize', resize, { signal });
-    // CSS 拉伸像素化显示（warp 元素铺满屏幕区域）
     warp.style.width = '100%';
     warp.style.height = '100%';
     warp.style.imageRendering = 'pixelated';
 
-    // 首帧铺满噪点；后续帧只扰动一部分像素，避免"全屏爆闪"，更像电视雪花在"沙沙"地动
-    let noiseSeed = null;
-    const drawStatic = () => {
-      if (!noiseSeed) {
-        // 首帧/尺寸变化：全屏随机
-        noiseSeed = ctx.createImageData(W, H);
-      }
-      const d = noiseSeed.data;
-      // 每帧只重绘约 55% 像素（其余保留上一帧），视觉上是持续的雪花扰动而非爆闪。
-      // 灰阶收窄到 56~208：全幅高对比黑白噪点过于刺眼，也压过了 ▶ 入口
-      for (let i = 0; i < d.length; i += 4) {
-        if (Math.random() < 0.55) {
-          const v = 56 + Math.random() * 152;
-          d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 255;
-        }
-      }
-      // 模拟行滚动干扰：随机几行整体偏暗（像扫描线不稳）
-      for (let y = 0; y < H; y += 2) {
-        if (Math.random() > 0.8) {
-          const rowStart = y * W * 4;
-          for (let x = 0; x < W * 4; x++) d[rowStart + x] = d[rowStart + x] * 0.35;
-        }
-      }
-      ctx.putImageData(noiseSeed, 0, 0);
+    // 鼠标 X（0-1）→ 目标色相；lerp 逼近
+    let mx = 0.5, mxTarget = 0.5;
+    const onMouse = (e) => { mxTarget = e.clientX / Math.max(1, window.innerWidth); };
+    window.addEventListener('pointermove', onMouse, { signal, passive: true });
+
+    const hsl2rgb = (h, s, l) => {
+      s /= 100; l /= 100;
+      const k = (n) => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
     };
 
-    // 节流：原 ~55ms/帧，再放慢 30% → ~78ms/帧，雪花"沙沙"更缓，接近真实电视而非闪屏
-    const tick = (t) => {
-      if (t - last >= 78) {
-        drawStatic();
-        last = t;
+    const draw = () => {
+      mx += (mxTarget - mx) * 0.05;
+      t += 1;
+      const hue = (318 + mx * 84 + Math.sin(t * 0.015) * 12) % 360;
+      // 迷幻 4 色：洋红主带 + 金 + 青 + 深底，围绕 hueBase 展开
+      const pal = [
+        hsl2rgb(hue, 72, 52),
+        hsl2rgb((hue + 42) % 360, 78, 60),
+        hsl2rgb((hue + 310) % 360, 58, 40),
+        hsl2rgb((hue + 18) % 360, 70, 28),
+      ];
+      const d = img.data;
+      for (let y = 0; y < H; y++) {
+        // 斜向行波：两层正弦叠加，让每条色带"扭动"
+        const rowWave = Math.sin(y * 0.35 + t * 0.32) * 3 + Math.sin(y * 0.11 - t * 0.17) * 2;
+        for (let x = 0; x < W; x++) {
+          let v = Math.floor((x + rowWave + y * 0.55) / 6) % 4;
+          if (v < 0) v += 4;
+          const [r, g, b] = pal[v];
+          const i = (y * W + x) * 4;
+          d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255;
+        }
       }
-      if (!reduce) raf = requestAnimationFrame(tick);
+      ctx.putImageData(img, 0, 0);
     };
-    if (reduce) drawStatic();
-    else { started = true; raf = requestAnimationFrame(tick); }
 
-    // 页面隐藏时停顿，回来再续
+    // 节流 ~66ms/帧：色带流动比雪花更"泳"，慢一点反而对味
+    const tick = (now) => {
+      if (now - last >= 66) { draw(); last = now; }
+      if (running) raf = requestAnimationFrame(tick);
+    };
+    const start = () => { if (!running && !reduce) { running = true; raf = requestAnimationFrame(tick); } };
+    const stop = () => { running = false; cancelAnimationFrame(raf); };
+
+    if (reduce) { draw(); }
+    else { start(); }
+
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { cancelAnimationFrame(raf); started = false; }
-      else if (!reduce && !started && warp.isConnected && !warp.hidden) { started = true; raf = requestAnimationFrame(tick); }
+      if (document.hidden) stop();
+      else if (warp.isConnected && !warp.hidden) start();
     }, { signal });
+    document.addEventListener('astro:before-swap', () => { stop(); controller.abort(); }, { once: true, signal });
 
-    // ClientRouter 换页前清理：resize / visibilitychange 监听随旧 canvas 一起作废
-    document.addEventListener('astro:before-swap', () => controller.abort(), { once: true, signal });
+    // ▶ 进视口三帧 pop（EB 战斗切入的登场感）
+    const playBtn = document.getElementById('eb-play-launch');
+    if (playBtn && 'IntersectionObserver' in window && !playBtn.dataset.popBound) {
+      playBtn.dataset.popBound = '1';
+      const io = new IntersectionObserver((es) => {
+        for (const e of es) {
+          if (e.isIntersecting) { playBtn.classList.add('is-armed'); io.disconnect(); }
+        }
+      }, { threshold: 0.4 });
+      io.observe(playBtn);
+    }
   }
   initCoverWarp();
   document.addEventListener('astro:after-swap', initCoverWarp);
