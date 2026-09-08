@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content } = await render(project);
-const { title, date, type, platform, role, teamSize, duration, demoUrl, demoLabel, videoUrl, planDoc, planLabel, tags, screenshots } = project.data;
+const { title, date, type, platform, role, teamSize, duration, playUrl, playLabel, demoUrl, demoLabel, videoUrl, planDoc, planLabel, tags, screenshots } = project.data;
 ---
 
 <Layout title={title} description={project.data.summary} ogImage={project.data.cover} theme="eb" panel={false}>
@@ -46,13 +46,18 @@ const { title, date, type, platform, role, teamSize, duration, demoUrl, demoLabe
         )
       }
 
-      <!-- 相关产出：直达按钮（策划案为主，视频次之，下载 Demo 最次） -->
+      <!-- 相关产出：直达按钮（在线试玩为主 CTA，策划案/演示次之，下载 Demo 降为文本链接） -->
       {
-        (planDoc || videoUrl || demoUrl) && (
-          <div class="mt-5 flex flex-wrap gap-3">
-            {planDoc && <a href={planDoc} class="eb-btn-solid">{planLabel ?? '查看策划案'}</a>}
+        (playUrl || planDoc || videoUrl || demoUrl) && (
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            {playUrl && (
+              <a href={playUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-solid">
+                {playLabel ?? '▶ 在线试玩'}
+              </a>
+            )}
+            {planDoc && <a href={planDoc} class="eb-btn-line">{planLabel ?? '查看策划案'}</a>}
             {videoUrl && <a href={videoUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-line">▶ 观看演示</a>}
-            {demoUrl && <a href={demoUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-line">{demoLabel ?? '下载 Demo'}</a>}
+            {demoUrl && <a href={demoUrl} target="_blank" rel="noopener noreferrer" class="eb-link text-sm">{demoLabel ?? '下载 Demo'}</a>}
           </div>
         )
       }

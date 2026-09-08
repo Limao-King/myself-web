@@ -239,6 +239,49 @@
 .eb-hp-meter.is-max { animation: eb-lvup 0.45s steps(3); }
 .eb-hp-meter.is-max .eb-hp-meter__fill { background-color: var(--eb-pp); }
 
+/* Energy 充满时弹出的 Lit 表情（Tiny RPG Emoji Pack I · CC0）：
+   20 帧横向条，JS 逐帧切换 background-position；独立 fixed 定位（在 meter 上方），
+   这样移动端 meter 淡出时表情仍能显示 */
+.eb-energy-emoji {
+  position: fixed;
+  right: 1rem;
+  bottom: 3.7rem;
+  width: 32px;
+  height: 32px;
+  background-image: url("/images/emoji/lit-strip.png");
+  background-size: 640px 32px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+  z-index: 81;
+}
+/* 移动端：屏幕小、进度条常驻会遮挡视野——直接关闭（Energy 满格表情是独立元素，
+   仍会在右下角正常弹出）。桌面端不受影响。 */
+@media (max-width: 767px) {
+  .eb-hp-meter { display: none; }
+  .eb-energy-emoji { right: 0.6rem; bottom: 1rem; }
+}
+
+/* 通用表情反馈：跟随点击位置弹出（未传坐标时落在右上角） */
+.eb-emoji-pop {
+  position: fixed;
+  left: 0;
+  top: 86px;
+  width: 48px;
+  height: 48px;
+  background-repeat: no-repeat;
+  background-size: 960px 48px; /* 20 帧 × 48px */
+  image-rendering: pixelated;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+  z-index: 999;
+}
+
 /* —— 霓虹 HP 滚轮（eb-odometer）：数字像里程表逐位落下，带轻微回弹 —— */
 .eb-odo {
   display: inline-flex;
@@ -1073,6 +1116,22 @@
 }
 .eb-log-row:last-child { border-bottom: 0; }
 .eb-log-row:hover { transform: translateX(2px); }
+/* 带缩略图的任务日志行：图 + 标题靠左，右侧信息仍贴右 */
+.eb-log-row--thumb { align-items: center; gap: 0.75rem; }
+.eb-log-row--thumb .eb-body { flex: 1 1 auto; min-width: 0; }
+.eb-log-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 2px solid #262016;
+  border-radius: 4px;
+  image-rendering: pixelated;
+  background: #e8e0c8;
+}
+@media (max-width: 640px) {
+  .eb-log-thumb { width: 40px; height: 40px; }
+}
 .eb-log-date {
   font-family: "FusionPixel", var(--font-sans);
   color: #66543c;

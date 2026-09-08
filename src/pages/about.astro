@@ -52,18 +52,18 @@ const skillGroups = [
 
     <!-- 教育背景 -->
     <Reveal>
-      <section class="mb-12">
-        <h2 class="mb-4 text-xl font-semibold text-neutral-100">教育背景</h2>
+      <section class="eb-window mb-12">
+        <h2 class="eb-window__title mb-4">◆ 教育背景</h2>
         <ul class="space-y-4">
           {
             education.map((e) => (
-              <li class="rounded-xl border border-neutral-700 bg-neutral-900 p-5">
+              <li class="about-card">
                 <div class="flex items-baseline justify-between gap-4">
-                  <h3 class="font-semibold text-neutral-100">{e.school}</h3>
-                  <p class="shrink-0 text-xs text-neutral-500">{e.period}</p>
+                  <h3 class="about-card__name">{e.school}</h3>
+                  <p class="about-card__period">{e.period}</p>
                 </div>
-                <p class="mt-1 text-sm text-green-text">{e.major}</p>
-                <p class="mt-2 text-sm text-neutral-400">{e.note}</p>
+                <p class="about-card__major">{e.major}</p>
+                <p class="about-card__note">{e.note}</p>
               </li>
             ))
           }
@@ -71,19 +71,19 @@ const skillGroups = [
       </section>
     </Reveal>
 
-    <!-- 技能栈 + 联系方式：双栏状态窗（STATUS WINDOW），填满右半并统一容器语言 -->
+    <!-- 技能栈 + 联系方式：双栏状态窗（STATUS WINDOW），统一 EB 框语言 -->
     <Reveal delay={80}>
       <div class="mb-12 grid gap-6 md:grid-cols-2">
-        <section class="rounded-xl border border-neutral-700 bg-neutral-900 p-5">
-          <h2 class="mb-4 text-xl font-semibold text-neutral-100">技能栈</h2>
+        <section class="eb-window">
+          <h2 class="eb-window__title mb-4">◆ 技能栈</h2>
           <div class="space-y-5">
             {
               skillGroups.map((g) => (
                 <div>
-                  <h3 class="mb-2 font-pixel text-xs tracking-widest text-neutral-500">{g.name}</h3>
+                  <h3 class="about-skill-group">{g.name}</h3>
                   <div class="flex flex-wrap gap-2">
                     {g.skills.map((s) => (
-                      <span class="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-sm text-neutral-300">{s}</span>
+                      <span class="about-skill">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -91,15 +91,15 @@ const skillGroups = [
             }
           </div>
         </section>
-        <section class="rounded-xl border border-neutral-700 bg-neutral-900 p-5">
-          <h2 class="mb-4 text-xl font-semibold text-neutral-100">联系方式</h2>
-          <ul class="space-y-3 text-sm text-neutral-300">
-            <li>邮箱：<a href={`mailto:${siteConfig.email}`} class="link-underline text-green-text">{siteConfig.email}</a></li>
-            <li>GitHub：<a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="link-underline text-green-text">{siteConfig.github}</a></li>
-            <li>简历（含联系方式）：<a href={siteConfig.resumeUrl} target="_blank" class="link-underline text-green-text">下载 PDF</a></li>
+        <section class="eb-window">
+          <h2 class="eb-window__title mb-4">◆ 联系方式</h2>
+          <ul class="about-contact space-y-3">
+            <li>邮箱：<a href={`mailto:${siteConfig.email}`} class="eb-link">{siteConfig.email}</a></li>
+            <li>GitHub：<a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="eb-link">{siteConfig.github}</a></li>
+            <li>简历（含联系方式）：<a href={siteConfig.resumeUrl} target="_blank" class="eb-link">下载 PDF</a></li>
             <li>
               全部文档 / Demo 下载：
-              <a href={siteConfig.downloadUrl} target="_blank" rel="noopener noreferrer" class="link-underline text-green-text">
+              <a href={siteConfig.downloadUrl} target="_blank" rel="noopener noreferrer" class="eb-link">
                 百度网盘（提取码 {siteConfig.downloadPwd}）
               </a>
             </li>
@@ -112,11 +112,35 @@ const skillGroups = [
 
 <style>
   .about-page { max-width:58rem; margin-inline:auto; }
-  .about-hero { margin-bottom:3.5rem; padding:clamp(1.75rem,4vw,3rem); background:#fffffa; border:2px solid #c8bda2; border-radius:14px; box-shadow:8px 8px 0 rgba(64,80,84,.12); }
+  /* Hero：沿用 EB 夹心框语言（奶油底 + 棕粗框 + 外黑描边 + 硬阴影），保留 eb2 的柔和米色背景做区隔 */
+  .about-hero { margin-bottom:3.5rem; padding:clamp(1.75rem,4vw,3rem); background:#f5f5db; border:3px solid #5c3d1e; border-radius:8px; box-shadow:0 0 0 2px #262016, 8px 8px 0 rgba(64,80,84,.14); }
   .about-kicker { color:#537984; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
   .about-hero h1 { margin-top:.6rem; color:#222c2f; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:800; } /* 上限 60px=12 网格 ×5 */
   .about-hero > div > p:last-of-type { max-width:42rem; margin-top:1rem; color:#536064; line-height:1.9; }
   .about-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.5rem; }
-  .about-bio { max-width: 42rem; }  /* 与上方对话气泡同宽，右缘对齐 */
+  .about-bio { max-width: 42rem; color:#3a2f22; }  /* 与上方对话气泡同宽，右缘对齐 */
+  /* 教育背景条目：浅米卡 + 棕细线 + 硬阴影（EB 面板的"卡片"变体） */
+  .about-card { padding:1.1rem 1.25rem; background:#f4ecd8; border:2px solid #5c3d1e; border-radius:6px; box-shadow:3px 3px 0 rgba(38,32,22,.14); }
+  .about-card__name { font-family:"FusionPixel",var(--font-sans); font-weight:700; color:#262016; }
+  .about-card__period { flex-shrink:0; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; color:#66543c; }
+  .about-card__major { margin-top:.35rem; font-size:.9rem; color:#9a5a1e; font-weight:600; }
+  .about-card__note { margin-top:.5rem; font-size:.9rem; color:#4a3f30; }
+  /* 技能分组标题 + 技能 chip：与全站 chip 同款直角深色方块 */
+  .about-skill-group { margin-bottom:.5rem; font-family:"FusionPixel",var(--font-sans); font-size:.72rem; letter-spacing:.1em; color:#66543c; }
+  .about-skill { display:inline-block; padding:.3rem .65rem; background:#2b2418; color:#f5f5db; border:2px solid #262016; border-radius:4px; font-family:"FusionPixel",var(--font-sans); font-size:.8rem; box-shadow:2px 2px 0 rgba(38,32,22,.2); }
+  .about-contact { font-size:.9rem; color:#3a2f22; }
+  /* eb2 主题：框体半透明 + 毛玻璃（方案 A 定稿），让米色菱格背景透上来，
+     避免"不透明奶油实体块贴在透明板上"的突兀；描边/四角方块仍保留。 */
+  :global(.eb2-theme) .about-hero,
+  :global(.eb2-theme) .about-page :global(.eb-window) {
+    background-color: rgba(245, 245, 219, 0.72);
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  }
+  :global(.eb2-theme) .about-card {
+    /* 方案 A 定稿：去掉嵌套小背景填充，让条目直接落在父框的磨砂面上 */
+    background-color: transparent;
+    box-shadow: none;
+  }
   @media (max-width:720px) { .about-page { padding-top:1.25rem; } }
 </style>
