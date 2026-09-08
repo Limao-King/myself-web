@@ -21,7 +21,7 @@ const roleOf = (p: { data: { role: string } }) => p.data.role;
     <section class="project-board">
       <header class="project-board__head">
         <div>
-          <p class="project-board__eyebrow">SELECTED QUESTS · {projects.length} PROJECTS</p>
+          <p class="project-board__eyebrow">SELECTED QUESTS · <span class="eb-odo" data-odo={String(projects.length)}>{projects.length}</span> PROJECTS</p>
           <h1>项目与实践</h1>
           <p>从可玩原型到世界观与剧本项目。每个项目中我的具体职责、过程与产出都已注明。</p>
         </div>

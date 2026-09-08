@@ -45,33 +45,224 @@
 }
 
 /* ============ 页面级覆写（仅 EB 主题生效） ============ */
-/* 全站背景：Onett 草绿底 + PIL 染色的 PatternMix grass 纹样，平移循环
-   流程：PIL 把 transparent/grass.png 的 alpha 通道作灰度，
-         ImageOps.colorize(black=#88b878 阴, white=#b0f878 亮) 染色后保留原 alpha 拼回，
-         输出 grass-onett.png（透明处仍透明）。整页 background-color 用 #708650 兜底。
-   渐变说明：纵向明度渐变画在 .bg-pattern 容器上（它本身 position:fixed）——
-   之前用 body + background-attachment: fixed，iOS Safari 不支持该属性，
-   渐变会随内容滚动甚至引发重绘卡顿；fixed 容器原生就是"视口固定"。 */
+/* 全站背景：Onett 天空行程层（.eb-sky，见下方专节）。
+   旧方案（草绿渐变 + spark 满铺花纹）退役：花纹是"白日壁纸"逻辑，
+   密度过高与内容卡片抢戏，且没有 EB 灵魂的天空蓝。 */
 .eb-theme body {
-  background-color: #708650; /* 用户配色：前三页背景色（渐变取中值兜底） */
+  background-color: #9fe8f0; /* 天空渐变的中间值兜底（层未就绪/极老浏览器） */
 }
-/* 前三页纹样走 .bg-pattern 的 transform 平移（平滑，不卡顿），速度同原 paper 60s。
-   调校记录：spark 纹样 opacity 0.72 时白花与草绿明度差过大，整页背景在跟内容
-   抢戏；压到 0.45 保留质感但退回"背景"的位置。 */
 .eb-theme .bg-pattern {
-  background-image: linear-gradient(180deg,
-    #7f9660 0%,
-    #708650 45%,
-    #5f7245 100%);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
+  display: none;
 }
-.eb-theme .bg-pattern::before {
+
+/* ============ Onett 天空行程层 ============
+   结构：.eb-sky(fixed 视口) > .eb-sky__tape(280vh 长卷) > 渐变 + 地面纹样。
+   滚动时 tape 向上平移（-180vh × 进度），视口从"山顶晴空"一路走到"小镇草地"——
+   滚动即海拔下降。只写 transform，不碰 background-position（iOS fixed 教训同前）。 */
+.eb-sky {
+  display: none;
+}
+.eb-theme .eb-sky {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.eb-sky__tape {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 280vh;
+  transform: translate3d(0, var(--sky-y, 0px), 0);
+  will-change: transform;
+}
+.eb-sky__grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    #2fb6f0 0%,
+    #4cc8f4 12%,
+    #9fe8f0 26%,
+    #d6ecd4 36%,
+    #d0d0a8 43%,
+    #a8d078 50%,
+    #8ad458 60%,
+    #74c048 72%,
+    #549a3a 100%);
+}
+/* —— 天空段纹样层：覆盖长卷上半并伸入过渡区（0–65%），让它的可见尾部
+     与草地纹样的渐显头部在蓝绿交界处真正重叠——之前只到 52% 且过早衰减，
+     交界处天空纹样已淡到看不见、草地纹样又未起，形成"光秃"的过渡带。
+     透明度用户已选定：0.06（很淡）。 */
+.eb-sky__skytex {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 65%;
+  overflow: hidden;
+  opacity: 0.06;
+  /* 全显到自身 75%（≈全卷 48.75%），之后渐隐到层底（65% 处）——
+     让可见的天空纹样一直延续到草地纹样开始可辨 */
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 75%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 75%, transparent 100%);
+}
+.eb-sky__skytex::before {
+  content: "";
+  position: absolute;
+  inset: -192px;
   background-image: url("/images/patterns/spark.png");
   background-size: 192px 192px;
   background-repeat: repeat;
-  background-color: transparent;
-  opacity: 0.45;
+  image-rendering: pixelated;
+  animation: eb-ground-drift 60s linear infinite;
+  will-change: transform;
+}
+.eb-sky__ground {
+  position: absolute;
+  top: 40%;
+  left: 0;
+  right: 0;
+  height: 60%;
+  overflow: hidden;
+  opacity: 0.19;
+  /* 渐显从自身 8% 起（≈全卷 44.8%），与天空纹样尾部重叠过渡，
+     蓝绿交界处不再出现无纹样空档；20% 后全显 */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 20%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, transparent 8%, #000 20%, #000 100%);
+}
+.eb-sky__ground::before {
+  content: "";
+  position: absolute;
+  inset: -192px; /* 四周各多出一块砖，平移全程不露白 */
+  background-image: url("/images/patterns/spark.png");
+  background-size: 192px 192px;
+  background-repeat: repeat;
+  image-rendering: pixelated;
+  animation: eb-ground-drift 60s linear infinite;
+  will-change: transform;
+}
+@keyframes eb-ground-drift {
+  from { transform: translate3d(-192px, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+/* —— 像素云：box-shadow 点阵画（5px 网格，16×7 格），挂 fixed 层不随卷轴移动，
+      横向漂流走 CSS 动画，纵向视差走 --sky-scroll 变量（近云沉得快）—— */
+.eb-sky__clouds {
+  position: absolute;
+  inset: 0;
+}
+.eb-cloud {
+  position: absolute;
+  display: block;
+  transform: translate3d(0, calc(var(--sky-p, 0) * var(--cloud-rise, 0vh)), 0) scale(var(--cloud-s, 1));
+  will-change: transform;
+}
+.eb-cloud--1 { left: 6%;  top: 22vh; --cloud-s: 1.15; --cloud-rise: -55vh; }  /* p≈0.32 退场 */
+.eb-cloud--2 { left: 56%; top: 34vh; --cloud-s: 0.72; --cloud-rise: -60vh; }  /* p≈0.48 退场 */
+.eb-cloud--3 { left: 78%; top: 15vh; --cloud-s: 0.95; --cloud-rise: -40vh; }  /* p≈0.27 退场 */
+.eb-cloud--4 { left: 34%; top: 14vh; --cloud-s: 0.42; --cloud-rise: -13vh; opacity: 0.8; }
+.eb-cloud--5 { left: 66%; top: 19vh; --cloud-s: 0.34; --cloud-rise: -19vh; opacity: 0.7; }
+.eb-cloud__body {
+  display: block;
+  width: 5px;
+  height: 5px;
+  animation: eb-cloud-drift var(--cloud-t, 120s) linear infinite;
+  will-change: transform;
+}
+.eb-cloud--1 .eb-cloud__body { --cloud-t: 150s; animation-delay: -30s; }
+.eb-cloud--2 .eb-cloud__body { --cloud-t: 105s; animation-delay: -70s; }
+.eb-cloud--3 .eb-cloud__body { --cloud-t: 128s; animation-delay: -12s; }
+.eb-cloud--4 .eb-cloud__body { --cloud-t: 175s; animation-delay: -90s; }
+.eb-cloud--5 .eb-cloud__body { --cloud-t: 200s; animation-delay: -140s; }
+.eb-cloud__body {
+  box-shadow:
+    25px 0 #fff, 30px 0 #fff, 35px 0 #fff, 40px 0 #fff, 45px 0 #fff, 50px 0 #fff,
+    15px 5px #fff, 20px 5px #fff, 25px 5px #fff, 30px 5px #fff, 35px 5px #fff, 40px 5px #fff, 45px 5px #fff, 50px 5px #fff, 55px 5px #fff, 60px 5px #fff,
+    10px 10px #fff, 15px 10px #fff, 20px 10px #fff, 25px 10px #fff, 30px 10px #fff, 35px 10px #fff, 40px 10px #fff, 45px 10px #fff, 50px 10px #fff, 55px 10px #fff, 60px 10px #fff, 65px 10px #fff,
+    5px 15px #fff, 10px 15px #fff, 15px 15px #fff, 20px 15px #fff, 25px 15px #fff, 30px 15px #fff, 35px 15px #fff, 40px 15px #fff, 45px 15px #fff, 50px 15px #fff, 55px 15px #fff, 60px 15px #fff, 65px 15px #fff, 70px 15px #fff,
+    0 20px #fff, 5px 20px #fff, 10px 20px #fff, 15px 20px #fff, 20px 20px #fff, 25px 20px #fff, 30px 20px #fff, 35px 20px #fff, 40px 20px #fff, 45px 20px #fff, 50px 20px #fff, 55px 20px #fff, 60px 20px #fff, 65px 20px #fff, 70px 20px #fff, 75px 20px #fff,
+    0 25px #fff, 5px 25px #fff, 10px 25px #fff, 15px 25px #fff, 20px 25px #fff, 25px 25px #fff, 30px 25px #fff, 35px 25px #fff, 40px 25px #fff, 45px 25px #fff, 50px 25px #fff, 55px 25px #fff, 60px 25px #fff, 65px 25px #fff, 70px 25px #fff, 75px 25px #fff,
+    5px 30px #c9ecf6, 10px 30px #c9ecf6, 15px 30px #c9ecf6, 20px 30px #c9ecf6, 25px 30px #c9ecf6, 30px 30px #c9ecf6, 35px 30px #c9ecf6, 40px 30px #c9ecf6, 45px 30px #c9ecf6, 50px 30px #c9ecf6, 55px 30px #c9ecf6, 60px 30px #c9ecf6, 65px 30px #c9ecf6, 70px 30px #c9ecf6;
+}
+@keyframes eb-cloud-drift {
+  from { transform: translateX(-18vw); }
+  to { transform: translateX(112vw); }
+}
+/* "风停一下"：JS 在首屏标题进场时给 .eb-sky 挂 is-paused，0.7s 后摘掉 */
+.eb-sky.is-paused .eb-cloud__body { animation-play-state: paused; }
+
+/* —— HP 里程计（右下角常驻）：把"读完页面"变成一条 HP 条，替代顶部进度条 —— */
+.eb-hp-meter {
+  position: fixed;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.55rem;
+  font-family: "FusionPixel", var(--font-sans);
+  color: #262016;
+  background: #e8e0c8;
+  border: 2px solid #262016;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 2px var(--eb-frame),
+    3px 3px 0 rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+.eb-hp-meter__label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; }
+.eb-hp-meter__bar {
+  width: 58px;
+  height: 10px;
+  background: #0f0a06;
+  border: 2px solid #262016;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.eb-hp-meter__fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background-color: var(--eb-hp);
+  background-image: repeating-linear-gradient(90deg, transparent 0 7px, rgba(0, 0, 0, 0.25) 7px 9px);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+.eb-hp-meter__num { font-size: 0.95rem; }
+.eb-hp-meter__num em { font-style: normal; font-size: 0.72rem; color: #66543c; }
+.eb-hp-meter.is-max { animation: eb-lvup 0.45s steps(3); }
+.eb-hp-meter.is-max .eb-hp-meter__fill { background-color: var(--eb-pp); }
+
+/* —— 霓虹 HP 滚轮（eb-odometer）：数字像里程表逐位落下，带轻微回弹 —— */
+.eb-odo {
+  display: inline-flex;
+  overflow: hidden;
+  height: 1.15em;
+  line-height: 1.15;
+  vertical-align: -0.14em;
+}
+.eb-odo__reel {
+  display: block;
+  width: 1ch;
+  text-align: center;
+  transition: transform 0.72s cubic-bezier(0.18, 1.24, 0.4, 1);
+  will-change: transform;
+}
+.eb-odo__reel i {
+  display: block;
+  height: 1.15em;
+  font-style: normal;
+}
+/* 落定闪一帧："数值确定"的 EB 手感 */
+.eb-odo.is-set { animation: eb-odo-settle 0.26s steps(2); }
+@keyframes eb-odo-settle {
+  40% { color: var(--eb-red); transform: translateY(-1px); }
 }
 
 /* grass.png 平移（96px 整周期无缝循环） */
@@ -99,8 +290,8 @@
   background-color: transparent;
   opacity: 0.42;
 }
-.eb2-theme #scroll-progress { --progress-bg: #9a5a1e; height: 3px; }
-.eb-theme #scroll-progress { --progress-bg: var(--eb-yellow); }
+.eb2-theme #scroll-progress { display: none; } /* 阅读进度统一由右下角 HP 里程计承担 */
+.eb-theme #scroll-progress { display: none; } /* 阅读进度统一由右下角 HP 里程计承担 */
 .eb2-theme .site-header {
   --nav-bg: #6b9ca8;
   --nav-ink: #405054;
@@ -420,9 +611,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  /* 噪点调校：全屏高对比黑白噪点是全页最"吵"的元素，且正好压在
-     最重要的试玩入口上；压暗一档让 ▶ 重新成为视觉焦点 */
-  opacity: 0.55;
+  /* 迷幻战斗背景（替代旧雪花噪点）：色带要完整显色，不再压暗——
+     "最吵的元素"升级成"最活的元素"，▶ 靠加重的黑描边保持焦点 */
+  opacity: 0.92;
   mix-blend-mode: normal;
 }
 /* 雪花屏主按钮：纯图形「▶」入口（去边框、去文字、去黑色底板，仅留白色三角，作图形语言入口）。
@@ -433,7 +624,7 @@
   z-index: 2;
   display: inline-block;
   font-family: "FusionPixel", var(--font-sans);
-  font-size: 2.7rem;             /* ▶ 大幅放大，作为图形语言入口 */
+  font-size: 3.6rem;             /* ▶ 再放大一档：迷幻色带上唯一焦点 */
   line-height: 1;
   padding: 0;                    /* 去底板：无内边距 */
   color: #ffffff;                /* 白色，保留闪动提示可点 */
@@ -442,10 +633,19 @@
   cursor: pointer;
   text-shadow:
     0 0 2px rgba(0, 0, 0, 0.95),
-    0 0 6px rgba(0, 0, 0, 0.85),
-    2px 2px 0 rgba(0, 0, 0, 0.9); /* 纯白三角叠黑描边，从雪花噪点里跳出来 */
+    0 0 8px rgba(0, 0, 0, 0.85),
+    3px 3px 0 rgba(0, 0, 0, 0.9); /* 纯白三角叠黑描边，从迷幻色带里跳出来 */
   transition: transform 0.1s steps(2);
   animation: eb-tv-play-blink 1.2s steps(2) infinite; /* 白色闪动，提示可点 */
+}
+/* 进视口三帧 pop（EB 战斗切入的登场感），pop 完接回呼吸闪动 */
+.eb-tv__play.is-armed {
+  animation: eb-play-pop 0.26s steps(2) 1, eb-tv-play-blink 1.2s steps(2) 0.32s infinite;
+}
+@keyframes eb-play-pop {
+  0% { transform: scale(0.5); }
+  60% { transform: scale(1.28); }
+  100% { transform: scale(1); }
 }
 .eb-tv__play:hover { transform: translateY(1px); animation: none; }
 .eb-tv__play:active { transform: translateY(3px); animation: none; }
@@ -616,7 +816,7 @@
 }
 .eb-battle__stage[data-cover] {
   cursor: pointer;
-  background: #26201a; /* 深色兜底，纹样未载时也不突兀 */
+  background: #2a1420; /* 紫调兜底：迷幻色带未绘制时的底色 */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1136,6 +1336,25 @@
   .eb-swap__loading,
   .eb-tv__play,
   .eb-tv__power { animation: none; }
+  /* 天空行程层：不做"下山"位移，长卷压缩为单屏静态渐变（完整旅程一眼收尽） */
+  .eb-sky__tape { height: 100vh; transform: none !important; }
+  .eb-sky__grad {
+    background: linear-gradient(180deg,
+      #4cc8f4 0%,
+      #9fe8f0 20%,
+      #d6ecd4 30%,
+      #d0d0a8 36%,
+      #a8d078 44%,
+      #8ad458 54%,
+      #74c048 74%,
+      #549a3a 100%);
+  }
+  .eb-cloud__body { animation: none; }
+  .eb-cloud { transform: none !important; }
+  .eb-sky__ground::before { animation: none; }
+  .eb-odo__reel { transition: none; }
+  .eb-odo.is-set { animation: none; }
+  .eb-hp-meter.is-max { animation: none; }
 }
 
 /* ============ 移动端开场：竖屏专属 ============ */
