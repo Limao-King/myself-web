@@ -27,13 +27,14 @@ export const gameCategories: GameCategory[] = [
         subtitle: 'JRPG',
         items: [
           { name: '真女神转生5', hours: '100+', comment: '数值调控合理。纯粹，硬核的JRPG策略战斗体验' },
-          { name: '女神异闻录5', hours: '80', comment: '宫殿探索→校园日常双循环设计，每一个层面都关照玩家不一样的体验' },
+          { name: '女神异闻录5', hours: '80+', comment: '宫殿探索→校园日常双循环设计，每一个层面都关照玩家不一样的体验' },
           { name: '勇者斗恶龙：寻觅逝去的时光', hours: '100+', comment: '系列集大成之作，战斗系统简约而不简单，三个周目都有不同的体验' },
-          { name: '空之轨迹', hours: '60', comment: 'JRPG经典之作，Second发售我一定也要玩' },
-          { name: '如龙7 / 如龙8', hours: '90', comment: '回合制拓展与创新的典范，7代的剧本扎实，8代改革的回合制战斗体验爽快' },
+          { name: '空之轨迹', hours: '60+', comment: 'JRPG经典之作，Second发售我一定也要玩' },
+          { name: '如龙7 / 如龙8', hours: '90+', comment: '回合制拓展与创新的典范，7代的剧本扎实，8代改革的回合制战斗体验爽快' },
           { name: '八方旅人2', comment: '弱点破防的战斗系统与八位角色带来的迥异剧情体验' },
           { name: '古剑奇谭' },
           { name: '星之海', comment: '炸穿地球的美术表现规格，战斗体验有待商榷' },
+          { name: '地球冒险系列' },
         ],
       },
       {
@@ -114,7 +115,7 @@ export const gameCategories: GameCategory[] = [
           { name: '地平线之门', comment: '像素风的类航海时代，但是更偏重填充战斗。' },
           { name: '侠客风云传：前传' },
           { name: '奇妙探险队系列' },
-          { name: '冥狱战术', hours: '82', comment: '卡牌+Rouge+自走棋的玩法融合。每种元素都多样扎实，构筑套路丰富' },
+          { name: '冥狱战术', hours: '80+', comment: '卡牌+Rouge+自走棋的玩法融合。每种元素都多样扎实，构筑套路丰富' },
           { name: '梦境战术' },
           { name: '三国群英传' },
           { name: '精灵战记' },
@@ -258,11 +259,12 @@ export const gameCategories: GameCategory[] = [
       {
         subtitle: '网络游戏',
         items: [
-          { name: '燕云十六声', hours: '150' },
-          { name: '剑与远征', hours: '50' },
+          { name: '燕云十六声', hours: '150+' },
+          { name: '剑与远征', hours: '50+' },
           { name: '少年三国志' },
           { name: '君临天下' },
           { name: '部落冲突系列' },
+          { name: '英勇之地' },
         ],
       },
       {
