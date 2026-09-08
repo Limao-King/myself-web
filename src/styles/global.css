@@ -547,17 +547,19 @@ h2 {
   cursor: zoom-in;
 }
 
-/* 点击后放大查看（全宽原比例） */
+/* 竖版长图（流程图）：默认限高略放宽 + 下方提示可点击放大 */
+.prose-article img.eb-tall {
+  max-height: 32rem;
+}
+
+/* 点击后放大查看（全宽原比例）。注意必须放在 .eb-tall 之后——
+   否则 .eb-tall 的 max-height 会因同特异性后定义而覆盖这里的 max-height:none，
+   导致图加 eb-zoomed 后高度仍被锁死，只撑宽容器出现"白边"。 */
 .prose-article img.eb-zoomed {
   max-height: none;
   width: 100%;
   object-fit: contain;
   cursor: zoom-out;
-}
-
-/* 竖版长图（流程图）：默认限高略放宽 + 下方提示可点击放大 */
-.prose-article img.eb-tall {
-  max-height: 32rem;
 }
 .img-zoom-hint {
   display: block;
