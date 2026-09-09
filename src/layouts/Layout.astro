@@ -101,7 +101,11 @@ const pageDescription = description ?? siteConfig.description;
               }
             }
           },
-          { threshold: 0.12, rootMargin: '0px 0px -48px 0px' }
+          // threshold 必须是 0：docs 详情页把整篇正文包在一个 .reveal 里，容器高度可达
+          // 7000–28000px，若要求「12% 面积进入视口」则永远无法满足（12% > 视口高），
+          // 观察器不回调 → 正文永久停在 opacity:0（移动端 7/11 篇文档整页隐形）。
+          // 「提前 48px 触发」的观感由 rootMargin 负责，不依赖 threshold。
+          { threshold: 0, rootMargin: '0px 0px -48px 0px' }
         );
         els.forEach((el) => io.observe(el));
       }
