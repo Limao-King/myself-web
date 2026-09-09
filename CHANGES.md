@@ -158,3 +158,44 @@
 - 移动 390px：精品文档卡字号可读、按钮堆叠正常。
 - `docs/fairytale-plan`：`pre` 计算样式 `rgb(36,41,46)`，正文列宽 672px @16px（=42em）。
 - 交互实测：试玩惰性挂载 + 电源灯点亮 ✓（加载层为 v2.0 新增，逻辑已过读码校验）。
+
+---
+
+## v2.2（2026-09-09 · 第三方审计落地 + 视觉打磨 + 表情气泡定位）
+
+> 基线 v2.1。commit `cbf4af7` 落地审计建议与视觉打磨；表情气泡定位为本轮收尾改动。
+
+### 审计落地（第三方设计审查报告）
+
+| 项 | 文件 | 内容 |
+|---|---|---|
+| docs 卡片统一 EB 语言 | `src/components/Card.astro` | 去掉 `rounded-xl` + violet 悬停，改 `#f4ecd8` + 2px 棕描边 + 硬阴影 + 直角深色 chip |
+| `/docs/` 分区标题 | `src/pages/docs/index.astro` | 紫竖条 → `◆ 拆解案` 窗标题 |
+| 双 H1 修复 | 4 个项目 md | 删除正文隐藏 h1（页面只留任务卡一个 h1） |
+| 对比度合规 | `src/styles/eb.css` | 电视区 `/` 分隔符 3.57→5.20:1；页脚链接 4.13→5.83:1 |
+| 触控目标 | `Footer.astro`、`eb.css`、`global.css`、`projects/[slug].astro` | 页脚链接/返回顶部/backlink/zoom-hint/下载链接 → **移动端 44px**（桌面恢复原高） |
+| odo 读屏加固 | `src/layouts/Layout.astro` | `.eb-odo__reel` 与其内部 `<i>` 加 `aria-hidden` |
+| 页脚精简 | `src/components/Footer.astro` | 删除「GAME DESIGN PORTFOLIO」副标题 + 分隔线，桌面高度 191→115px |
+
+### 视觉打磨
+
+| 项 | 文件 | 内容 |
+|---|---|---|
+| hero 目标岗位 | `src/pages/index.astro` | eyebrow 补「目标岗位：游戏系统 / 文案策划」（同色系深绿加粗，不引入新色） |
+| hero 间距 | `src/pages/index.astro` | gap 2.5→2.7rem + 卡片左偏 -2.8→-1.2rem；文字区与卡片最小间距 -5px（侵入）→ 34px |
+| 「至今的冒险」 | `src/pages/index.astro` | 限宽 45em 左对齐；数字 `vertical-align: 0.05em` 与正文基线对齐 |
+| 项目列表「4」 | `src/pages/projects/index.astro` | 分区像素实测上提 2px + 微调 0.5px，与字母 y 范围完全一致 |
+| 移除满格火焰表情 | `Layout.astro`、`eb.css` | 删除 `#eb-energy-emoji` 与 `lit-strip.png`（保留点击简历/邮件/不要的通用表情反馈） |
+| 游戏文案 | `src/data/games.ts` | `10年时期QQ游戏` → `10年代QQ游戏` |
+
+### 表情气泡定位（本轮收尾）
+
+- 文件：`src/layouts/Layout.astro`、`src/pages/index.astro`
+- 逻辑：依次尝试「**上方居中 → 右侧居中 → 下方居中**」，并避开顶部导航栏；调用时传入被点击元素以取其边界
+- 目的：既不遮挡被点击按钮，也不遮挡同行相邻按钮（如「不要」右侧紧挨的「直接联系」）
+- 验证：遍历页面所有可见 `a`/`button` 做矩形相交检测 —— 点「不要」结果为**空数组**（零重叠）；导航栏「简历」为右侧 22px 居中
+
+### 注意事项补充
+
+- ⚠️ **`.eb-odo` 的 `vertical-align` 是语境相关的**：全局 `-0.14em` 面向小字号独立显示；与正文/英文混排处需单独覆盖（首页 `.home-num .eb-odo: 0.05em`、项目列表 `.project-board__eyebrow .eb-odo: -0.017em`）。**改字号后必须重新做像素级校准**，不要靠目测。
+- ⚠️ **`.eb-emoji-pop` 定位依赖元素边界**：调用 `window.__ebPop(name, x, y, el)` 时**必须传第 4 个参数（被点击元素）**，否则退回坐标估算，可能压住按钮。

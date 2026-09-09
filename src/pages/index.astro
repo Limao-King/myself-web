@@ -406,7 +406,7 @@ const abilities = [
         noBtn.style.opacity = '0.55';
         noMsg.setAttribute('tabindex', '-1');
         noMsg.focus();
-        window.__ebPop?.('silence', e.clientX, e.clientY); /* 表情反馈：无语 */
+        window.__ebPop?.('silence', e.clientX, e.clientY, noBtn); /* 表情反馈：无语 */
       });
     }
   }

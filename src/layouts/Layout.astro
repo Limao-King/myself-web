@@ -232,15 +232,42 @@ const pageDescription = description ?? siteConfig.description;
         el.dataset.bound = '1';
         const TOTAL = 20;
         const SIZE = 48; /* 放大到 48px，让反馈更容易被察觉 */
-        const play = (name, x, y) => {
+        const play = (name, x, y, target) => {
           clearInterval(el._t);
           const vw = window.innerWidth;
           const vh = window.innerHeight;
-          /* 定位：优先跟随点击位置（居中在点击点上方），否则落在右上角 */
+          /* 定位：贴着被点击元素的"外侧"——优先右侧、其次上方；
+             右侧/上方放不下就翻到左侧/下方；再避开顶部导航栏，保证不遮住按钮本身 */
           let px, py;
           if (typeof x === 'number' && typeof y === 'number') {
-            px = Math.min(Math.max(8, x - SIZE / 2), vw - SIZE - 8);
-            py = Math.min(Math.max(8, y - SIZE - 14), vh - SIZE - 8);
+            const GAP = 12;
+            const headerEl = document.querySelector('.site-header');
+            const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0;
+            const rect = target && target.getBoundingClientRect ? target.getBoundingClientRect() : null;
+            if (rect) {
+              /* 依次尝试：上方居中 → 右侧居中 → 下方居中。
+                 上方优先，能避开同一行里紧挨着的相邻按钮（如「不要」右边就是「直接联系」）；
+                 顶部导航栏里的按钮上方没空间，会自动落到右侧。 */
+              py = rect.top - SIZE - GAP;
+              if (py >= headerH + 8) {
+                px = rect.left + rect.width / 2 - SIZE / 2;
+              } else {
+                px = rect.right + GAP;
+                if (px + SIZE <= vw - 8) {
+                  py = rect.top + rect.height / 2 - SIZE / 2;
+                } else {
+                  px = rect.left + rect.width / 2 - SIZE / 2;
+                  py = Math.max(rect.bottom + GAP, headerH + 8);
+                }
+              }
+            } else {
+              px = x + GAP;
+              py = y - SIZE - GAP;
+              if (px + SIZE > vw - 8) px = x - SIZE - GAP;
+              if (py < headerH + 8) py = y + GAP;
+            }
+            px = Math.min(Math.max(8, px), vw - SIZE - 8);
+            py = Math.min(Math.max(8, py), vh - SIZE - 8);
           } else {
             px = vw - SIZE - 22;
             py = 86;
@@ -268,8 +295,8 @@ const pageDescription = description ?? siteConfig.description;
           const a = e.target.closest('a[href]');
           if (!a) return;
           const href = a.getAttribute('href') || '';
-          if (href.endsWith('.pdf')) { play('ok', e.clientX, e.clientY); return; }
-          if (href.startsWith('mailto:')) { play('yes', e.clientX, e.clientY); }
+          if (href.endsWith('.pdf')) { play('ok', e.clientX, e.clientY, a); return; }
+          if (href.startsWith('mailto:')) { play('yes', e.clientX, e.clientY, a); }
         });
       }
       initEmojiPop();
