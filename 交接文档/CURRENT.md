@@ -16,13 +16,13 @@
 |---|---|---|
 | ① **Worker 加固**：方法门（非 GET/HEAD → 405 + `Allow`）、畸形编码 500→400、R2 异常→502、补 4 个安全头（**错误响应也带全套**）、HEAD 空体 | `worker/src/index.js` | ✅ commit `4507831`，**已部署生效** |
 | ② **关闭 workers.dev 与版本预览 URL**（本次部署曾把两者默认打开） | `worker/wrangler.toml`：`workers_dev = false` + `preview_urls = false` | ✅ commit `4507831`，已部署，API 查证 `enabled:false` |
-| ③ 账本：**v2.5 全量记录**（v2.4 六项复验表 / 改动表 / 46 项离线断言 / 部署后线上复验 / 6 条未处理项 / 1 条被推翻的误判 / 注意事项 11–12） | `CHANGES.md` | ✅ commit `4507831` |
+| ③ 账本：**v2.5 全量记录**（v2.4 六项复验表 / 改动表 / 46 项离线断言 / 部署后线上复验 / 6 条未处理项 / 1 条被推翻的误判 / 注意事项 11–13） | `CHANGES.md` | ✅ commit `4507831` |
 | ④ 账号侧三项核实：GitHub 2FA ✅ + Cloudflare 2FA ✅（用户自述已开）、**R2 公开访问实测已关闭**（API `enabled:false` + 无自定义域 + 直连 r2.dev 得 401） | `CHANGES.md` | ✅ commit `a2ed503` |
 | ⑤ 部署与实测复验 | `cd worker && npx wrangler deploy`（两次） | ✅ 线上生效版本 `9912d9a7-1298-4925-b511-1e85e18a75d3` |
 
 ## 3. 关键文件（下一位 AI 只需读这几个）
 
-- `CHANGES.md` —— 改动账本 + **12 条**开发者注意事项，**改样式/布局前必读**，最新 v2.5 在文件末尾。⚠️ **此文件在公开 GitHub 仓库里，属公开文档，写内容按公开标准写**
+- `CHANGES.md` —— 改动账本 + **13 条**开发者注意事项，**改样式/布局前必读**，最新 v2.5 在文件末尾。⚠️ **此文件在公开 GitHub 仓库里，属公开文档，写内容按公开标准写**
 - `交接文档/CURRENT.md` —— 本文件，当前状态契约
 - `AGENTS.md` —— 工作区硬约束（每会话自动注入，**不要重述**）
 - `worker/src/index.js` —— `play.limao.site` 的 Worker 源码；`FRAME_ANCESTORS` 白名单在这里
@@ -48,11 +48,9 @@
 
 ## 5. 未完成 / 下一步（按优先级）
 
-1. **用户下一步动作（唯一阻塞项）**：决定是否 `git push`。本地领先 2 个 commit（`4507831` / `a2ed503`）。push 会触发 Pages 重建，但本轮**没改** `src/` 与 `public/` → **页面内容零变化**；Worker 已独立部署，不受 push 影响。
-2. **可选（Cloudflare 控制台，用户本人）**：
-   - 给 `play.limao.site` 开 **Always Use HTTPS** —— 现在 `http://play.limao.site` 直接 200，而 http 下 Godot 起不来（非 secure context，`SharedArrayBuffer` 不可用）
-   - 给裸域 `limao.site` 加跳转到 www（旧文档遗留项，一直没做）
-3. **需用户自查**：Pages 的历史预览部署是否仍公开可达（旧预览含已删除的 `functions/` 接口）
+1. **用户下一步动作（唯一阻塞项）**：决定是否 `git push`。本地领先 `origin/main` 若干 commit（**以 `git status -sb` 为准**）。push 会触发 Pages 重建，但本轮**没改** `src/` 与 `public/` → **页面内容零变化**；Worker 已独立部署，不受 push 影响。
+2. **待用户确认（Cloudflare 控制台）**：`Always Use HTTPS` 到底是开还是关 —— **API 读不到**（wrangler 的 OAuth token 无 zone 设置权限，`/settings/always_use_https`、`/rulesets` 均返回 `Authentication error`）。实测现状：`http://www.limao.site/` **301→https**，`http://play.limao.site/` **不跳转、明文 200**（且 http 下 Godot 起不来：非 secure context → 无 `SharedArrayBuffer`），裸域 `limao.site` **无任何 DNS 记录、直接打不开**。看两处即可定位：SSL/TLS → Edge Certificates → Always Use HTTPS；Rules → Redirect Rules / Page Rules。
+3. **⚠️ Pages 历史部署 URL（已处理大半，仍有残留）**：项目确认为 `myself-web`（`myself-web-3w8.pages.dev`），**117 个含泄露接口的旧部署已删除**（`total_count` 134→17，剩余 17 个实测均无泄露）。但**抽样发现 2 个已删 URL 仍在边缘执行旧 Function**（`92e106ed` / `c5e2790d`，已排除缓存与传播延迟，证据见 `CHANGES.md` v2.5 末尾）→ 要彻底关死需给 `*.myself-web-3w8.pages.dev` 加 **Cloudflare Access**（Zero Trust，免费版够用），或找 Cloudflare 支持。
 4. **用户已明确"暂不处理"，勿反复提**：HSTS（`public/_headers` 里那句"Cloudflare 已默认下发 HSTS"**是错的**，HSTS 是 SSL/TLS → Edge Certificates 里的手动开关）、`public/_routes.json` 清理（已成历史遗留，规则失去对象）、简历 PDF 元数据清理（`/Author = u-3083659`、`/Creator = WPS 文字`）
 5. **待内容决策**：项目卡封面 `object-fit: cover` 会裁掉童话冒险标题画面边缘 —— 需提供 16:9 封面图后替换（见 `CHANGES.md` 注意事项 9）
 6. **已问过且用户明确选择"先不做"**：`robots.txt` / `sitemap.xml`（主路径是 HR 直接点链接）、`.gitignore` 中文注释乱码、首页 2 处 `alt=""`（已确认为合法写法，**勿改**）
@@ -70,6 +68,7 @@
 - ⚠️ **绝对不要给主站加 `Cross-Origin-Embedder-Policy`**：会拦掉跨域 iframe，**试玩（play.limao.site）会直接打不开**。（注：`play.limao.site` 自己带 `COEP: require-corp` 是 Godot 需要 SharedArrayBuffer，**不影响它被嵌入** —— 父页不设 COEP 即可，已实测线上 canvas 正常渲染。）
 - ⚠️ **R2 的 Public access 在"关闭状态"下，界面只给一个「Allow Access」动作按钮，没有可关的开关** —— 别把它当成状态说明去点；确认状态用 API（`GET /accounts/<id>/r2/buckets/myself-web-game/domains/managed`）。
 - ⚠️ **`functions/` 目录是 Pages Functions 路由 = 生产环境公开端点**：往里放任何调试代码，**push 后就是线上公开接口**（曾有一个 `functions/games/[[path]].js` 注释写着"诊断"却泄露 R2 桶清单）。以后要加 Function，必须当作**公开 API** 来审查。
+- ⚠️ **Pages 每次构建都留下一个永久公开 URL，且"删除部署"≠立即下线**：`https://<短ID>.myself-web-3w8.pages.dev` 的历史快照不会随新部署消失 —— `cb650d6` 删掉 `functions/` 后，**115 个旧部署 URL 上的泄露接口仍在正常工作**；2026-09-13 清理 117 个旧部署后，**抽样仍有 2 个已删 URL 在边缘执行旧 Function**（已排除缓存：全新路径与随机查询串同样中招）。**在本项目里"删代码"≠"下线能力"**（`CHANGES.md` 注意事项 12）。
 - ⚠️ **reveal 的 `threshold` 必须是 0**：`Layout.astro` 的 `initReveal()` 若把阈值设成任何 > 0 的百分比，**把整篇长内容包进一个 `.reveal` 的页面（docs 详情页）就会永不触发** → 内容永久 `opacity: 0`（容器高 7000–28000px，12% 远超视口高）。
 - ⚠️ **`.eb-odo` 的 `vertical-align` 是语境相关的**：全局 `-0.14em` 面向小字号独立显示；与正文/英文混排处必须单独覆盖（首页 `.home-num .eb-odo: 0.05em`、项目列表 `.project-board__eyebrow .eb-odo: -0.017em`）。**改字号后要重新做像素级校准，不要靠目测**。
 - ⚠️ **`.eb-emoji-pop` 定位依赖元素边界**：调用 `window.__ebPop(name, x, y, el)` 时**必须传第 4 个参数（被点击元素）**，否则退回坐标估算、可能压住按钮。

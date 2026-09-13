@@ -152,7 +152,8 @@
 9. **未处理项（待内容决策）**：项目卡封面 `object-fit: cover` 会裁掉童话冒险标题画面边缘，建议提供 16:9 封面图后替换，代码侧无更优解。
 10. **reveal 的 `threshold` 必须是 0**：`Layout.astro` 的 `initReveal()` 用 IntersectionObserver 触发 `.reveal`。**凡是把「整篇长内容」包进一个 `.reveal` 容器的地方（docs 详情页正文就是），阈值任何 > 0 的百分比都可能永不满足**（容器高 7000–28000px，12% 远超视口高）→ 内容永久停在 `opacity: 0`。详见 v2.3。
 11. **Worker（play.limao.site）的 `frame-ancestors` 必须包含 `https://www.limao.site`，且绝不能是 `'none'`**：首页试玩是跨域 iframe（父页 www、子帧 play），写 `'none'` 或漏写 www 都会让试玩直接打不开。白名单在 `worker/src/index.js` 的 `FRAME_ANCESTORS`。同理，`decodeURIComponent(url.pathname)` 必须包 `try/catch`（畸形 `%FF` 类编码会抛 URIError → Cloudflare 500）。详见 v2.5。
-12. **`worker/` 的部署是独立的一步，且 `wrangler deploy` 有副作用**：① 它**不由 Pages 部署**，push 到 `main` 只记录源码，线上 Worker 不变，必须 `cd worker && npx wrangler deploy` 才生效；② 需要一个**本机已有的 wrangler 凭证**（OAuth 存在 `C:\Users\14273\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，**是密钥文件，别提交**），非交互环境下没有凭证会直接报错要求 `CLOUDFLARE_API_TOKEN`；③ `wrangler.toml` 里**没写 `workers_dev` 时，wrangler 的默认值会随账号状态变化**——2026-09-02 那次它默认**停用** workers.dev，2026-09-13 那次默认**启用**，于是 `fairytale-game.limao233666.workers.dev` 与版本预览 URL 被一起打开（绕过 zone 规则、且历史版本可被访问）。**只要 play 只需要 `play.limao.site` 一个入口，就在 `wrangler.toml` 显式写 `workers_dev = false` + `preview_urls = false`**，别依赖默认值。详见 v2.5。
+12. **Cloudflare Pages 的每次成功构建都会留下一个「永久公开 URL」，而且"删除部署"不一定立刻让它下线**：形如 `https://<短ID>.myself-web-3w8.pages.dev` 的历史快照不会随新部署消失 —— `cb650d6` 删掉 `functions/` 后，**115 个历史部署 URL 上的泄露接口仍在正常工作**（2026-09-13 实测）。当日清理掉 117 个旧部署后，抽样发现**仍有部分已删 URL 在边缘继续执行旧 Function**（不是缓存：全新路径与随机查询串同样中招）。**结论：在这个项目里"删代码"≠"下线能力"——加任何带敏感逻辑的东西前，先想清楚它会永久留在多少个 URL 上。** 详见 v2.5 末尾。
+13. **`worker/` 的部署是独立的一步，且 `wrangler deploy` 有副作用**：① 它**不由 Pages 部署**，push 到 `main` 只记录源码，线上 Worker 不变，必须 `cd worker && npx wrangler deploy` 才生效；② 需要一个**本机已有的 wrangler 凭证**（OAuth 存在 `C:\Users\14273\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，**是密钥文件，别提交**），非交互环境下没有凭证会直接报错要求 `CLOUDFLARE_API_TOKEN`；③ `wrangler.toml` 里**没写 `workers_dev` 时，wrangler 的默认值会随账号状态变化**——2026-09-02 那次它默认**停用** workers.dev，2026-09-13 那次默认**启用**，于是 `fairytale-game.limao233666.workers.dev` 与版本预览 URL 被一起打开（绕过 zone 规则、且历史版本可被访问）。**只要 play 只需要 `play.limao.site` 一个入口，就在 `wrangler.toml` 显式写 `workers_dev = false` + `preview_urls = false`**，别依赖默认值。详见 v2.5。
 
 ---
 
@@ -409,3 +410,43 @@ R2 公开面实测（账号下 R2 **只有这一个桶**）：
 
 - **R2.dev subdomain**（新版标题叫 *Public Development URL*）→ 当前**未启用**，那个「Allow Access」按钮是**开启**动作，**别点**；
 - **Custom Domains** → 当前**为空**，**不要连域名**（连上才是真正的公开入口）。
+
+### 🧹 历史部署清理：删掉 117 个旧部署（2026-09-13）
+
+**问题定性（本轮实测）**：Cloudflare Pages 的**每次成功构建都会留下一个永久 URL**（`https://<短ID>.myself-web-3w8.pages.dev`），新部署不会让旧 URL 下线。`cb650d6` 删除 `functions/` 只堵住了生产站，**115 个历史部署 URL 上的 `/games/<任意路径>` 仍在返回 `LIST-ALL count=9`**（R2 桶对象清单）。同时纠正一条旧结论：Pages 项目名是 `myself-web`，真实地址 **`myself-web-3w8.pages.dev`** —— 之前探测的 `myself-web.pages.dev` 是别人的项目，所以才被迫判成"风险低"，实际风险已确认。
+
+**执行方式（可复现）**：
+
+1. **判定**：对每个部署的 `commit_hash`，用本地 git 查 `git ls-tree -r --name-only <sha>` 是否含 `functions/*` —— 比 API 的 `uses_functions` 更准（**117 vs 115**）
+2. **保护名单**：带 `www.limao.site` 别名的部署 + 最新部署（`e93ae02f`），绝不删
+3. **先试删 1 个**（`d4453481`）验证接口行为：`DELETE /accounts/<id>/pages/projects/myself-web/deployments/<id>` → HTTP 200，该 URL 立刻由 `200 + LIST-ALL` 变为 **404**
+4. **批量删除 116 个** → 全部 200，**0 失败**
+5. **复核**：`total_count` **134 → 17**；剩余 17 个部署逐个请求 `/games/probe-test` → 含 `LIST-ALL` 的 = **0** ✅
+
+**⚠️ 新坑（重要）：删除部署记录 ≠ 该 URL 立刻下线**
+
+抽样复验 4 个已删 URL：`d4453481` → 404 ✅、`f74306b5` → 404 ✅，但 **`92e106ed` 与 `c5e2790d` 仍返回 200 + `LIST-ALL`**。已排除的两种解释：
+
+- **不是缓存**：请求**从未访问过的全新路径**（`/games/never-probed-before`）与**带随机查询串**的 URL，同样返回泄露内容；响应头无 `cf-cache-status` / `Age` / `Expires` → 是边缘上**仍在执行旧 Function**
+- **不是通配兜底**：随机不存在的子域返回「Deployment Not Found」；两个 ID 在 API 里均已 `does not exist`（记录确实删掉了）
+- 两个时间点（21:44 / 21:47）复测均仍泄露，非传播延迟
+
+**结论**：删部署能大幅减少暴露面，但**不能保证关死**。要彻底关，需在 `*.myself-web-3w8.pages.dev` 上加 **Cloudflare Access**（Zero Trust，免费版够用），或找 Cloudflare 支持。**已列入未处理项。**
+
+**清理未影响任何正常入口（实测）**：`www.limao.site` → 200；`www.limao.site/games/*` → 404；`play.limao.site` → 200；`myself-web-3w8.pages.dev` → 200。
+
+**顺带查到的项目设置**：
+
+- `preview_deployment_setting: "all"`、`preview_branch_includes: ["*"]` → **推任何分支都会生成公开预览部署**（目前只推 main，故暂无预览部署）
+- 项目级 `deployment_configs.production.r2_buckets` 仍挂着 `MY_GAME_BUCKET` → `myself-web-game`，但 `functions/` 已整体删除、生产部署 `uses_functions: false`，**该绑定当前无使用者**
+- wrangler 的 OAuth token **读不到 zone 级设置**（`always_use_https` / `rulesets` / `pagerules` 全返回 `Authentication error`），也读不到 `audit_logs` → 涉及 zone 设置的事只能靠面板或用户告知
+
+### 🌐 HTTP / HTTPS 现状（2026-09-13 实测）
+
+| 地址 | 实测行为 |
+|---|---|
+| `http://www.limao.site/` | **301 → https**（1 次跳转，最终 200）✅ |
+| `http://play.limao.site/` | **不跳转，明文 200** ⚠️ —— 且 http 下 Godot **起不来**（非 secure context → 无 `SharedArrayBuffer`）|
+| `https://limao.site/`（裸域） | **000** —— 裸域**没有任何 DNS 记录**，访问直接连接失败（不是 404、不是跳转）|
+
+`www` 会跳、`play` 不会的原因**未能从 API 查明**（token 无 zone 设置读权限）。两个候选：**(A)** Always Use HTTPS 已开、但 Workers 自定义域不吃该规则；**(B)** 它是关的，www 的 301 来自只针对 www 的 Redirect Rule / Page Rule。**待用户到面板确认**（SSL/TLS → Edge Certificates → Always Use HTTPS；Rules → Redirect Rules / Page Rules）。**已列入未处理项。**
