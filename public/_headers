@@ -1,0 +1,14 @@
+# Cloudflare Pages 安全响应头（构建后原样复制到 dist/_headers 生效）
+#
+# ⚠️ 故意不加这两个：
+#   · Content-Security-Policy —— 本站有内联脚本（Layout.astro 的 reveal/里程计/表情）与外部 iframe
+#     （play.limao.site 试玩），CSP 配错会直接白屏。要加必须先在预览环境验证。
+#   · Strict-Transport-Security —— Cloudflare 侧已默认下发 HSTS，重复配置容易配错 max-age，
+#     需要时在 Cloudflare 控制台改，不要在仓库里维护。
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), serial=(), magnetometer=(), gyroscope=(), accelerometer=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'

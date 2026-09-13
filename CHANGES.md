@@ -232,3 +232,49 @@
 
 - ⚠️ **`.eb-odo` 的 `vertical-align` 是语境相关的**：全局 `-0.14em` 面向小字号独立显示；与正文/英文混排处需单独覆盖（首页 `.home-num .eb-odo: 0.05em`、项目列表 `.project-board__eyebrow .eb-odo: -0.017em`）。**改字号后必须重新做像素级校准**，不要靠目测。
 - ⚠️ **`.eb-emoji-pop` 定位依赖元素边界**：调用 `window.__ebPop(name, x, y, el)` 时**必须传第 4 个参数（被点击元素）**，否则退回坐标估算，可能压住按钮。
+
+---
+
+## v2.4（2026-09-13 · 安全加固：删除调试接口 + 补安全响应头）
+
+> 起因：Cloudflare 防火墙事件（5 条 Wordpress 漏洞扫描，全部被托管 WAF 拦截）触发用户询问站点安全性，据此做了一轮安全巡检。
+
+### 🔴 删除：生产环境的信息泄露接口（P0）
+
+| 项 | 内容 |
+|---|---|
+| 文件 | `functions/games/[[path]].js`（已 `git rm -r functions/`） |
+| 性质 | **调试用 Pages Function 残留在生产**。注释自述「诊断：列出运行时绑定桶的全部对象」 |
+| 实测影响 | `GET https://www.limao.site/games/<任意字符串>` → **200**，返回 `LIST-ALL count=9 keys=[games/fairytale/...]` —— **任何人可列出 R2 桶 `myself-web-game` 的全部对象名** |
+| 当前严重度 | **偏低**：泄露的 9 个 key 都是本就公开可下载的游戏导出文件（wasm/pck/html/png） |
+| 潜在风险 | 一旦往该桶放入非公开内容，此接口即成为「文件清单查询器」；同时泄露内部错误信息（`LIST-ERR ...`）与绑定结构 |
+| 修法 | 删除整个 `functions/` 目录（该目录是 Pages Functions 路由，删掉即无 Functions；`worker/` 是独立部署，不受影响） |
+| 验证 | `npx astro build` 后 `dist/` 内无 `games/` 目录；**需 push 触发 Pages 部署后才在线上消失** |
+
+### 🟢 新增：`public/_headers`（Cloudflare Pages 安全响应头）
+
+`X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · `Permissions-Policy`（关定位/摄像头/麦克风/支付/USB 等）· `X-Frame-Options: DENY` + `Content-Security-Policy: frame-ancestors 'none'`（防被第三方站点套框点击劫持）
+
+**故意不加的两个头，以及原因**：
+
+- ⚠️ **`Content-Security-Policy`（除 `frame-ancestors` 外）**：本站有内联脚本（`Layout.astro` 的 reveal / 里程计 / 表情气泡）与外部 iframe（`play.limao.site`），**CSP 配错会直接白屏**。要加必须在预览环境先验证。
+- ⚠️ **`Strict-Transport-Security`**：Cloudflare 侧已默认下发，重复维护容易配错 `max-age`。
+
+### 巡检确认（实测，非推断）
+
+- `worker/src/index.js` **无问题**：有 `path.includes('..')` 目录穿越拦截 + 强制 `games/fairytale/` 前缀，越不出该目录。**唯一小瑕疵**：`decodeURIComponent()` 遇畸形 `%` 编码会抛异常返回 500（非漏洞，漏不出数据；可选的健壮性改进）
+- **线上 `play.limao.site` 的 COEP `require-corp` 不影响被 iframe 嵌入** —— 实测线上首页点试玩后，iframe 内 canvas 正常渲染（父页未设 COEP，子帧的 require-corp 只约束它自己加载子资源）。**所以新增的 `_headers` 不会搞坏试玩**。
+  - ⚠️ 反过来说：**绝对不要给主站加 `Cross-Origin-Embedder-Policy`**，那才会拦掉跨域 iframe。
+- Cloudflare 已默认给主站下发 `x-content-type-options: nosniff` 与 `referrer-policy: strict-origin-when-cross-origin`（实测线上响应头）。`_headers` 里重复声明无害，好处是把配置显式化、可版本控制。
+- git 历史扫描：未发现误提交的敏感文件（最大的对象是已 gitignore 的 `.tmp-assets/` 截图；唯一"敏感"文件是本就公开的 `public/明鑫-游戏策划简历.pdf`）
+
+### 顺带发现（游戏 Demo 自身，非本站问题）
+
+线上试玩控制台有 2 条 Godot 运行时报错：`No loader found for resource: res://assets/audio/music/battle_2.ogg`（战斗音乐资源缺失，导出时未打包或路径不符）、`Parent node is busy adding/removing children`（引擎侧 `remove_child` 调用时机问题）。**不影响游玩，但与网站无关，属 Godot 导出侧**，需要时在 Godot 项目里查。
+
+### 未处理项（只有用户本人能做，代码侧无法代理）
+
+1. **给 GitHub 账号开 2FA** —— Pages 绑 GitHub 自动部署，**GitHub 账号 = 网站控制权**
+2. **给 Cloudflare 账号开 2FA**
+3. **检查 R2 桶 `myself-web-game` 是否开了 Public access / r2.dev 子域** —— 开了则任何人可直连该桶、绕过 Worker 与所有规则，建议关闭
+4. 网站公开了手机号（`src/site.config.ts`），会被爬虫收进电销名单 —— 属发布决策，非漏洞
