@@ -386,3 +386,26 @@
 **改后功能复验**：`GET https://play.limao.site/` → **200** + 全套加固头；入口 js → 200（279815 B）；`POST /` → **405**。即关掉 workers.dev **没有影响** play.limao.site 的唯一入口。
 
 **顺带确认的潜在风险点**：`play.limao.site` 这条自定义域**不在 `wrangler.toml` 里**，是 dashboard 侧绑定的（zone `limao.site`，cert 由 Cloudflare 签发）。也就是说「Worker 挂在哪个域名上」这件事**不受 git 里这份配置控制**——排查"域名指向变了"时别只看 `wrangler.toml`，要去 dashboard → Workers → fairytale-game → Settings → Domains & Routes，或用上面的 `domains/records` 接口查。
+
+### ✅ 账号侧三项的核实结果（2026-09-13）
+
+| 项 | 状态 | 依据 |
+|---|---|---|
+| GitHub 账号 2FA | 用户确认已开 | 用户自述（代码侧无法验证） |
+| Cloudflare 账号 2FA | 用户确认已开 | 用户自述（代码侧无法验证） |
+| R2 桶 `myself-web-game` Public access | **确认已关闭，无需任何操作** | 见下方三项实测 |
+
+R2 公开面实测（账号下 R2 **只有这一个桶**）：
+
+1. `GET /accounts/<id>/r2/buckets/myself-web-game/domains/managed` → `{"enabled": false, "domain": "pub-46b6b9b1cf3644df80190bf1725a8cf2.r2.dev"}` —— r2.dev 开发地址**未启用**
+2. `GET /accounts/<id>/r2/buckets/myself-web-game/domains/custom` → `{"domains": []}` —— **没有绑定自定义域**
+3. 直连 `https://pub-46b6b9b1cf3644df80190bf1725a8cf2.r2.dev/games/fairytale/` → **401 Unauthorized**（DNS 正常解析到 Cloudflare IP `104.18.54.45`，排除"网络不通导致的假阴性"）
+
+即：**R2 桶当前没有任何公开入口**，无法绕过 Worker 直连。另全仓 grep `r2.dev` 只命中文档说明，代码里无任何地方引用桶的公开地址 → 关闭状态不影响 `play.limao.site`。
+
+**❗为什么当初找不到"关闭口"（界面陷阱，值得记住）**：R2 的 Public access 在**关闭状态**下，界面给的是一个**动作按钮**「**Allow Access**」（语义是"允许访问"，点了才会开），而**不是一个可以关掉的开关** —— 于是找「Disable / 关闭」按钮自然找不到，还容易误以为"Allow Access"是当前状态说明。要开的时候反而需要输入桶名二次确认。
+
+**正确路径**（用于以后复核）：Cloudflare dashboard → 左侧 **R2** → 点桶名 `myself-web-game` → **Settings** 标签 → **Public access** 区块：
+
+- **R2.dev subdomain**（新版标题叫 *Public Development URL*）→ 当前**未启用**，那个「Allow Access」按钮是**开启**动作，**别点**；
+- **Custom Domains** → 当前**为空**，**不要连域名**（连上才是真正的公开入口）。
