@@ -450,3 +450,33 @@ R2 公开面实测（账号下 R2 **只有这一个桶**）：
 | `https://limao.site/`（裸域） | **000** —— 裸域**没有任何 DNS 记录**，访问直接连接失败（不是 404、不是跳转）|
 
 `www` 会跳、`play` 不会的原因**未能从 API 查明**（token 无 zone 设置读权限）。两个候选：**(A)** Always Use HTTPS 已开、但 Workers 自定义域不吃该规则；**(B)** 它是关的，www 的 301 来自只针对 www 的 Redirect Rule / Page Rule。**待用户到面板确认**（SSL/TLS → Edge Certificates → Always Use HTTPS；Rules → Redirect Rules / Page Rules）。**已列入未处理项。**
+
+**溯源补测（同日，用户已确认 Always Use HTTPS = Off，故候选 (A) 被排除）**：
+
+| 请求 | 实测 |
+|---|---|
+| `http://www.limao.site/` | 301，`Location` 保留路径与查询串 |
+| `http://www.limao.site/docs/bg3/` | 301 → `https://www.limao.site/docs/bg3/` |
+| `http://www.limao.site/this-does-not-exist-98765/`（**不存在的路径**） | **仍然 301**（对照 https 下同路径为 404） |
+| `http://play.limao.site/nonexistent-123` | **404，无跳转** |
+
+即：www 的跳转是**无差别**的（连不存在的路径都跳）→ 发生在**到达源站之前**的边缘层，不是 Pages/Worker 的行为。状态码 301、`cf-cache-status: DYNAMIC`、无 Pages 特征头。**嫌疑集中在"只作用于 www 的 Redirect Rule 或旧版 Page Rule"**，其次可能是 Pages 自定义域自身行为 —— 待用户在 **规则 → 重定向规则 / 页面规则** 里确认（截图里用户看到的「规则 → 概述」只是**模板页**，不显示已有规则）。**该溯源不影响修法**：直接打开 Always Use HTTPS 即可覆盖 play。
+
+**✅ 处置结果：Always Use HTTPS 已开启（2026-09-13，用户操作，纯面板开关、无需重新部署）**
+
+| 请求 | 开启前 | 开启后 |
+|---|---|---|
+| `http://www.limao.site/` | 301 | 301（不变） |
+| `http://www.limao.site/docs/bg3/` | 301 | 301（路径保留） |
+| `http://play.limao.site/` | **200 明文** | **301 → https** ✅ |
+| `http://play.limao.site/nonexistent-123` | 404 | **301**（无差别跳转，路径原样保留） |
+| `http://play.limao.site/<入口 js>` | 200 明文 | **301** ✅ |
+| `http://limao.site/`（裸域） | 000 | **000**（无 DNS 记录，与 HTTPS 开关无关） |
+
+跟随跳转实测：`http://play.limao.site/` → 最终 `https://play.limao.site/`，**1 次跳转、最终 200**。
+
+**https 侧未受任何影响**：`www` 200、`play` 200（含 `frame-ancestors`）、入口 js 200、`www/games/probe-test` 404。
+
+**真实浏览器复验**：① 首页点「开始试玩」→ iframe 内 canvas 998×560 正常渲染；② **直接在地址栏输入 `http://play.limao.site/` 也会被自动升级到 https 并成功加载游戏** —— 开启前这个入口是"页面能打开、游戏起不来"（http 非 secure context，无 `SharedArrayBuffer`），**现已修复**；③ 控制台仅剩 2 条 Godot 引擎自身报错（`battle_*.ogg` 资源缺失、`remove_child` 时机），与网站无关。
+
+**仍未处理（低优先级）**：裸域 `limao.site` **没有任何 DNS 记录**，访问直接连接失败。要修需先给裸域加一条**代理状态**的 DNS 记录（或把裸域也加成 Pages 自定义域），**然后**才能用面板里的「从根重定向到 WWW」模板让它跳转到 www —— 这两步缺一不可（没有 DNS 记录时，重定向规则根本收不到请求）。

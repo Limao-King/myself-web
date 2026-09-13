@@ -49,7 +49,8 @@
 ## 5. 未完成 / 下一步（按优先级）
 
 1. **用户下一步动作（唯一阻塞项）**：决定是否 `git push`。本地领先 `origin/main` 若干 commit（**以 `git status -sb` 为准**）。push 会触发 Pages 重建，但本轮**没改** `src/` 与 `public/` → **页面内容零变化**；Worker 已独立部署，不受 push 影响。
-2. **待用户确认（Cloudflare 控制台）**：`Always Use HTTPS` 到底是开还是关 —— **API 读不到**（wrangler 的 OAuth token 无 zone 设置权限，`/settings/always_use_https`、`/rulesets` 均返回 `Authentication error`）。实测现状：`http://www.limao.site/` **301→https**，`http://play.limao.site/` **不跳转、明文 200**（且 http 下 Godot 起不来：非 secure context → 无 `SharedArrayBuffer`），裸域 `limao.site` **无任何 DNS 记录、直接打不开**。看两处即可定位：SSL/TLS → Edge Certificates → Always Use HTTPS；Rules → Redirect Rules / Page Rules。
+2. **✅ 已解决（2026-09-13）：`Always Use HTTPS` 已由用户开启并复验** —— 开启前实测 `http://www.limao.site/` 会 301、`http://play.limao.site/` 却直接 200 明文（http 下 Godot 起不来）；开启后 www / play / play 的任意路径**全部 301 → https**，跟随后最终 200，https 侧一切照旧，首页试玩 iframe 仍正常渲染。**新会话不要再提这件事。**
+   **仍未处理（低优先级）**：裸域 `limao.site` **无任何 DNS 记录**（访问 000 连接失败）。要修需先加一条代理状态的 DNS 记录或把裸域加成 Pages 自定义域，**然后**才能用「从根重定向到 WWW」模板跳转到 www。
 3. **⚠️ Pages 历史部署 URL（已处理大半，仍有残留）**：项目确认为 `myself-web`（`myself-web-3w8.pages.dev`），**117 个含泄露接口的旧部署已删除**（`total_count` 134→17，剩余 17 个实测均无泄露）。但**抽样发现 2 个已删 URL 仍在边缘执行旧 Function**（`92e106ed` / `c5e2790d`，已排除缓存与传播延迟，证据见 `CHANGES.md` v2.5 末尾）→ 要彻底关死需给 `*.myself-web-3w8.pages.dev` 加 **Cloudflare Access**（Zero Trust，免费版够用），或找 Cloudflare 支持。
 4. **用户已明确"暂不处理"，勿反复提**：HSTS（`public/_headers` 里那句"Cloudflare 已默认下发 HSTS"**是错的**，HSTS 是 SSL/TLS → Edge Certificates 里的手动开关）、`public/_routes.json` 清理（已成历史遗留，规则失去对象）、简历 PDF 元数据清理（`/Author = u-3083659`、`/Creator = WPS 文字`）
 5. **待内容决策**：项目卡封面 `object-fit: cover` 会裁掉童话冒险标题画面边缘 —— 需提供 16:9 封面图后替换（见 `CHANGES.md` 注意事项 9）
