@@ -249,7 +249,7 @@
 | 当前严重度 | **偏低**：泄露的 9 个 key 都是本就公开可下载的游戏导出文件（wasm/pck/html/png） |
 | 潜在风险 | 一旦往该桶放入非公开内容，此接口即成为「文件清单查询器」；同时泄露内部错误信息（`LIST-ERR ...`）与绑定结构 |
 | 修法 | 删除整个 `functions/` 目录（该目录是 Pages Functions 路由，删掉即无 Functions；`worker/` 是独立部署，不受影响） |
-| 验证 | `npx astro build` 后 `dist/` 内无 `games/` 目录；**需 push 触发 Pages 部署后才在线上消失** |
+| 验证 | `npx astro build` 后 `dist/` 内无 `games/` 目录；**已 push（`cb650d6`）触发 Pages 部署后线上复核：`GET /games/<随机字符串>` 返回 404（自定义 404 页），列出桶对象的行为彻底消失**；同时线上响应头出现 `Permissions-Policy` / `X-Frame-Options: DENY` / `Content-Security-Policy: frame-ancestors 'none'`（`_headers` 已生效），`play.limao.site` 游戏 canvas 仍正常渲染 |
 
 ### 🟢 新增：`public/_headers`（Cloudflare Pages 安全响应头）
 
