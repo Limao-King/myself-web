@@ -151,6 +151,8 @@
 8. **像素字体**：新增大号像素字（h1/h2 级）请取 12px 的整数倍（24/36/48/60/72）；小号 UI 字不受此约束。
 9. **未处理项（待内容决策）**：项目卡封面 `object-fit: cover` 会裁掉童话冒险标题画面边缘，建议提供 16:9 封面图后替换，代码侧无更优解。
 10. **reveal 的 `threshold` 必须是 0**：`Layout.astro` 的 `initReveal()` 用 IntersectionObserver 触发 `.reveal`。**凡是把「整篇长内容」包进一个 `.reveal` 容器的地方（docs 详情页正文就是），阈值任何 > 0 的百分比都可能永不满足**（容器高 7000–28000px，12% 远超视口高）→ 内容永久停在 `opacity: 0`。详见 v2.3。
+11. **Worker（play.limao.site）的 `frame-ancestors` 必须包含 `https://www.limao.site`，且绝不能是 `'none'`**：首页试玩是跨域 iframe（父页 www、子帧 play），写 `'none'` 或漏写 www 都会让试玩直接打不开。白名单在 `worker/src/index.js` 的 `FRAME_ANCESTORS`。同理，`decodeURIComponent(url.pathname)` 必须包 `try/catch`（畸形 `%FF` 类编码会抛 URIError → Cloudflare 500）。详见 v2.5。
+12. **`worker/` 的部署是独立的一步，且 `wrangler deploy` 有副作用**：① 它**不由 Pages 部署**，push 到 `main` 只记录源码，线上 Worker 不变，必须 `cd worker && npx wrangler deploy` 才生效；② 需要一个**本机已有的 wrangler 凭证**（OAuth 存在 `C:\Users\14273\AppData\Roaming\xdg.config\.wrangler\config\default.toml`，**是密钥文件，别提交**），非交互环境下没有凭证会直接报错要求 `CLOUDFLARE_API_TOKEN`；③ `wrangler.toml` 里**没写 `workers_dev` 时，wrangler 的默认值会随账号状态变化**——2026-09-02 那次它默认**停用** workers.dev，2026-09-13 那次默认**启用**，于是 `fairytale-game.limao233666.workers.dev` 与版本预览 URL 被一起打开（绕过 zone 规则、且历史版本可被访问）。**只要 play 只需要 `play.limao.site` 一个入口，就在 `wrangler.toml` 显式写 `workers_dev = false` + `preview_urls = false`**，别依赖默认值。详见 v2.5。
 
 ---
 
@@ -278,3 +280,109 @@
 2. **给 Cloudflare 账号开 2FA**
 3. **检查 R2 桶 `myself-web-game` 是否开了 Public access / r2.dev 子域** —— 开了则任何人可直连该桶、绕过 Worker 与所有规则，建议关闭
 4. 网站公开了手机号（`src/site.config.ts`），会被爬虫收进电销名单 —— 属发布决策，非漏洞
+
+---
+
+## v2.5（2026-09-13 · 安全巡检深化：Worker 加固 + 全站暴露面实测）
+
+> 基线 v2.4。本轮产物 = **一处代码修复** + **一份实测的安全现状清单**。所有结论均为实测（线上请求 / 真实浏览器 / Node 离线断言），非推断。
+
+### 复验 v2.4 的六项修复（全部仍然生效 ✅）
+
+| 项 | 实测结果 |
+|---|---|
+| `/games/<随机>` 信息泄露接口 | `https://www.limao.site/games/<随机12位>` → **404** + 自定义 404 页；无 `LIST-ALL`、无桶 key |
+| `functions/` 残留 | 目录不存在；`dist/` 内无 `games/`、无 `functions/` |
+| 安全头覆盖范围 | 首页 / 404 页 / **PDF / SVG / JPG** 全部带 `x-frame-options: DENY` + `frame-ancestors 'none'` + permissions-policy + referrer-policy + nosniff |
+| 主站非法方法 | POST/PUT/DELETE/OPTIONS/TRACE/PATCH **全部 405** |
+| `_headers` / `_routes.json` | 线上均 **404**（Pages 消费后不作静态文件服务，未泄露路由配置） |
+| 敏感路径 | `/.git/config`、`/.env`、`/package.json`、`/src/site.config.ts`、`/wrangler.toml`、`/CHANGES.md`、`/求职素材集/` 全部 404 |
+| dist / 本地 | 无 `.map` sourcemap；无 `.env` / `.dev.vars` / `.wrangler` 等密钥文件 |
+| git 全历史（30 commits） | 无 token / 私钥 / `password=` 类特征串；无可疑文件名；`求职素材集/` 未进历史 |
+
+### 🔧 修改：`worker/src/index.js`（play.limao.site 加固）
+
+| 项 | 改动前（实测） | 改动后 |
+|---|---|---|
+| HTTP 方法 | `POST`/`PUT`/`DELETE`/`OPTIONS` 全部 **200**（原实现不看 `request.method`） | 只允许 `GET`/`HEAD`，其余 **405** + `Allow: GET, HEAD` |
+| 畸形百分号编码 | `/%FF`、`/%80`、`/%C3%28`、`/%E0%A4%A`、`/%ED%A0%80` → **500**（`decodeURIComponent` 抛 URIError 未被接住） | **400** |
+| R2 读取异常 | 冒泡成 500 | **502** |
+| 安全头 | 仅有 COOP/COEP | 新增 `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy` / `Content-Security-Policy: frame-ancestors …`；且 **400/403/404/405/502 同样带全套头**（原来错误响应裸奔） |
+| `HEAD` | 返回响应体 | 返回空体（保留 `Content-Length`） |
+
+**`frame-ancestors` 白名单**：只放行 `https://www.limao.site` + `http://localhost:4321` / `http://127.0.0.1:4321`。目的是阻止第三方站点把你的游戏嵌进自己的网页（盗带宽 + 品牌混淆）。⚠️ **绝不能写成 `'none'`** —— 首页 `<iframe data-src="https://play.limao.site/">` 会直接打不开；列 localhost 是为了本地 `npm run dev` 时首页 iframe 仍能加载。
+
+**验证（部署前，离线实测）**：Node 直接 import Worker 的 `fetch` + 桩 R2 桶 → **46 项断言全通过**（200/404/403/400/405/502 + 全套安全头 + `frame-ancestors` 含 www 且不含 `'none'` + HEAD 空体 + 中文入口名映射 + 缓存头）。另 `npx astro build` → **26 页零报错**，5 个预览页正常剔除。
+
+**部署后需线上复验**（`cd worker && npx wrangler deploy`）：
+- `POST https://play.limao.site/` → 405
+- `GET https://play.limao.site/%FF` → 400（原 500）
+- `GET https://play.limao.site/` 响应头含 `content-security-policy: frame-ancestors https://www.limao.site http://localhost:4321 http://127.0.0.1:4321`
+- **首页点试玩 → iframe 内 canvas 仍正常渲染**（`frame-ancestors` 是本次唯一有破坏性的改动，必须实测）
+
+### 🟡 巡检发现但本轮**未处理**（已报用户，等决策）
+
+1. **主站没有 HSTS**（实测 HTTPS 响应无 `strict-transport-security`）。`public/_headers` 第 6–7 行注释写「Cloudflare 侧已默认下发 HSTS」——**该前提不成立**，Cloudflare 把它列为 SSL/TLS → Edge Certificates 里的**手动开关**。当前仅靠 `http→https 301` 兜底（实测 301 ✓）。**用户决策：本轮暂不处理。**
+2. **`http://play.limao.site` 不跳 HTTPS，直接 200** —— 明文下 `SharedArrayBuffer` 不可用（非 secure context），Godot 试玩在 http 下起不来。建议 Cloudflare 侧对 play 也开 Always Use HTTPS。**未处理。**
+3. **`public/_routes.json` 已成历史遗留**：`{"include":["/games/*"]}` 原意是"只把 /games/* 交给 Pages Functions"，而 `functions/` 已整体删除 → 规则失去对象，且会把 `/games/*` 从静态资源中排除（将来往该目录放静态文件会被挡）。不泄露（线上 404 ✓）。**用户决策：本轮不动。**
+4. **简历 PDF 元数据**：`/Author = u-3083659`（WPS 本机账号名）、`/Creator = WPS 文字`、`/CreationDate` 带 `+08'00'` 时区。未发现身份证/银行卡类长数字串 ✓。介意就用 WPS 清空文档属性后重导一次。
+5. **手机号（`src/site.config.ts`）的实际公开面是 4 处**：网站 HTML、简历 PDF 正文、**GitHub 公开仓库 `myself-web` 源码**、git 历史（实测该账号下唯一公开仓库即本站，32MB）。即已被搜索引擎 / GitHub 搜索可索引，不只是"网站上挂了个号"。
+6. **Pages 预览部署面（需用户自查）**：每个 commit 生成一个预览 URL，含该 commit 当时的 `functions/`，理论上被删的泄露接口在旧预览里可能仍活着。实测 `myself-web.pages.dev` 是**别人的项目**（Pages 项目名全局唯一），按 6 个候选名未能定位本站项目 → 不易猜，风险低。建议在 dashboard 查看历史预览是否仍公开可访问，并给预览部署加 Cloudflare Access。
+
+### ✅ 已排除的一条误判（记录备查，避免重犯）
+
+曾从**原始 HTML** 推断：Cloudflare Email Obfuscation 把 3 个 `mailto:` 换成 `/cdn-cgi/l/email-protection#…`，故 `Layout.astro` 的 `href.startsWith('mailto:')` 永不命中 → 邮箱点击的「yes」表情在生产失效。**真实浏览器实测推翻了该推断**：CF 的 `email-decode.min.js` 会在文档解析后还原 href —— DOM 里 `mailto:Limao233666@outlook.com` 三个锚点齐全、`__cf_email__` 归零；点「联系我」→ `yes.png` 触发，点「简历」→ `ok.png` 触发，均正常。**结论：Email Protection 未造成功能损坏，不需要为它改代码。**
+
+### 本轮新增的坑
+
+- ⚠️ **Worker 的 `frame-ancestors` 必须含 `https://www.limao.site` 且绝不能是 `'none'`**（已同步到上方注意事项 11）。
+- ⚠️ **`decodeURIComponent(url.pathname)` 必须包 `try/catch`**：畸形 UTF-8 百分号序列（`%FF`/`%80`/`%C3%28` 等）会抛 URIError，不接住即 Cloudflare `error code: 1101`（500），任何人一个畸形请求就能触发并刷满错误日志。
+
+### 🚀 部署与线上复验结果（2026-09-13）
+
+**部署**：`cd worker && npx wrangler deploy` → 上传 3.34 KiB / gzip 1.36 KiB，Version ID `76059687-a82d-48b1-bb5b-9173441b97d4`，账号 `limao233666@outlook.com`。⚠️ 该命令要求本机已有 wrangler 凭证（见下方新坑）。
+
+| 线上复验项 | 结果 |
+|---|---|
+| `POST` / `PUT` / `OPTIONS https://play.limao.site/` | **405** + `Allow: GET, HEAD` ✅（原全部 200） |
+| `GET https://play.limao.site/%FF` | **400** ✅（原 500） |
+| `GET https://play.limao.site/` | **200**，`Cache-Control: no-cache`，全套头齐全 ✅ |
+| `GET …/<中文入口名>.js` | **200**，`Cache-Control: public, max-age=31536000, immutable`，全套头齐全 ✅ |
+| `GET …/missing-xyz.pck`（R2 未命中） | **404** + 全套头 ✅ |
+| `GET …/x..y` / `…/a/../../etc/passwd` | **403** / **404** ✅ |
+| `HEAD /` | **200**，`size_download=0`（空体）✅ |
+| 实测到的响应头 | `content-security-policy: frame-ancestors https://www.limao.site http://localhost:4321 http://127.0.0.1:4321` + `x-content-type-options: nosniff` + `referrer-policy: strict-origin-when-cross-origin` + `permissions-policy`（9 项）+ `cross-origin-opener-policy: same-origin` + `cross-origin-embedder-policy: require-corp` |
+
+**真实浏览器复验（最关键的一项，Playwright）**：打开 `https://www.limao.site/` → 点「开始试玩」→ iframe 内 Godot 引擎完整启动，截图可见战斗界面（「安妮 的行动」+ 攻击/技能/道具/防御 + 三名角色 HP/SP 条），**无任何 CSP `frame-ancestors` 拦截日志** → 白名单配置正确，试玩未被这次加固破坏 ✅。
+
+控制台另有 2 条 **Godot 引擎侧**运行时报错（与网站无关）：`No loader found for resource: res://assets/audio/music/battle_3.ogg`（战斗音乐资源缺失）、`Parent node is busy adding/removing children, remove_child()…`（节点操作时机）。不影响游玩，要修得去 Godot 工程里查。
+
+### ⚠️ 本次部署带出的新暴露面（**待用户决策**）
+
+`npx wrangler deploy` 时输出警告：`Because 'workers_dev' is not in your Wrangler file, it will be enabled for this deployment by default.`；用 Cloudflare API 查证 `GET /accounts/<id>/workers/scripts/fairytale-game/subdomain` → `{"enabled": true, "previews_enabled": true}`。即当前 **`https://fairytale-game.limao233666.workers.dev` 与「版本预览 URL」都处于开启状态**（2026-09-02 那次部署时 wrangler 明确说会**停用** workers.dev，故这属于本次部署新开的口子，依据是 wrangler 自己的输出，非直接测量）。
+
+- 为什么在意：① 该入口**绕过 limao.site 这个 zone 的一切规则**（WAF / 限流 / 未来的 Access 策略）；② `previews_enabled` 让**历史版本**各有一个公开 URL —— 包括加固前那版（无方法门、畸形编码 500、错误响应裸奔）。
+- 补充：本项目所在网络对 `*.workers.dev` 是 **DNS 黑洞**（实测解析到 `103.73.161.52`，443 连接超时），所以在国内打不开它 ≠ 它没开。
+- 关掉的方式（二选一）：在 `worker/wrangler.toml` 加
+  ```toml
+  workers_dev = false
+  preview_urls = false
+  ```
+  再 `npx wrangler deploy`；或在 dashboard → Workers → fairytale-game → Settings 里关。
+
+### ✅ 处置结果：已关闭 workers.dev 与预览 URL（2026-09-13，用户选择"关掉"）
+
+**改动**：`worker/wrangler.toml` 显式写入 `workers_dev = false` + `preview_urls = false`（并附注释说明为何不能依赖默认值）。
+
+**重新部署**：`npx wrangler deploy` → `No targets deployed for fairytale-game (0.84 sec)`，Version ID `9912d9a7-1298-4925-b511-1e85e18a75d3`。⚠️ **注意 "No targets deployed" 不等于没部署**：版本已上传并生效，这句话是说"触发器集合没有变化"（既没 workers.dev 也没 config 里的 route 需要新建）。
+
+**API 查证（改后）**：
+
+| 查询 | 结果 |
+|---|---|
+| `GET /workers/scripts/fairytale-game/subdomain` | `{"enabled": false, "previews_enabled": false}` ✅ |
+| `GET /workers/scripts/fairytale-game/domains/records` | 仅 1 条：`play.limao.site`（zone `limao.site`），`"enabled": true`、`"previews_enabled": false` ✅ |
+
+**改后功能复验**：`GET https://play.limao.site/` → **200** + 全套加固头；入口 js → 200（279815 B）；`POST /` → **405**。即关掉 workers.dev **没有影响** play.limao.site 的唯一入口。
+
+**顺带确认的潜在风险点**：`play.limao.site` 这条自定义域**不在 `wrangler.toml` 里**，是 dashboard 侧绑定的（zone `limao.site`，cert 由 Cloudflare 签发）。也就是说「Worker 挂在哪个域名上」这件事**不受 git 里这份配置控制**——排查"域名指向变了"时别只看 `wrangler.toml`，要去 dashboard → Workers → fairytale-game → Settings → Domains & Routes，或用上面的 `domains/records` 接口查。

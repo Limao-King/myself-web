@@ -2,6 +2,12 @@ name = "fairytale-game"
 main = "src/index.js"
 compatibility_date = "2025-08-01"
 
+# 只保留 play.limao.site 这一个入口，显式关掉 workers.dev 与版本预览 URL。
+# 不写这两行时，wrangler 的默认值会随账号状态变化（2026-09-02 默认停用、2026-09-13 默认启用），
+# 一旦启用：① 该入口绕过 limao.site 的 zone 规则（WAF/限流/Access）；② 历史版本（含加固前那版）各有公开 URL。
+workers_dev = false
+preview_urls = false
+
 [[r2_buckets]]
 binding = "MY_GAME_BUCKET"
 bucket_name = "myself-web-game"
