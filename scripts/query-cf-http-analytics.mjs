@@ -103,6 +103,19 @@ function guessBot(ua) {
   return '未匹配已知特征';
 }
 
+/**
+ * Worker 侧 /hit 的丢弃规则（必须与 worker/src/index.js 的 SCRIPT_UA_RE 保持一致）。
+ * 用于核对"自建日志到底漏掉了什么"——尤其是"像真人却被误杀"的风险。
+ */
+const WORKER_SCRIPT_UA_RE =
+  /headless|lighthouse|bot\b|spider|crawler|scrapy|python-requests|curl\/|wget\/|monitoring|uptime|pingdom|ahrefs|semrush|dataprovider|bytespider|petalbot/i;
+
+/** 模拟 Worker 判定：true = /hit 会静默丢弃（204，不记入 analytics/） */
+function wouldDropByHitFilter(ua) {
+  if (!ua) return true; // /hit 里 !ua 直接丢弃
+  return WORKER_SCRIPT_UA_RE.test(ua);
+}
+
 /** 从 UA 里抽浏览器/版本，便于发现"同一旧版本刷屏"这类异常 */
 function uaShape(ua) {
   if (!ua) return '-';
@@ -117,25 +130,38 @@ const now = new Date();
 const endISO = new Date(Math.floor(now.getTime() / 3600000) * 3600000).toISOString();
 const startISO = new Date(Date.parse(endISO) - DAYS * 86400000).toISOString();
 
-function buildQuery({ withBotScore, withUa, withHost = true }) {
-  const dims = ['clientCountryName', 'clientRequestPath', 'clientRefererHost'];
-  if (withUa) dims.push('userAgent');
-  if (withBotScore) dims.push('botScore');
+/**
+ * 维度按优先级排列。字段在当前套餐不可用时会被自动剔除后重试
+ * （授权错误形如 "does not have access to the field 'xxx'"）。
+ * 字段名来自 AccountHttpRequestsAdaptiveGroupsDimensions 的 schema 内省结果。
+ */
+const DIM_ORDER = [
+  'clientRequestHTTPHost',
+  'clientAsn',
+  'clientASNDescription',
+  'userAgent',
+  'clientCountryName',
+  'userAgent',
+  'verifiedBotCategory',
+  'clientRequestPath',
+];
+
+function buildQuery(dims) {
   const dimStr = dims.map((d) => `        ${d}`).join('\n');
-  // 注意：GraphQL 同一选择集里 filter 只能出现一次 —— host 条件必须并进同一个 filter 对象
+  // GraphQL 同一选择集内 filter 只能出现一次：host 条件必须并进同一个 filter 对象
   const conds = ['datetime_geq: $start', 'datetime_leq: $end'];
-  if (HOST && withHost) conds.push(`clientRequestHTTPHost: "${HOST}"`);
-  const filterStr = `filter: { ${conds.join(', ')} },`;
+  if (HOST) conds.push(`clientRequestHTTPHost: "${HOST}"`);
   return `
 query CrawlerBreakdown($accountTag: String!, $start: Time!, $end: Time!) {
   viewer {
     accounts(filter: { accountTag: $accountTag }) {
       httpRequestsAdaptiveGroups(
-        limit: 5000
-        ${filterStr}
+        limit: 10000
+        filter: { ${conds.join(', ')} }
         orderBy: [count_DESC]
       ) {
         count
+        sum { edgeResponseBytes }
         dimensions {
 ${dimStr}
         }
@@ -210,114 +236,196 @@ if (!accountTag) {
   process.exit(1);
 }
 
-// 逐级降级：先试最全的字段，字段在当前套餐不可用时退化，而不是直接失败
-const attempts = [
-  { withBotScore: true, withUa: true, label: 'UA + botScore' },
-  { withBotScore: true, withUa: false, label: 'botScore' },
-  { withBotScore: false, withUa: false, label: '基础字段' },
-];
-
+// 逐级降级：字段在当前套餐不可用时**把它剔除后重试**，而不是直接失败
+let dims = [...DIM_ORDER];
 let groups = null;
-let usedLabel = '';
 let lastErr = '';
-for (const a of attempts) {
-  const q = buildQuery(a);
-  const { status, json } = await gql(q, { accountTag, start: startISO, end: endISO });
+const dropped = [];
+while (dims.length) {
+  const { status, json } = await gql(buildQuery(dims), { accountTag, start: startISO, end: endISO });
   if (status === 200 && !json?.errors?.length) {
     groups = json?.data?.viewer?.accounts?.[0]?.httpRequestsAdaptiveGroups || [];
-    usedLabel = a.label;
     break;
   }
   lastErr = JSON.stringify(json?.errors || json || `HTTP ${status}`).slice(0, 400);
+  // 从报错里找出被拒绝/不存在的字段名，剔除后重试
+  // 注意：Cloudflare 报错里字段名是**全小写**（如 botScore → 'botscore'），必须大小写无关匹配
+  const bad = [
+    ...new Set([...lastErr.matchAll(/field '([a-zA-Z0-9_]+)'/gi)].map((m) => m[1].toLowerCase())),
+  ].flatMap((lower) => dims.filter((d) => d.toLowerCase() === lower));
+  if (!bad.length) break;
+  dims = dims.filter((d) => !bad.includes(d));
+  dropped.push(...bad);
 }
 
 if (groups === null) {
-  console.error(`\n✗ GraphQL 查询失败（已依次尝试 ${attempts.length} 组字段）\n  ${lastErr}\n`);
+  console.error(`\n✗ GraphQL 查询失败\n  ${lastErr}\n`);
   console.error('  常见原因：token 权限不足（需 Account Analytics:Read）、account id 不对、时间窗超出保留期。');
   process.exit(1);
 }
+if (dropped.length) console.error(`（注意：以下字段在当前套餐不可用，已自动剔除：${dropped.join(', ')}）`);
 
 const rows = groups.map((g) => ({
   count: g.count,
+  bytes: g.sum?.edgeResponseBytes ?? 0,
+  host: g.dimensions.clientRequestHTTPHost || '',
+  asn: g.dimensions.clientAsn ?? null,
+  asnName: g.dimensions.clientASNDescription || '',
   country: g.dimensions.clientCountryName || '',
   path: g.dimensions.clientRequestPath || '',
-  referer: g.dimensions.clientRefererHost || '',
   ua: g.dimensions.userAgent ?? null,
   botScore: g.dimensions.botScore ?? null,
+  verifiedBot: g.dimensions.verifiedBotCategory || '',
+  ja4: g.dimensions.ja4 || '',
 }));
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ start: startISO, end: endISO, fields: usedLabel, rows }, null, 2));
+  console.log(JSON.stringify({ start: startISO, end: endISO, dims, rows }, null, 2));
   process.exit(0);
 }
 
 const total = rows.reduce((s, r) => s + r.count, 0);
+const mb = (b) => `${(b / 1048576).toFixed(1)} MB`;
 console.log(`\n时间窗：${startISO}  →  ${endISO}  （${DAYS} 天）`);
-console.log(`字段组：${usedLabel}${HOST ? `   过滤 host=${HOST}` : ''}`);
-console.log(`命中 ${rows.length} 组，合计 ${total} 次请求\n`);
+console.log(`查询维度：${dims.join(', ')}${HOST ? `   （仅 host=${HOST}）` : ''}`);
+console.log(`命中 ${rows.length} 组，合计 ${total} 次请求，回传 ${mb(rows.reduce((s, r) => s + r.bytes, 0))}\n`);
 
 if (!rows.length) {
   console.log('没有数据。可能：时间窗太早（免费版保留期有限）、host 过滤写错、或确实没有流量。\n');
   process.exit(0);
 }
 
-// ── 汇总 1：按 UA 自称归类 ─────────────────────────────────────────────
-const byClass = new Map();
-// ── 汇总 2：按国家 ─────────────────────────────────────────────────────
-const byCountry = new Map();
-for (const r of rows) {
-  const k = guessBot(r.ua);
-  byClass.set(k, (byClass.get(k) || 0) + r.count);
-  byCountry.set(r.country || '?', (byCountry.get(r.country || '?') || 0) + r.count);
-}
 const pct = (n) => `${((n / total) * 100).toFixed(1)}%`;
-
-console.log('【按 UA 自称归类】—— UA 可伪造，仅表示"它自称是谁"');
-for (const [k, n] of [...byClass.entries()].sort((a, b) => b[1] - a[1])) {
-  console.log(`  ${String(n).padStart(8)}  ${pct(n).padStart(7)}  ${k}`);
+function table(title, map, top = 15) {
+  console.log(`【${title}】`);
+  for (const [k, n] of [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, top)) {
+    console.log(`  ${String(n).padStart(9)}  ${pct(n).padStart(7)}  ${k}`);
+  }
+  console.log('');
 }
-
-console.log('\n【按国家】');
-for (const [k, n] of [...byCountry.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)) {
-  console.log(`  ${String(n).padStart(8)}  ${pct(n).padStart(7)}  ${k}`);
-}
-
-if (rows[0].botScore !== null && rows.some((r) => r.botScore !== null)) {
-  const byScore = new Map();
+function agg(keyFn) {
+  const m = new Map();
   for (const r of rows) {
-    const b = r.botScore;
-    const band = b === null ? '未知' : b <= 29 ? '1–29 极可能机器人' : b <= 69 ? '30–69 可疑' : '70–99 很可能真人';
-    byScore.set(band, (byScore.get(band) || 0) + r.count);
+    const k = keyFn(r) || '（未知）';
+    m.set(k, (m.get(k) || 0) + r.count);
   }
-  console.log('\n【Cloudflare botScore 分档】—— 这是服务器侧判定，比 UA 可靠');
-  for (const [k, n] of [...byScore.entries()].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${String(n).padStart(8)}  ${pct(n).padStart(7)}  ${k}`);
-  }
+  return m;
 }
 
-// ── 明细：Top 25，UA 截断 ──────────────────────────────────────────────
-const cap = (s, n) => (s === null ? '-' : s.length > n ? s.slice(0, n - 1) + '…' : s);
-console.log(`\n【明细 Top 25】（UA ${UA_FULL ? '完整' : '截断至 90 字'}）`);
-console.log(
-  '  次数'.padEnd(9) + '国家'.padEnd(6) + '分数'.padEnd(6) + '路径'.padEnd(30) + 'UA 形态'.padEnd(22) + '自称'
-);
-console.log('  ' + '-'.repeat(140));
-for (const r of rows.slice(0, 25)) {
+// 按 host 过滤（默认全站，含主站与 play 子域）
+const shown = HOST ? rows.filter((r) => r.host === HOST) : rows;
+if (HOST && shown.length !== rows.length) {
+  console.log(`（已按 host=${HOST} 过滤：${rows.length} → ${shown.length} 组）\n`);
+}
+const totalShown = shown.reduce((s, r) => s + r.count, 0);
+
+// ── 核心：ASN 归属（免费版也有，这是定位"谁在爬"最有力的一列）──
+console.log('【按 ASN / 运营商】—— 定位"谁在爬"最有力的一列');
+const byAsn = new Map();
+for (const r of shown) {
+  const k = r.asn ? `AS${r.asn}  ${r.asnName || '（无描述）'}` : '（无 ASN）';
+  byAsn.set(k, (byAsn.get(k) || 0) + r.count);
+}
+for (const [k, n] of [...byAsn.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) {
+  console.log(`  ${String(n).padStart(9)}  ${pct(n).padStart(7)}  ${k}`);
+}
+console.log('');
+
+table('按 Host', agg((r) => r.host));
+table('按 UA 自称归类（UA 可伪造，只表示"它自称是谁"）', agg((r) => guessBot(r.ua)));
+table('按国家', agg((r) => r.country));
+
+const vbot = agg((r) => r.verifiedBot);
+if ([...vbot.keys()].some((k) => k !== '（未知）')) {
+  table('Cloudflare 已验证爬虫类别（服务器侧判定，可信）', vbot);
+}
+
+if (shown.some((r) => r.botScore !== null)) {
+  table(
+    'Cloudflare botScore 分档（服务器侧判定，比 UA 可靠）',
+    agg((r) =>
+      r.botScore === null
+        ? null
+        : r.botScore <= 29
+          ? '1–29  极可能机器人'
+          : r.botScore <= 69
+            ? '30–69 可疑'
+            : '70–99 很可能真人'
+    )
+  );
+}
+
+// ── 核对：/hit 的 UA 过滤到底漏掉了什么（重点看"像真人却被误杀"）──
+{
+  const droppedTotal = shown.filter((r) => wouldDropByHitFilter(r.ua)).reduce((s, r) => s + r.count, 0);
+  const keptTotal = totalShown - droppedTotal;
+  console.log('【/hit 过滤规则核对】—— 自建日志会丢弃 / 保留 多少服务器侧请求');
+  console.log(`  会被丢弃：${droppedTotal}（${pct(droppedTotal)}）    会被保留：${keptTotal}（${pct(keptTotal)}）`);
+
+  // 保留下来但看起来像"完整真实浏览器"的 UA —— 这是自建日志的理论可见量
+  const looksReal = (ua) =>
+    !!ua &&
+    !wouldDropByHitFilter(ua) &&
+    /(Chrome|Safari|Firefox|Edg|OPR)\//.test(ua) &&
+    /Windows NT|Macintosh|Android|iPhone|iPad|Linux/.test(ua);
+  const realish = shown.filter((r) => looksReal(r.ua)).reduce((s, r) => s + r.count, 0);
+  console.log(`  其中「像完整真实浏览器」：${realish} 次（${pct(realish)}）—— 这些才是自建日志理论上能看见的量`);
+
+  // ⚠️ 风险项：UA 长得像真实浏览器（含平台串），却会被我们的规则丢弃。
+  // 关键是要看清命中的是**哪条规则**：命中 HeadlessChrome 属正确丢弃；
+  // 命中 bot/Bot 且 UA 带 "compatible; ...Bot" 说明是**伪装成 Safari 的 AI 爬虫**，同样该丢。
+  const falseDrops = shown.filter(
+    (r) =>
+      r.ua &&
+      /(Chrome|Safari|Firefox|Edg|OPR)\//.test(r.ua) &&
+      /Windows NT|Macintosh|Android|iPhone|iPad|Linux/.test(r.ua) &&
+      wouldDropByHitFilter(r.ua)
+  );
+  const fdCount = falseDrops.reduce((s, r) => s + r.count, 0);
+  console.log(`\n  ⚠️ UA 像浏览器但会被丢弃：${fdCount} 次（需逐条看命中规则，别直接当误杀）`);
+  const fdAgg = new Map();
+  for (const r of falseDrops) {
+    const hit = (r.ua.match(WORKER_SCRIPT_UA_RE) || ['?'])[0];
+    const k = `命中「${hit}」  ${String(r.ua).slice(0, 78)}`;
+    fdAgg.set(k, (fdAgg.get(k) || 0) + r.count);
+  }
+  if (fdAgg.size) {
+    for (const [k, n] of [...fdAgg.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)) {
+      console.log(`      ${String(n).padStart(6)}  ${k}`);
+    }
+    console.log('      判读：命中 HeadlessChrome/...Bot 属**正确丢弃**；');
+    console.log('            只有"规则命中词与爬虫无关"的才是真误杀。');
+  } else {
+    console.log('      无 —— 没有任何"像真人的 UA"被规则丢弃');
+  }
+  console.log('');
+}
+
+// ── 明细 ───────────────────────────────────────────────────────────────
+const cap = (s, n) => (s === null || s === '' ? '-' : s.length > n ? s.slice(0, n - 1) + '…' : s);
+const lim = UA_FULL ? 25 : 25;
+console.log(`【明细 Top ${lim}】（UA ${UA_FULL ? '完整' : '截断至 78 字'}）`);
+console.log('  次数'.padEnd(10) + 'ASN'.padEnd(9) + '国家'.padEnd(5) + '分'.padEnd(5) + 'Host'.padEnd(19) + '路径'.padEnd(24) + 'UA / 自称');
+console.log('  ' + '-'.repeat(150));
+for (const r of [...shown].sort((a, b) => b.count - a.count).slice(0, lim)) {
   console.log(
     '  ' +
-      String(r.count).padEnd(7) +
-      (r.country || '?').padEnd(6) +
-      String(r.botScore ?? '-').padEnd(6) +
-      cap(r.path, 29).padEnd(30) +
-      uaShape(r.ua).padEnd(22) +
-      guessBot(r.ua)
+      String(r.count).padEnd(8) +
+      (r.asn ? String(r.asn) : '-').padEnd(9) +
+      (r.country || '?').padEnd(5) +
+      String(r.botScore ?? '-').padEnd(5) +
+      cap(r.host, 18).padEnd(19) +
+      cap(r.path, 23).padEnd(24) +
+      (UA_FULL ? cap(r.ua, 200) : uaShape(r.ua)) +
+      (r.verifiedBot ? `  [CF:${r.verifiedBot}]` : '')
   );
 }
 
 console.log(`
 提示：
-  · botScore 需要账号具备 Bot Management 相关数据；免费版可能整列为 null，这不影响其它列。
-  · 「未匹配已知特征」不代表是真人 —— 大量爬虫使用普通浏览器 UA。
-  · 想确认某个 ASN 属于谁：curl -s https://ipinfo.io/ASxxxxx/json （免费无 key）。
+  · ASN 描述（clientASNDescription）由 Cloudflare 提供，可直接据此判断"机房/家宽/代理"。
+  · botScore / verifiedBotCategory 视套餐可能为 null；整列 null 说明当前套餐无该数据。
+  · 「未匹配已知特征」不代表是真人 —— 大量爬虫使用普通浏览器 UA（实测伪造率约 45.8%）。
+  · 想独立核对某个 ASN：curl -s https://ipinfo.io/ASxxxxx/json （免费无 key）。
   · 本条命令的结论若与 view-visits.mjs 不一致是正常的：后者只看"执行了 JS 的访客"。
 `);

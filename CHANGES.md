@@ -237,37 +237,34 @@
 
 ---
 
-## v2.4 访问记录端点上线与核验
+## v2.4 访问记录端点（`/hit`）
 
-### 部署与验证（2026-09-14）
+### 端点的状态码契约（回归时按此表核对）
 
-| 项 | 结果 |
+| 输入 | 响应 |
 |---|---|
-| Worker 部署 | `cd worker && npx wrangler deploy` → version `9c0990aa`（**push 不会更新 Worker，必须单独部署**） |
-| 端到端 | 真实浏览器打开主站等 2s → R2 出现记录，路径精确匹配（首页 `/`、`/docs/` 均命中） |
-| 线上状态码 | 非白名单 Origin 403 / 无 Origin 403 / 机器 UA 204 / 错误 Content-Type 415 / 坏 JSON 400 / `GET /hit` 405+`Allow: POST` / `POST /` 405 |
-| 设计层影响 | **零**。`Layout.astro` 本轮为纯新增（diff 只有 `+` 行）；`src/styles`、`src/components`、`src/pages`、`src/content`、`tailwind.config`、`astro.config` 均未改动 |
+| 非白名单 Origin / 无 Origin | 403 |
+| Content-Type 非 `text/plain`·`application/json` | 415 |
+| 载荷 > 1 KiB | 413 |
+| JSON 解析失败 | 400 |
+| 命中脚本 UA（或无 UA） | 204（静默丢弃，不进库） |
+| 正常 | 204 并追加一行到 `analytics/days/YYYY-MM-DD.jsonl` |
+| `GET /hit` | 405 + `Allow: POST` |
+| `POST /`（既有行为） | 405 |
 
-### 零代理对照（可用于区分"自己"与"外部"）
+### 设计层影响
 
-| 时间 | 国家 | ASN | 路径 | 归属 |
-|---|---|---|---|---|
-| 22:35:22 | CN | 9808 | `/CONTROL-NOPROXY-223530` | 本机直连（本次对照） |
-| 22:19:31 | CN | 9808 | （空） | 本机直连（负向测试） |
-| 22:29:42 / 22:29:14 / 22:20:36 | HK | 134972 | `/docs/` `/` `/` | 远程浏览器环境（Playwright） |
-
-- 本机出口实测：`223.160.223.177` / `loc=CN` / `colo=LAX`；**环境变量无代理**，系统 WinINET 代理 `127.0.0.1:7890` 不影响该请求
-- 结论：**CN 即本机**（远程环境固定 HK / 134972），这是最快的归属判据
+**零**。`Layout.astro` 本轮为**纯新增**（diff 只有 `+` 行）；`src/styles`、`src/components`、`src/pages`、`src/content`、`tailwind.config`、`astro.config` 均未改动。
 
 ### 注意事项补充（13–15）
 
 - ⚠️ **`view-visits.mjs` 的「判定」列不是结论**：仅按 UA 猜测，搜索引擎爬虫（Googlebot/Bingbot）会伪装成正常浏览器 UA 而被判成「疑似真人」。**更可靠的机器信号是"同一 IP 哈希反复出现 ≥5 次"**。哈希按天换盐，跨天不可关联，且**不能反查明文 IP**（刻意设计）。
-- ⚠️ **读记录必须在有 wrangler 凭据的本机执行**：端点只写不读，线上不提供任何读取接口是刻意为之。
+- ⚠️ **记录里的「国家 + ASN」是区分"自己人"与"外部"的主要判据**：本机直连为 CN；AS134972 是香港代理服务商（IKUUU NETWORK LTD）、AS9808 是中国移动。**出现 CN 基本可确定是本机自测**。
 - ⚠️ **图例已内嵌脚本输出**：`node scripts/view-visits.mjs` 会直接打印各列含义，无需另查文档。
 
 ---
 
-## v2.5 爬虫归因能力（核验图例 + 服务器侧查询）
+## v2.5 爬虫归因能力（服务器侧查询）
 
 ### 背景结论（重要）
 
@@ -280,7 +277,7 @@
 
 | 文件 | 内容 |
 |---|---|
-| `scripts/query-cf-http-analytics.mjs` | Cloudflare GraphQL Analytics API 查询 `httpRequestsAdaptiveGroups`，按 UA/国家/路径聚合，内置爬虫 UA 特征表；字段按 `UA+botScore → botScore → 基础` 三级降级；`--raw` 可无凭据打印 GraphQL 语句 |
+| `scripts/query-cf-http-analytics.mjs` | Cloudflare GraphQL Analytics API 查询 `AccountHttpRequestsAdaptiveGroups`，按 Host/ASN/UA/国家/路径/已验证爬虫聚合，内置爬虫 UA 特征表；**字段在当前套餐不可用时自动从报错中识别并剔除后重试**；`--raw` 可无凭据打印 GraphQL 语句 |
 | `scripts/view-visits.mjs` | 输出末尾新增**列含义图例**（时间/国家/ASN/判定/路径/来源/同IP≥5 各自能判断什么） |
 | `.gitignore` | 新增 `.cf-token` / `.cf-zone` / `.cf-account`（已用 `git check-ignore` 实测确认生效） |
 
@@ -292,11 +289,11 @@
   —— 实测 **45.8% 的自称爬虫请求并非来自其声称的运营方**（GPTBot 54.9%、Googlebot 46.5%、bingbot 10.8%）。
   **结论：UA 只能表示"它自称是谁"，不能作为身份依据。**
 
-### 注意事项补充（16–18）
+### 注意事项补充（16–19）
 
-- ⚠️ **不要把 `view-visits.mjs` 的结果当作爬虫统计**：它看不到非 JS 爬虫，样本天然偏向"像浏览器的访客"。
-- ⚠️ **区分"日志里的 HK"**：AS134972 = IKUUU NETWORK LTD（香港代理服务商），AS9808 = 中国移动。
-  远程浏览器环境固定走 HK/134972，本机直连为 CN/9808 —— 这是判断"是不是自己在测"的依据。
+- ⚠️ **不要把 `view-visits.mjs` 的结果当作爬虫统计**：它看不到非 JS 爬虫，样本天然偏向"像浏览器的访客"。两者数量级差 3 位是正常的。
+- ⚠️ **免费套餐查不到 ASN**：`clientAsn` / `clientASNDescription` 会被拒绝（`does not have access`）—— 属**套餐限制**而非 token 权限问题；脚本会自动剔除以继续出表。
 - ⚠️ **GraphQL 的 `filter` 在同一选择集只能出现一次**：host 条件必须并入同一个 `filter` 对象，否则查询语法错误。
+- ⚠️ **Cloudflare 报错中的字段名是全小写**（`botScore` → `'botscore'`）：剔除字段时必须**大小写无关**匹配，否则降级逻辑失效。
 
 ---
