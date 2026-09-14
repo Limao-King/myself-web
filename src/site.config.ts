@@ -19,7 +19,9 @@ export const siteConfig = {
   /** 联系方式 */
   email: 'Limao233666@outlook.com',
   github: 'https://github.com/Limao-King',
-  phone: '19236880316',
+  // 手机号不放在这里：本文件所在仓库是公开的，明文手机号会被代码搜索/爬虫收走。
+  // 简历 PDF 里保留手机号（HR 从那里获取联系方式，且 ATS 需要可解析的文本）。
+  // 页面侧的联系入口走上面的 email 与首页/页脚的「联系我 / 直接联系」。
   /** 首页 Hero 区文案 */
   hero: {
     greeting: '你好！我是',

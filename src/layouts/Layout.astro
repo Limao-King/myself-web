@@ -384,5 +384,44 @@ const pageDescription = description ?? siteConfig.description;
       markTallImages();
       document.addEventListener('astro:after-swap', markTallImages);
     </script>
+
+    <script is:inline>
+      // 主站访问记录（2026-09-14 新增，只写不读）
+      // 为什么自建：Cloudflare Web Analytics 只给聚合计数，看不到"谁来的、什么客户端"，
+      // 本站曾被爬虫刷到 216 次页面浏览而无法判断其中有没有真人（HR）访问。
+      // 端点：play.limao.site/hit（Worker 侧只写 R2，不提供任何读取接口）。
+      // 访客侧成本：一次异步 POST，约 200 字节，不阻塞渲染、不写 Cookie、不采集明文 IP。
+      (() => {
+        const ENDPOINT = 'https://play.limao.site/hit';
+        if (!navigator.sendBeacon && !window.fetch) return;
+        const send = () => {
+          try {
+            const body = JSON.stringify({
+              path: location.pathname,
+              ref: document.referrer ? document.referrer.split('?')[0].slice(0, 256) : '',
+              lang: navigator.language || '',
+              sw: window.screen ? window.screen.width : null,
+              vw: window.innerWidth || null,
+              tz: (Intl.DateTimeFormat().resolvedOptions() || {}).timeZone || '',
+              device: matchMedia('(pointer:coarse)').matches ? 'touch' : 'mouse',
+            });
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'text/plain' }));
+            } else {
+              fetch(ENDPOINT, {
+                method: 'POST',
+                body,
+                keepalive: true,
+                headers: { 'Content-Type': 'text/plain' },
+              }).catch(() => {});
+            }
+          } catch {
+            // 记录失败绝不能影响页面
+          }
+        };
+        // 延迟 1s：只统计"真正打开了页面"的访问，跳走即关的不计
+        setTimeout(send, 1000);
+      })();
+    </script>
   </body>
 </html>
