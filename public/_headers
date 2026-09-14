@@ -12,3 +12,8 @@
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), serial=(), magnetometer=(), gyroscope=(), accelerometer=()
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
+
+# 简历 PDF：只加 noindex（挡搜索引擎索引），**不影响任何人下载 / 查看 / ATS 解析**。
+# 规则范围刻意收窄到这一个文件，不影响其它静态资源。
+/明鑫-游戏策划简历.pdf
+  X-Robots-Tag: noindex
