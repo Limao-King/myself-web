@@ -38,3 +38,8 @@ public/fonts/misans/
 .wrangler/
 # 游戏文件走 R2，不入仓库
 /games/
+
+# Cloudflare API 凭据（scripts/query-cf-http-analytics.mjs 使用；绝不提交）
+.cf-token
+.cf-zone
+.cf-account
