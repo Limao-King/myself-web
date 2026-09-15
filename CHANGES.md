@@ -295,5 +295,25 @@
 - ⚠️ **免费套餐查不到 ASN**：`clientAsn` / `clientASNDescription` 会被拒绝（`does not have access`）—— 属**套餐限制**而非 token 权限问题；脚本会自动剔除以继续出表。
 - ⚠️ **GraphQL 的 `filter` 在同一选择集只能出现一次**：host 条件必须并入同一个 `filter` 对象，否则查询语法错误。
 - ⚠️ **Cloudflare 报错中的字段名是全小写**（`botScore` → `'botscore'`）：剔除字段时必须**大小写无关**匹配，否则降级逻辑失效。
+- ⚠️ **`view-visits.mjs` 读到「0 条」有两种完全不同的含义**（2026-09-15 修）：①真的没有对象（那天没人来）②**读失败**（超时/权限）。旧版把两者吞成同一个 `null` 并打印"7 天无对象"，曾把一次 10.7 秒的连接超时误报成"没有记录"。现在读失败会**单独列出失败日期与原因，并 `exit 1`**。
+
+---
+
+## v2.6 `view-visits.mjs` 读取可靠性（区分「无对象」与「读失败」）
+
+### 起因（实测）
+
+Cloudflare Web Analytics 显示 223 次浏览量，同一时刻 `node scripts/view-visits.mjs --days 7` 却报「共 0 条（7 天无对象）」。查本机命令行日志发现：那两轮 14 次读取调用中 **5 次是 `TypeError: fetch failed`（连接超时）**，6 次是正常的"对象不存在"应答 —— 对象**存在且能读到**，是脚本把超时吞了。详见 `交接文档/2026-09-15-访问数据显示异常排查.md`。
+
+### 改动
+
+| 文件 | 内容 |
+|---|---|
+| `scripts/view-visits.mjs` | 新增 `classifyError()`：把读取失败分为 **对象不存在**（正常）与 **读取错误**（网络 / 权限 / 桶名 / 未识别）；读失败时打印失败日期、类别与原始报错，并 `process.exit(1)`；新增 `--verbose` 逐天打印 ✓/·/✗；`--json` 改为带 `ok / queried / counted / failed / records` 的结构 |
+
+### 注意事项补充（20–21）
+
+- ⚠️ **任何"0 条"结论都要先看 `failed`/退出码**：`node scripts/view-visits.mjs --days 7; echo %ERRORLEVEL%` —— **1 表示读取不完整，结论不成立**，重跑一次通常就好（本机到 `api.cloudflare.com` 时通时断，`play.limao.site` 的 `colo` 实测落在 SEA/LHR/SJC 三地）。
+- ⚠️ **验证写链路要挑"能撤回"的方式**：本次排查发的一次 `POST /hit`（`path=/__diag__`）已永久留在 `analytics/days/2026-09-15.jsonl`（写入端只写不读、无删除接口）。**记录写入前先想清楚这条痕迹能不能撤。**
 
 ---
