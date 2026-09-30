@@ -26,6 +26,14 @@
   font-display: swap;
 }
 
+/* 像素字只有 400 一个实体面：禁止浏览器合成粗体。
+   否则 700/850/900 的字重请求会被"描粗"，点阵笔画互相穿插发糊
+   （设计官 72px 标题 A/B 实测：900 糊、400 干净；document.fonts.check 证实 FusionPixel 覆盖中文）。
+   MiSans 有 400/700 实体面，关闭合成后按最近实体面渲染，不受影响。 */
+html {
+  font-synthesis-weight: none;
+}
+
 /* ----------------------------------------------------------------------------
    主题 token（Tailwind v4）
    说明：为保证低改动，沿用 neutral / violet 这些工具类名，但把值统一成
@@ -127,6 +135,7 @@ body {
 /* 展示用像素字体（标题 / 按钮 / 品牌名） */
 .font-pixel {
   font-family: "FusionPixel", var(--font-sans);
+  font-weight: 400;
   letter-spacing: 0.02em;
 }
 

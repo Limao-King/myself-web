@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1184 96" width="1184" height="96" shape-rendering="crispEdges">
+  <!-- 岔路口黄昏小镇带（v4.14.1）：背景透明，让 CSS 离散色带透出来做暮色；
+       只画远镇剪影两排、亮窗、路灯（微歪）、灌木与地面收边。
+       v4.14.1 视觉评审修正：剪影整体加深一档（原对比不足）、路灯移到 x≈740 的房屋空档（原右密左空）、
+       远排补一扇远窗。色板锚定全站：剪影暖褐 #6b5347/#4e3a33、地面 #5d463d/#75584a、灯光 #f5c469/#e0ab5e。 -->
+  <!-- 远排房屋（浅一档，天光残留） -->
+  <rect x="28" y="41" width="92" height="22" fill="#6b5347"/>
+  <rect x="40" y="36" width="68" height="5" fill="#6b5347"/>
+  <rect x="178" y="47" width="70" height="16" fill="#6b5347"/>
+  <rect x="188" y="43" width="50" height="4" fill="#6b5347"/>
+  <rect x="418" y="37" width="104" height="26" fill="#6b5347"/>
+  <rect x="432" y="32" width="76" height="5" fill="#6b5347"/>
+  <rect x="486" y="26" width="5" height="8" fill="#6b5347"/>
+  <!-- 烟囱冒烟（EarthBound 式小古怪） -->
+  <rect x="488" y="20" width="2" height="2" fill="#cdb894"/>
+  <rect x="492" y="15" width="2" height="2" fill="#cdb894"/>
+  <rect x="487" y="10" width="2" height="2" fill="#cdb894"/>
+  <rect x="642" y="49" width="64" height="14" fill="#6b5347"/>
+  <rect x="650" y="46" width="48" height="3" fill="#6b5347"/>
+  <rect x="928" y="43" width="100" height="20" fill="#6b5347"/>
+  <rect x="940" y="39" width="76" height="4" fill="#6b5347"/>
+  <rect x="958" y="48" width="3" height="3" fill="#e0ab5e"/>
+  <rect x="1108" y="51" width="56" height="12" fill="#6b5347"/>
+  <rect x="1116" y="48" width="40" height="3" fill="#6b5347"/>
+  <!-- 近排房屋（深一档，压住天光） -->
+  <rect x="132" y="29" width="112" height="34" fill="#4e3a33"/>
+  <rect x="146" y="24" width="84" height="5" fill="#4e3a33"/>
+  <rect x="158" y="40" width="5" height="7" fill="#f5c469"/>
+  <rect x="196" y="40" width="5" height="7" fill="#f5c469"/>
+  <rect x="560" y="35" width="96" height="28" fill="#4e3a33"/>
+  <rect x="572" y="31" width="72" height="4" fill="#4e3a33"/>
+  <rect x="600" y="44" width="5" height="6" fill="#f5c469"/>
+  <rect x="806" y="33" width="120" height="30" fill="#4e3a33"/>
+  <rect x="820" y="29" width="92" height="4" fill="#4e3a33"/>
+  <rect x="852" y="42" width="5" height="6" fill="#f5c469"/>
+  <!-- 微歪的路灯（岔路口指路物，立于 x≈740 的房屋空档） -->
+  <g transform="rotate(4 740 63)">
+    <rect x="736" y="30" width="4" height="33" fill="#443931"/>
+    <rect x="726" y="22" width="24" height="2" fill="#443931"/>
+    <rect x="728" y="24" width="20" height="7" fill="#443931"/>
+    <rect x="731" y="26" width="14" height="3" fill="#f5c469"/>
+  </g>
+  <!-- 灌木点缀 -->
+  <rect x="350" y="57" width="14" height="6" fill="#615641"/>
+  <rect x="354" y="54" width="6" height="3" fill="#615641"/>
+  <rect x="1000" y="58" width="12" height="5" fill="#615641"/>
+  <rect x="1003" y="55" width="5" height="3" fill="#615641"/>
+  <!-- 地面收边：镇子站立的街线 + 暖色路缘反光（其余透出 CSS 色带） -->
+  <rect x="0" y="63" width="1184" height="3" fill="#5d463d"/>
+  <rect x="0" y="66" width="1184" height="2" fill="#75584a"/>
+</svg>

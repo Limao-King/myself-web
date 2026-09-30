@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <title>明鑫的像素狸猫</title>
+  <path fill="#354137" d="M4 3h7v2h10V3h7v3h2v8h-2v3h2v8h-3v3h-5v2H10v-2H5v-3H2v-8h2v-3H2V6h2z"/>
+  <path fill="#9b714d" d="M4 5h6v3H6v4H4zM22 5h6v7h-2V8h-4zM11 7h10v2h4v4h3v9H4v-9h3V9h4z"/>
+  <path fill="#c49362" d="M11 7h10v2h-4v3h-5v2H7v-3h4z"/>
+  <path fill="#ceab86" d="M5 7h3v4H5zM24 7h3v4h-3z"/>
+  <path fill="#f0dab0" d="M4 18h24v6h-3v3h-5v1h-8v-1H7v-3H4z"/>
+  <path fill="#4e493a" d="M6 14h7v2h2v5h-3v2H7v-2H5v-5h1zM19 14h7v2h1v5h-2v2h-5v-2h-3v-5h2z"/>
+  <path fill="#f9edcf" d="M9 16h3v4H9zM20 16h3v4h-3z"/>
+  <path fill="#354137" d="M11 17h2v3h-2zM20 17h2v3h-2zM14 21h4v3h-4zM15 24h2v2h-2z"/>
+  <path fill="#ca9a72" d="M7 24h4v1H7zM21 24h4v1h-4z"/>
+  <path fill="#bc6b4c" d="M3 21h3v2H3zM26 21h3v2h-3z"/>
+</svg>

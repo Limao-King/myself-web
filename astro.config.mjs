@@ -10,6 +10,7 @@ import tailwindcss from '@tailwindcss/vite';
 const PREVIEW_ROUTES = [
   'color-preview',
   'gpt-preview',
+  'hero-preview',
   'paper-note-preview',
   'project-paper-layout',
   'roadtrip-preview',

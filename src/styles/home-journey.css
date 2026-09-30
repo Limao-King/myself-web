@@ -1,0 +1,65 @@
+/* Four scenes, sized to the window; smaller screens keep natural scrolling. */
+.pf-home-scene { min-width: 0; }
+.pf-home-scene > :first-child { min-width: 0; width: 100%; }
+.pf-site.pf-homepage .pf-home .pf-home-play-scene > .pf-town-crossing { margin: 0; }
+.pf-site.pf-homepage .pf-home .pf-home-play { grid-template-columns: minmax(0,.65fr) minmax(0,1.75fr); }
+.pf-site.pf-homepage .pf-home .pf-home-play__intro .pf-scene-art--street { width: 112px; margin-top: 22px; }
+.pf-homepage .pf-main { padding-bottom: 0; }
+.pf-homepage .pf-poker__controls { width: 100%; justify-content: center; }
+.pf-scene-nav { position: fixed; z-index: 75; right: 8px; top: 50%; transform: translateY(-50%); }
+.pf-scene-nav button { position: relative; display: grid; place-items: center; width: 32px; min-height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.pf-scene-nav button > span { width: 6px; height: 6px; background: #75876a; box-shadow: 0 0 0 2px #fff5d3; transition: transform .18s, background .18s; }
+.pf-scene-nav button[aria-current] > span { transform: scale(1.5); background: #ae4932; }
+.pf-scene-nav button::before { content: attr(data-label); position: absolute; right: 35px; padding: 4px 9px; border: 1px solid #9b967b; color: #42533d; background: #fff6df; white-space: nowrap; font-size: .7rem; opacity: 0; pointer-events: none; }
+.pf-scene-nav button:hover::before, .pf-scene-nav button:focus-visible::before { opacity: 1; }
+.pf-homepage[data-home-paging="on"] { scroll-behavior: auto; scroll-snap-type: none; }
+
+@media (min-width: 901px) {
+  .pf-site.pf-homepage .pf-main { padding: 0; }
+  .pf-site.pf-homepage .pf-home { width: min(1800px,92%); gap: 0; }
+  .pf-home-scene { display: grid; align-content: center; min-height: calc(100svh - var(--home-header-height,75px)); padding: 24px 0; }
+  .pf-site.pf-homepage .pf-home .pf-home-scene .pf-hero { min-height: 0; grid-template-columns: minmax(0,580px) minmax(0,680px); justify-content: center; gap: 28px 38px; padding: clamp(24px,4svh,60px) clamp(32px,3vw,64px); }
+  .pf-homepage .pf-home-scene .pf-hero h1 { font-size: clamp(60px,5.2vw,96px); line-height: 1.2; }
+  .pf-homepage .pf-home-scene .pf-hero__lead { font-size: clamp(15px,1.1vw,20px); }
+  .pf-homepage .pf-home-scene .pf-poker { width: 100%; max-width: none; }
+  .pf-homepage .pf-home-scene .pf-poker__stage { height: clamp(350px,49svh,620px); }
+  .pf-homepage .pf-home-scene .pf-poker-card { width: min(53%,clamp(200px,29svh,350px)); }
+  .pf-homepage .pf-home-scene .pf-poker__controls { margin-top: 12px; }
+  .pf-site.pf-homepage .pf-home .pf-home-play-scene { --street-height: calc(min(1800px,92vw) * 76 / 1184); }
+  .pf-site.pf-homepage .pf-home .pf-town-crossing__seam { aspect-ratio: 1184 / 76; }
+  .pf-site.pf-homepage .pf-home .pf-home-play { gap: clamp(24px,3vw,54px); padding: 28px clamp(28px,3vw,54px) 36px; }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro h2 { font-size: clamp(36px,3.4vw,60px); line-height: 1.2; }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro .pf-scene-art--street { width: min(100%,clamp(176px,17vw,270px)); max-width: none; margin-top: 32px; }
+  .pf-site.pf-homepage .pf-home .pf-home-tv { grid-column: 2; justify-self: end; width: min(100%,calc((100svh - var(--home-header-height,75px) - 230px - var(--street-height)) * 16 / 9)); }
+  .pf-home-scene--town .pf-town-map__world,
+  .pf-home-scene--town .pf-town-map__heading { max-width: min(100%,calc((100svh - var(--home-header-height,75px) - 124px) * 480 / 224)); margin-inline: auto; }
+  .pf-home-scene .pf-selected { padding: 28px 32px 22px; }
+  .pf-home-scene .pf-selected__heading h2,
+  .pf-home-scene .pf-town-map__heading h2 { font-size: clamp(36px,3vw,60px); line-height: 1.2; }
+  .pf-home-scene .pf-selected__grid { margin-top: 24px; }
+  .pf-home-scene .pf-work--featured .pf-work__image { aspect-ratio: auto; height: clamp(180px,38svh,480px); }
+  .pf-home-scene .pf-work:not(.pf-work--featured) { grid-template-columns: 36% minmax(0,1fr); }
+  .pf-home-scene .pf-work:not(.pf-work--featured) .pf-work__image { aspect-ratio: auto; min-height: clamp(150px,24svh,300px); }
+  .pf-home-scene .pf-selected__note { margin-top: 18px; }
+}
+@media (min-width: 901px) and (max-height: 740px) {
+  .pf-home-scene { padding-block: 16px; }
+  .pf-site.pf-homepage .pf-home .pf-home-scene .pf-hero { padding-block: 20px; }
+  .pf-homepage .pf-home-scene .pf-poker__stage { height: 350px; }
+  .pf-homepage .pf-home-scene .pf-poker-card { width: min(52%,200px); }
+  .pf-home-scene .pf-selected { padding-block: 20px 16px; }
+  .pf-home-scene .pf-selected__grid { gap: 16px; }
+}
+@media (max-width: 1199px) { .pf-scene-nav { display: none; } }
+@media (max-width: 900px) {
+  .pf-site.pf-homepage .pf-home .pf-home-play { grid-template-columns: minmax(0,1fr); }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro { display: grid; grid-template-columns: minmax(0,1fr) 94px; column-gap: 16px; }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro > :not(img) { grid-column: 1; }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro .pf-scene-art--street { grid-column: 2; grid-row: 1 / span 3; align-self: center; width: 94px; margin-top: 0; }
+  .pf-site.pf-homepage .pf-home .pf-home-tv { grid-column: 1; }
+}
+@media (max-width: 500px) {
+  .pf-town-pin--docs { left: 56%; top: 22%; }
+  .pf-town-pin--games { left: 85%; top: 43%; }
+}
+@media (prefers-reduced-motion: reduce) { .pf-scene-nav button > span { transition: none; } }

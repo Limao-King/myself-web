@@ -1,426 +1,73 @@
 ---
-import { ClientRouter } from 'astro:transitions';
 import '../styles/misans-fontfaces.css';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
-import Achievements from '../components/Achievements.astro';
 import '../styles/global.css';
 import '../styles/eb.css';
+import '../styles/portfolio.css';
+import '../styles/portfolio-refinements.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
 import { siteConfig } from '../site.config';
 
 interface Props {
   title?: string;
   description?: string;
-  panel?: boolean;
   ogImage?: string;
-  /** 主题：paper（默认，暖纸）| eb（Onett 晴日 / EarthBound 气质）| eb2（图2 浅蓝地砖 · 策划文档/关于我） */
+  /** Existing preview routes can still request their historical theme. */
   theme?: 'paper' | 'eb' | 'eb2';
+  panel?: boolean;
+  footer?: boolean;
 }
 
-const { title, description, panel = true, theme = 'paper', ogImage = '/images/projects/fairytale/01-title.jpg' } = Astro.props;
-const pageTitle = title ? `${title} · ${siteConfig.name}` : `${siteConfig.name} · ${siteConfig.title}`;
+const { title, description, ogImage = '/images/projects/fairytale/01-title.jpg', theme, footer = true } = Astro.props;
+const pageTitle = title ? `${title} · ${siteConfig.name}` : `${siteConfig.name} · 游戏系统策划作品集`;
 const pageDescription = description ?? siteConfig.description;
 ---
 
 <!doctype html>
-<html lang="zh-CN" class:list={theme === 'eb' ? 'eb-theme' : theme === 'eb2' ? 'eb2-theme' : undefined}>
+<html lang="zh-CN" class:list={['pf-site', Astro.url.pathname === '/' ? 'pf-homepage' : 'pf-subpage', theme === 'eb' && 'eb-theme', theme === 'eb2' && 'eb2-theme']}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#e6e4c8" />
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {/* 移动端浏览器顶栏跟随主题色（paper/eb 用导航绿，eb2 用青） */}
-    <meta name="theme-color" content={theme === 'eb2' ? '#6b9ca8' : '#b4c586'} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={`${siteConfig.siteUrl}${Astro.url.pathname}`} />
     <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : `${siteConfig.siteUrl}${ogImage}`} />
     <meta name="twitter:card" content="summary_large_image" />
-    <ClientRouter />
-    <script>
-      // 尽早标记 JS 可用：.js 前缀才隐藏 reveal 初始态，保证无 JS 时内容可见
-      document.documentElement.classList.add('js');
-    </script>
   </head>
   <body>
-    <a class="skip-link" href="#main">跳到主要内容</a>
-    <div class="bg-pattern" aria-hidden="true"></div>
-    <!-- EB 主题专属：Onett 天空行程层（天空→草地随滚动"下山"），仅 .eb-theme 显示；
-         .bg-pattern 在 eb 主题下隐藏，其余主题不受影响 -->
-    <div class="eb-sky" aria-hidden="true">
-      <div class="eb-sky__tape">
-        <div class="eb-sky__grad"></div>
-        <div class="eb-sky__skytex"></div>
-        <div class="eb-sky__ground"></div>
-      </div>
-      <div class="eb-sky__clouds">
-        <span class="eb-cloud eb-cloud--1"><i class="eb-cloud__body"></i></span>
-        <span class="eb-cloud eb-cloud--2"><i class="eb-cloud__body"></i></span>
-        <span class="eb-cloud eb-cloud--3"><i class="eb-cloud__body"></i></span>
-        <!-- 远景碎云：小一号、更慢，让首屏天空也一直有微运动 -->
-        <span class="eb-cloud eb-cloud--4"><i class="eb-cloud__body"></i></span>
-        <span class="eb-cloud eb-cloud--5"><i class="eb-cloud__body"></i></span>
-      </div>
-    </div>
-    <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+    <a class="pf-skip" href="#main">跳到主要内容</a>
     <Nav />
-    <main id="main" class:list={['mx-auto w-full max-w-5xl px-6 py-8', panel ? 'page-panel' : '']}>
-      <slot />
-    </main>
-    <!-- 浮动层：position:fixed 元素必须挂在 main 外——main.page-panel 的 backdrop-filter
-         会把内部 fixed 元素的定位基准从视口变成 main，导致侧边目录等被文档滚走 -->
+    <main id="main" class="pf-main"><slot /></main>
     <slot name="floating" />
-    <Footer />
-    <Achievements />
-    <!-- Energy 里程计：全站阅读进度 = 充能（非滚动页自动隐藏）；
-         移动端"滚动时显示、停下淡出"，避免常驻遮挡视野 -->
-    <div id="eb-hp-meter" class="eb-hp-meter" aria-hidden="true">
-      <span class="eb-hp-meter__bar"><span class="eb-hp-meter__fill"></span></span>
-      <span class="eb-hp-meter__num"><span id="eb-hp-num">0</span><em>/100</em></span>
-    </div>
-    <!-- 通用表情反馈（Tiny RPG Emoji Pack I · CC0）：点击简历/邮件/「不要」等触发 -->
-    <div id="eb-emoji-pop" class="eb-emoji-pop" aria-hidden="true"></div>
-
-    <script>
-      // 滚动进入动画（IntersectionObserver 模式，社区主流做法）
-      function initReveal() {
-        const els = document.querySelectorAll('.reveal:not(.is-revealed)');
-        if (!('IntersectionObserver' in window)) {
-          els.forEach((el) => el.classList.add('is-revealed'));
-          return;
-        }
-        const io = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('is-revealed');
-                io.unobserve(entry.target);
-              }
-            }
-          },
-          // threshold 必须是 0：docs 详情页把整篇正文包在一个 .reveal 里，容器高度可达
-          // 7000–28000px，若要求「12% 面积进入视口」则永远无法满足（12% > 视口高），
-          // 观察器不回调 → 正文永久停在 opacity:0（移动端 7/11 篇文档整页隐形）。
-          // 「提前 48px 触发」的观感由 rootMargin 负责，不依赖 threshold。
-          { threshold: 0, rootMargin: '0px 0px -48px 0px' }
-        );
-        els.forEach((el) => io.observe(el));
-      }
-
-      // 顶部阅读进度条
-      function onScrollProgress() {
-        const bar = document.getElementById('scroll-progress');
-        if (!bar) return;
-        const el = document.documentElement;
-        const max = el.scrollHeight - el.clientHeight;
-        const ratio = max > 0 ? el.scrollTop / max : 0;
-        bar.style.transform = `scaleX(${ratio})`;
-      }
-
-      initReveal();
-      onScrollProgress();
-      window.addEventListener('scroll', onScrollProgress, { passive: true });
-      // ClientRouter 客户端切换后，重新初始化新页面的 reveal 与进度条
-      document.addEventListener('astro:after-swap', () => {
-        initReveal();
-        onScrollProgress();
-      });
-    </script>
-
-    <script>
-      // ============ HP 里程计（全站）：阅读进度掉血滚数 ============
-      // 非滚动页（内容不足一屏）自动隐藏；充满到 100 时弹出 Lit 表情（约 1.4s 后收起）。
-      function initHpMeter() {
-        const meter = document.getElementById('eb-hp-meter');
-        if (!meter || meter.dataset.bound) return;
-        meter.dataset.bound = '1';
-        const fill = meter.querySelector('.eb-hp-meter__fill');
-        const num = document.getElementById('eb-hp-num');
-        const controller = new AbortController();
-        const { signal } = controller;
-        let ticking = false;
-        const apply = () => {
-          ticking = false;
-          const el = document.documentElement;
-          const max = el.scrollHeight - el.clientHeight;
-          if (max <= 0) { meter.style.display = 'none'; return; }
-          meter.style.display = '';
-          const p = Math.min(1, Math.max(0, el.scrollTop / max));
-          if (fill) fill.style.transform = `scaleX(${p.toFixed(4)})`;
-          if (num) num.textContent = String(Math.round(p * 100));
-          meter.classList.toggle('is-max', p >= 0.995);
-        };
-        const onScroll = () => {
-          if (!ticking) {
-            ticking = true;
-            requestAnimationFrame(apply);
-            setTimeout(() => { if (ticking) apply(); }, 100);
-          }
-        };
-        window.addEventListener('scroll', onScroll, { passive: true, signal });
-        window.addEventListener('resize', onScroll, { passive: true, signal });
-        document.addEventListener('astro:before-swap', () => controller.abort(), { once: true, signal });
-        apply();
-      }
-      initHpMeter();
-      document.addEventListener('astro:after-swap', initHpMeter);
-
-      // ============ 霓虹 HP 滚轮（全站）：.eb-odo 数字逐位落下 + 回弹 + 落定闪帧 ============
-      function initOdometers() {
-        const els = document.querySelectorAll('.eb-odo:not(.is-bound)');
-        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        els.forEach((el) => {
-          el.classList.add('is-bound');
-          const raw = (el.dataset.odo ?? el.textContent).trim();
-          const digits = raw.replace(/\D/g, '').split('').map(Number);
-          if (!digits.length) return;
-          el.textContent = '';
-          // role=img + aria-label：让读屏把滚轮整体读成目标数字，
-          // 而不是逐个朗读内部的 0~9 数字轮（否则会念成「0123456789 个项目」）。
-          el.setAttribute('role', 'img');
-          el.setAttribute('aria-label', raw);
-          const reels = digits.map((d) => {
-            const reel = document.createElement('span');
-            reel.className = 'eb-odo__reel';
-            // 滚轮只是视觉动画：整体对读屏隐藏，避免 0~9 十位数字被逐个念出
-            reel.setAttribute('aria-hidden', 'true');
-            for (let i = 0; i < 10; i++) {
-              const c = document.createElement('i');
-              c.textContent = String(i);
-              c.setAttribute('aria-hidden', 'true');
-              reel.appendChild(c);
-            }
-            el.appendChild(reel);
-            return { reel, d };
-          });
-          const roll = () => {
-            reels.forEach(({ reel, d }, i) => {
-              reel.style.transitionDelay = `${i * 45}ms`;
-              requestAnimationFrame(() => requestAnimationFrame(() => {
-                reel.style.transform = `translateY(${(-d * 1.15).toFixed(2)}em)`;
-              }));
-            });
-            setTimeout(() => el.classList.add('is-set'), 720 + reels.length * 45);
-          };
-          if (reduce || !('IntersectionObserver' in window)) {
-            if (reduce) {
-              reels.forEach(({ reel, d }) => {
-                reel.style.transition = 'none';
-                reel.style.transform = `translateY(${(-d * 1.15).toFixed(2)}em)`;
-              });
-            } else { roll(); }
-            return;
-          }
-          const io = new IntersectionObserver((es) => {
-            for (const e of es) {
-              if (e.isIntersecting) { io.disconnect(); roll(); }
-            }
-          }, { threshold: 0.6 });
-          io.observe(el);
-        });
-      }
-      initOdometers();
-      document.addEventListener('astro:after-swap', initOdometers);
-    </script>
-
-    <script>
-      // ============ 通用表情反馈（Tiny RPG Emoji Pack I · CC0）============
-      // 20 帧横向条（640×32），逐帧切 background-position；右上角弹一次后收起。
-      // 供点击「下载简历」/邮件链接/「不要」按钮、以及 404 页调用（window.__ebPop）。
-      function initEmojiPop() {
-        const el = document.getElementById('eb-emoji-pop');
-        if (!el || el.dataset.bound) return;
-        el.dataset.bound = '1';
-        const TOTAL = 20;
-        const SIZE = 48; /* 放大到 48px，让反馈更容易被察觉 */
-        const play = (name, x, y, target) => {
-          clearInterval(el._t);
-          const vw = window.innerWidth;
-          const vh = window.innerHeight;
-          /* 定位：贴着被点击元素的"外侧"——优先右侧、其次上方；
-             右侧/上方放不下就翻到左侧/下方；再避开顶部导航栏，保证不遮住按钮本身 */
-          let px, py;
-          if (typeof x === 'number' && typeof y === 'number') {
-            const GAP = 12;
-            const headerEl = document.querySelector('.site-header');
-            const headerH = headerEl ? headerEl.getBoundingClientRect().height : 0;
-            const rect = target && target.getBoundingClientRect ? target.getBoundingClientRect() : null;
-            if (rect) {
-              /* 依次尝试：上方居中 → 右侧居中 → 下方居中。
-                 上方优先，能避开同一行里紧挨着的相邻按钮（如「不要」右边就是「直接联系」）；
-                 顶部导航栏里的按钮上方没空间，会自动落到右侧。 */
-              py = rect.top - SIZE - GAP;
-              if (py >= headerH + 8) {
-                px = rect.left + rect.width / 2 - SIZE / 2;
-              } else {
-                px = rect.right + GAP;
-                if (px + SIZE <= vw - 8) {
-                  py = rect.top + rect.height / 2 - SIZE / 2;
-                } else {
-                  px = rect.left + rect.width / 2 - SIZE / 2;
-                  py = Math.max(rect.bottom + GAP, headerH + 8);
-                }
-              }
-            } else {
-              px = x + GAP;
-              py = y - SIZE - GAP;
-              if (px + SIZE > vw - 8) px = x - SIZE - GAP;
-              if (py < headerH + 8) py = y + GAP;
-            }
-            px = Math.min(Math.max(8, px), vw - SIZE - 8);
-            py = Math.min(Math.max(8, py), vh - SIZE - 8);
-          } else {
-            px = vw - SIZE - 22;
-            py = 86;
-          }
-          el.style.left = `${Math.round(px)}px`;
-          el.style.top = `${Math.round(py)}px`;
-          el.style.backgroundImage = `url("/images/emoji/${name}.png")`;
-          let f = 0;
-          el.style.opacity = '1';
-          el.style.transform = 'scale(1)';
-          el.style.backgroundPosition = '0 0';
-          el._t = setInterval(() => {
-            f += 1;
-            if (f >= TOTAL) {
-              clearInterval(el._t);
-              el.style.opacity = '0';
-              el.style.transform = 'scale(0.6)';
-              return;
-            }
-            el.style.backgroundPosition = `-${f * SIZE}px 0`;
-          }, 70);
-        };
-        window.__ebPop = play;
-        document.addEventListener('click', (e) => {
-          const a = e.target.closest('a[href]');
-          if (!a) return;
-          const href = a.getAttribute('href') || '';
-          if (href.endsWith('.pdf')) { play('ok', e.clientX, e.clientY, a); return; }
-          if (href.startsWith('mailto:')) { play('yes', e.clientX, e.clientY, a); }
-        });
-      }
-      initEmojiPop();
-      document.addEventListener('astro:after-swap', initEmojiPop);
-    </script>
-
-    <script>
-      // ============ Onett 天空行程（全站 eb 主题页）：滚动 = 海拔下降 ============
-      // .eb-sky__tape 是 280vh 的"地形长卷"，滚动进度驱动它向上平移 180vh——
-      // 视口从山顶晴空走到小镇草地。只写 transform；--sky-p 同时驱动云的上升退场。
-      function initSkyScroll() {
-        const sky = document.querySelector('.eb-sky');
-        if (!sky || sky.dataset.bound) return;
-        sky.dataset.bound = '1';
-        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduce) return; /* 静态单屏渐变（CSS reduce 分支） */
-        const tape = sky.querySelector('.eb-sky__tape');
-        const controller = new AbortController();
-        const { signal } = controller;
-        let ticking = false;
-        let lastY = 1e9;
-        const apply = () => {
-          ticking = false;
-          const el = document.documentElement;
-          const max = el.scrollHeight - el.clientHeight;
-          const p = max > 0 ? Math.min(1, Math.max(0, el.scrollTop / max)) : 0;
-          const y = -p * 1.8 * window.innerHeight;
-          if (Math.abs(y - lastY) < 0.5) return;
-          lastY = y;
-          tape.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0)`;
-          sky.style.setProperty('--sky-p', p.toFixed(4));
-        };
-        const onScroll = () => {
-          if (!ticking) {
-            ticking = true;
-            requestAnimationFrame(apply);
-            setTimeout(() => { if (ticking) apply(); }, 100);
-          }
-        };
-        window.addEventListener('scroll', onScroll, { passive: true, signal });
-        window.addEventListener('resize', onScroll, { passive: true, signal });
-        document.addEventListener('astro:before-swap', () => controller.abort(), { once: true, signal });
-        apply();
-        sky.classList.add('is-paused');
-        setTimeout(() => sky.classList.remove('is-paused'), 700);
-      }
-      initSkyScroll();
-      document.addEventListener('astro:after-swap', initSkyScroll);
-    </script>
-
-    <script>
-      // 正文长图点击放大/还原（委托到 document，ClientRouter 切换后依然生效）
-      document.addEventListener('click', (e) => {
-        const img = e.target.closest('.prose-article img');
-        if (!img) return;
-        img.classList.toggle('eb-zoomed');
-      });
-
-      // 竖版长图（流程图等）：默认显示很窄、文字不可辨——挂"点击放大"提示，
-      // 并略放宽默认限高，让读者第一眼就知道可以点开看全图。
-      function markTallImages() {
-        document.querySelectorAll('.prose-article img').forEach((img) => {
-          if (img.dataset.tallMarked) return;
-          const check = () => {
-            if (!img.naturalWidth || !img.naturalHeight) return;
-            img.dataset.tallMarked = '1';
-            if (img.naturalWidth / img.naturalHeight < 0.72) {
-              img.classList.add('eb-tall');
-              const hint = document.createElement('button');
-              hint.type = 'button';
-              hint.className = 'img-zoom-hint';
-              hint.textContent = '🔍 竖版大图 · 点击放大查看';
-              hint.addEventListener('click', () => img.classList.toggle('eb-zoomed'));
-              img.insertAdjacentElement('afterend', hint);
-            }
-          };
-          if (img.complete) check();
-          else img.addEventListener('load', check, { once: true });
-        });
-      }
-      markTallImages();
-      document.addEventListener('astro:after-swap', markTallImages);
-    </script>
+    {footer && <Footer />}
 
     <script is:inline>
-      // 主站访问记录（2026-09-14 新增，只写不读）
-      // 为什么自建：Cloudflare Web Analytics 只给聚合计数，看不到"谁来的、什么客户端"，
-      // 本站曾被爬虫刷到 216 次页面浏览而无法判断其中有没有真人（HR）访问。
-      // 端点：play.limao.site/hit（Worker 侧只写 R2，不提供任何读取接口）。
-      // 访客侧成本：一次异步 POST，约 200 字节，不阻塞渲染、不写 Cookie、不采集明文 IP。
+      // 维持现有只写访问记录契约；不读取访问日志。
       (() => {
-        const ENDPOINT = 'https://play.limao.site/hit';
+        if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return;
+        const endpoint = 'https://play.limao.site/hit';
         if (!navigator.sendBeacon && !window.fetch) return;
-        const send = () => {
-          try {
-            const body = JSON.stringify({
-              path: location.pathname,
-              ref: document.referrer ? document.referrer.split('?')[0].slice(0, 256) : '',
-              lang: navigator.language || '',
-              sw: window.screen ? window.screen.width : null,
-              vw: window.innerWidth || null,
-              tz: (Intl.DateTimeFormat().resolvedOptions() || {}).timeZone || '',
-              device: matchMedia('(pointer:coarse)').matches ? 'touch' : 'mouse',
-            });
-            if (navigator.sendBeacon) {
-              navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'text/plain' }));
-            } else {
-              fetch(ENDPOINT, {
-                method: 'POST',
-                body,
-                keepalive: true,
-                headers: { 'Content-Type': 'text/plain' },
-              }).catch(() => {});
-            }
-          } catch {
-            // 记录失败绝不能影响页面
-          }
-        };
-        // 延迟 1s：只统计"真正打开了页面"的访问，跳走即关的不计
-        setTimeout(send, 1000);
+        try {
+          const body = JSON.stringify({
+            path: location.pathname,
+            ref: document.referrer ? document.referrer.split('?')[0].slice(0, 256) : '',
+            lang: navigator.language || '',
+            sw: window.screen ? window.screen.width : null,
+            vw: window.innerWidth || null,
+            tz: (Intl.DateTimeFormat().resolvedOptions() || {}).timeZone || '',
+            device: matchMedia('(pointer:coarse)').matches ? 'touch' : 'mouse',
+          });
+          if (navigator.sendBeacon) navigator.sendBeacon(endpoint, new Blob([body], { type: 'text/plain' }));
+          else fetch(endpoint, { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'text/plain' } }).catch(() => {});
+        } catch {
+          // 记录失败不影响浏览。
+        }
       })();
     </script>
   </body>

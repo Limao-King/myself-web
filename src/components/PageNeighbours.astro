@@ -1,0 +1,29 @@
+---
+interface Props { section: 'projects' | 'docs' | 'games' | 'about' }
+const pages = [
+  { key: 'home', name: '首页', href: '/' },
+  { key: 'projects', name: '项目案例', href: '/projects/' },
+  { key: 'docs', name: '策划文档', href: '/docs/' },
+  { key: 'games', name: '游戏经历', href: '/game-history/' },
+  { key: 'about', name: '关于我', href: '/about/' },
+];
+const index = pages.findIndex(page => page.key === Astro.props.section);
+const previous = pages[index - 1];
+const next = pages[index + 1];
+---
+<nav class="pf-page-neighbours" aria-label="相邻页面">
+  {previous && <a class="pf-page-neighbours__previous" href={previous.href}><span aria-hidden="true">←</span> {previous.name}</a>}
+  {next && <a class="pf-page-neighbours__next" href={next.href}>{next.name} <span aria-hidden="true">→</span></a>}
+</nav>
+<style>
+  .pf-page-neighbours { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 90px; padding: 26px 0; border-top: 1px solid #b8bea2; }
+  .pf-page-neighbours a { display: inline-flex; align-items: center; gap: 22px; min-height: 48px; color: #42573e; text-decoration: none; }
+  .pf-page-neighbours__previous { font-size: .78rem; }
+  .pf-page-neighbours .pf-page-neighbours__next { margin-left: auto; font: 400 36px/48px "FusionPixel", sans-serif; }
+  .pf-page-neighbours a span { transition: transform .18s ease; }
+  .pf-page-neighbours__previous:hover span { transform: translateX(-4px); }
+  .pf-page-neighbours__next:hover span { transform: translateX(4px); }
+  .pf-page-neighbours a:focus-visible { outline: 3px solid #a94f37; outline-offset: 5px; }
+  @media (max-width: 720px) { .pf-page-neighbours { margin-top: 64px; gap: 16px; } .pf-page-neighbours a { gap: 12px; } .pf-page-neighbours .pf-page-neighbours__next { font-size: 24px; line-height: 36px; } }
+  @media (prefers-reduced-motion: reduce) { .pf-page-neighbours a span { transition: none; } }
+</style>

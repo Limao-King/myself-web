@@ -1,97 +1,37 @@
 ---
+import PageNeighbours from '../../components/PageNeighbours.astro';
 import Layout from '../../layouts/Layout.astro';
-import { getCollection, render } from 'astro:content';
-import { formatDate } from '../../utils/format';
 import ImageGallery from '../../components/ImageGallery.astro';
+import { getCollection, render } from 'astro:content';
+import { caseNotes } from '../../data/case-notes';
+import { formatPeriod } from '../../utils/format';
+import '../../styles/reading-room.css';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
-  return projects.map((p) => ({ params: { slug: p.id }, props: { project: p } }));
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
 }
 
 const { project } = Astro.props;
 const { Content } = await render(project);
-const { title, date, type, platform, role, teamSize, duration, playUrl, playLabel, demoUrl, demoLabel, videoUrl, planDoc, planLabel, tags, screenshots } = project.data;
+const note = caseNotes[project.id];
+const { title, cover, type, role, playUrl, planDoc, planLabel, videoUrl, demoUrl, demoLabel, screenshots } = project.data;
+const leadImage = project.id === 'fairytale-demo' ? '/images/projects/fairytale/02-move-tutorial.jpg' : cover;
+const displayTitle = { 'fairytale-demo': '童话冒险', gujie: '上元古界', 'chaos-three-kingdoms': '乱世三国', huanzhenming: '唤她真名' }[project.id] ?? title;
 ---
+<Layout title={title} description={project.data.summary} ogImage={cover}>
+  <div class="pf-container pf-inner-page pf-case-page">
+    <nav class="pf-breadcrumb" aria-label="返回路径"><a href="/projects/">← 返回项目案例</a></nav>
+    <header class="pf-case-hero"><div class="pf-case-hero__copy"><p class="pf-overline">{note?.eyebrow ?? type} / {formatPeriod(project.data.start, project.data.date)}</p><h1>{displayTitle}</h1><p class="pf-case-hero__summary">{project.data.summary}</p><div class="pf-case-hero__tags"><span>{note?.status ?? type}</span><span>我的职责：{role}</span></div><div class="pf-case-hero__links">{playUrl && <a class="pf-button pf-button--primary" href={playUrl} target="_blank" rel="noopener noreferrer">开始试玩 ↗</a>}{videoUrl && <a class="pf-button pf-button--outline" href={videoUrl} target="_blank" rel="noopener noreferrer">观看演示视频 ↗</a>}{planDoc && <a class="pf-button pf-button--outline" href={planDoc}>{planLabel ?? '查看策划案'} ↗</a>}</div></div>{leadImage && <figure class="pf-case-hero__visual"><img src={leadImage} alt={`${title}项目画面`} /></figure>}</header>
 
-<Layout title={title} description={project.data.summary} ogImage={project.data.cover} theme="eb" panel={false}>
-  <div class="flex flex-col gap-6">
-    <!-- 任务卡头部 -->
-    <section class="eb-battle">
-      <a href="/projects/" class="eb-backlink text-sm">← 返回项目列表</a>
-      <h1 class="eb-battle__title">任务：{title}</h1>
-      <p class="project-summary">{project.data.summary}</p>
-      <p class="eb-ev mt-2">完成时间 · {formatDate(date)}</p>
+    <section id="design-decisions" class="pf-case-analysis" aria-labelledby="decisions-title"><div class="pf-section__head"><h2 id="decisions-title">设计笔记</h2></div><div class="pf-decision-grid"><article><span aria-hidden="true">01</span><h3>题目</h3><p>{note?.challenge ?? project.data.summary}</p></article><article><span aria-hidden="true">02</span><h3>选择</h3><p>{note?.decision ?? project.data.summary}</p></article><article><span aria-hidden="true">03</span><h3>落地</h3><p>{note?.outcome ?? project.data.summary}</p></article></div></section>
 
-      <!-- 项目情况：黑底白字气泡（与「关于我」深色对话框同款，协调） -->
-      <div class="mt-4 rounded-lg p-4" style="background:#2b2418;color:#f4eddb;border:4px solid #f4eddb;box-shadow:inset -4px -4px 0 rgba(0,0,0,.55), inset 4px 4px 0 rgba(255,255,255,.08);">
-        <p class="mb-2 font-pixel text-sm" style="color:#e6c76a;">◆ 项目情况</p>
-        <dl class="project-meta grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-          <div><dt>类型</dt><dd>{type}</dd></div>
-          <div><dt>平台</dt><dd>{platform}</dd></div>
-          <div><dt>团队</dt><dd>{teamSize}</dd></div>
-          <div><dt>周期</dt><dd>{duration}</dd></div>
-          <div class="project-meta__role"><dt>我的角色</dt><dd>{role}</dd></div>
-        </dl>
-      </div>
+    <section class="pf-case-evidence" aria-labelledby="evidence-title"><div><h2 id="evidence-title">随案材料</h2><p>{note?.proof ?? '项目记录、截图与关联文档'}</p></div><div class="pf-evidence-links">{planDoc && <a href={planDoc}>相关手稿 ↗</a>}{demoUrl && <a href={demoUrl} target="_blank" rel="noopener noreferrer">{demoLabel ?? '下载 Demo'} ↗</a>}</div></section>
 
-      <!-- 核心标签（精简，剔除已进项目情况的冗余项与类型/平台等） -->
-      {
-        tags.length > 0 && (
-          <div class="mt-3 flex flex-wrap gap-2">
-            {tags.map((t) => (
-              <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
-            ))}
-          </div>
-        )
-      }
+    {screenshots?.length > 0 && <section class="pf-gallery-section" aria-labelledby="gallery-title"><div class="pf-section__head"><h2 id="gallery-title">项目现场</h2></div><ImageGallery images={screenshots} /></section>}
 
-      <!-- 相关产出：直达按钮（在线试玩为主 CTA，策划案/演示次之，下载 Demo 降为文本链接） -->
-      {
-        (playUrl || planDoc || videoUrl || demoUrl) && (
-          <div class="mt-5 flex flex-wrap items-center gap-3">
-            {playUrl && (
-              <a href={playUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-solid">
-                {playLabel ?? '▶ 在线试玩'}
-              </a>
-            )}
-            {planDoc && <a href={planDoc} class="eb-btn-line">{planLabel ?? '查看策划案'}</a>}
-            {videoUrl && <a href={videoUrl} target="_blank" rel="noopener noreferrer" class="eb-btn-line">▶ 观看演示</a>}
-            {demoUrl && <a href={demoUrl} target="_blank" rel="noopener noreferrer" class="eb-link inline-flex min-h-[44px] items-center text-sm md:min-h-0">{demoLabel ?? '下载 Demo'}</a>}
-          </div>
-        )
-      }
-    </section>
+    <details class="pf-longform"><summary><strong>项目经过与复盘</strong><span class="pf-longform__action"><small><span class="pf-longform__closed">展开阅读</span><span class="pf-longform__open">收起内容</span></small><b aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M3 6L8 11L13 6" stroke="currentColor" stroke-width="2" /></svg></b></span></summary><div class="pf-prose"><Content /></div></details>
 
-    <!-- 截图图廊（可切换 + 描述） -->
-    {
-      screenshots?.length > 0 && (
-        <ImageGallery images={screenshots} />
-      )
-    }
-
-    <!-- 正文：图鉴纸质卡（保证长文可读） -->
-    <div class="prose-article">
-      <Content />
-    </div>
+    <PageNeighbours section="projects" />
   </div>
 </Layout>
-
-<style>
-  .project-summary { max-width:46rem; margin-top:.75rem; padding-right:8rem; color:#423625; font-size:.94rem; line-height:1.75; }
-  .project-meta > div { display:grid; grid-template-columns:4.5rem minmax(0,1fr); gap:.5rem; align-items:start; }
-  .project-meta dt { color:#b8a887; }
-  .project-meta dd { min-width:0; color:#f4eddb; font-weight:700; overflow-wrap:anywhere; }
-  /* 三列时"我的角色"占两格，避免右下留死黑空档 */
-  .project-meta__role { grid-column:auto; }
-  @media (min-width:640px) { .project-meta__role { grid-column:span 2; } }
-  @media (max-width:560px) {
-    .project-meta { grid-template-columns:1fr; gap:.7rem; }
-    .project-meta__role { grid-column:auto; }
-    .eb-battle:has(> .eb-backlink) .eb-battle__title,
-    .eb-battle:has(> .eb-backlink) > p.eb-ev,
-    .eb-battle:has(> .eb-backlink) > .flex.flex-wrap { padding-right:0; }
-    .eb-battle > .eb-backlink { position:static; margin-bottom:1.2rem; }
-    .project-summary { padding-right:0; }
-  }
-</style>

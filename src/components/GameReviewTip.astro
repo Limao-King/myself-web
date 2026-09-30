@@ -1,0 +1,61 @@
+<div class="pf-game-tip" id="game-review-tip" role="tooltip" popover="manual"><strong data-game-tip-title></strong><p data-game-tip-copy></p></div>
+<script>
+  const tip = document.querySelector<HTMLElement>('#game-review-tip');
+  const triggers = [...document.querySelectorAll<HTMLButtonElement>('[data-game-review]')];
+  if (tip) {
+    let current: HTMLButtonElement | null = null;
+    let timer = 0;
+    const hover = matchMedia('(hover: hover)');
+    const hide = () => {
+      clearTimeout(timer);
+      tip.hidePopover();
+      current?.setAttribute('aria-expanded', 'false');
+      current?.removeAttribute('aria-describedby');
+      current = null;
+    };
+    const show = (button: HTMLButtonElement) => {
+      clearTimeout(timer);
+      current?.setAttribute('aria-expanded', 'false');
+      current?.removeAttribute('aria-describedby');
+      current = button;
+      const title = tip.querySelector('[data-game-tip-title]');
+      const copy = tip.querySelector('[data-game-tip-copy]');
+      if (title) title.textContent = button.dataset.gameName || '';
+      if (copy) copy.textContent = (button.dataset.gameReview || '').split('\\n\\n')[0];
+      button.setAttribute('aria-expanded', 'true');
+      button.setAttribute('aria-describedby', tip.id);
+      tip.showPopover();
+      const box = button.getBoundingClientRect();
+      const bounds = tip.getBoundingClientRect();
+      const left = Math.max(16, Math.min(box.left, innerWidth - bounds.width - 16));
+      const top = box.bottom + bounds.height + 16 <= innerHeight ? box.bottom + 8 : Math.max(16, box.top - bounds.height - 8);
+      tip.style.left = `${left}px`;
+      tip.style.top = `${top}px`;
+    };
+    const scheduleHide = () => { clearTimeout(timer); timer = window.setTimeout(hide, 160); };
+    triggers.forEach(button => {
+      button.addEventListener('pointerenter', () => { if (hover.matches) show(button); });
+      button.addEventListener('pointerleave', () => { if (hover.matches) scheduleHide(); });
+      button.addEventListener('focus', () => show(button));
+      button.addEventListener('blur', scheduleHide);
+      button.addEventListener('click', () => {
+        // Touch focus opens the note before click; leave it open on that first tap.
+        if (current !== button || !tip.matches(':popover-open')) show(button);
+      });
+    });
+    tip.addEventListener('pointerenter', () => clearTimeout(timer));
+    tip.addEventListener('pointerleave', scheduleHide);
+    document.addEventListener('pointerdown', event => {
+      if (current && event.target instanceof Node && !current.contains(event.target) && !tip.contains(event.target)) hide();
+    });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') hide(); });
+    window.addEventListener('scroll', hide, { passive: true });
+    window.addEventListener('resize', hide, { passive: true });
+  }
+</script>
+<style is:global>
+  .pf-game-tip { position: fixed; inset: auto; margin: 0; width: min(320px,calc(100vw - 32px)); max-height: 50svh; overflow: auto; padding: 18px 20px; background: #fffae9; border: 1px solid #8e9b7c; box-shadow: 4px 5px 0 #54664630; color: #53614c; }
+  .pf-game-tip strong { display: block; color: #916148; font-size: .72rem; font-weight: 500; }
+  .pf-game-tip p { margin: 10px 0 0; font-size: .82rem; line-height: 1.85; }
+  .pf-game-tip::backdrop { background: transparent; pointer-events: none; }
+</style>
