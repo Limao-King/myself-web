@@ -1,0 +1,163 @@
+---
+// Hero 卡牌重排方案预览页（v4.17 专项 · 静态设计稿，无交互脚本）
+// 已登记 PREVIEW_ROUTES，生产构建自动剔除。
+import '../styles/global.css';
+
+const cards = [
+  { num: '01', title: '死亡搁浅', sub: '连结孤独的岛', type: '拆解案', suit: '#b94c33', icon: '/images/poker/poker-suit-connection.svg' },
+  { num: '02', title: '童话冒险', sub: '回合制 JRPG 序章', type: '可玩原型', suit: '#557c50', icon: '/images/poker/poker-suit-choice.svg' },
+  { num: '03', title: '上元古界', sub: '开放世界 RPG', type: '世界与任务', suit: '#427b8b', icon: '/images/poker/poker-suit-compass.svg' },
+  { num: '04', title: '唤她真名', sub: '心理悬疑动画剧本', type: '叙事剧本', suit: '#9a7042', icon: '/images/poker/poker-suit-double-face.svg' },
+];
+---
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hero 卡牌重排 · 方案预览</title>
+  </head>
+  <body class="hp-body">
+    <main class="hp-page">
+      <header class="hp-head">
+        <p class="hp-kicker">PREVIEW · v4.17 专项</p>
+        <h1>Hero 卡牌重排 · 三个方案</h1>
+        <p>静态示意（无交互脚本），牌面沿用现行设计（花色包边＋印章角标＋24px 类型主级＋灰次级名）。移动端三个方案都沿用现行纵向叠牌，不随之改动。历史已否决：规则扇形、纵轴排布、菱形四点、三角形轮廓、松散叠放。</p>
+      </header>
+
+      <section class="hp-proposal">
+        <div class="hp-proposal__head">
+          <p class="hp-kicker">方案 A</p>
+          <h2>玩家手牌 · 抽出一张</h2>
+          <p>四张牌像被玩家握在手里，只露出带角标的左牌边；当前牌向左前方抽出、完整可读。交互：点露边牌换当前，点当前牌进案例；方向键/横扫沿用。</p>
+        </div>
+        <div class="hp-stage hp-stage--hand">
+          {cards.map((card, i) => <article class="hp-card" data-suit={i + 1} style={`--x:${[14, 178, 336, 494][i]}px; --y:${[-26, 34, 42, 28][i]}px; --r:${[-2.5, 2, -1, 3.5][i]}deg; --z:${5 - i};`}>
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={card.icon} alt="" /></span>
+                <span class="hp-card__type">{card.type}</span>
+                <span class="hp-card__name"><b>{card.title}</b><i>{card.sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>{card.num}</b><img src={card.icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>{card.num}</b><img src={card.icon} alt="" /></span>
+          </article>)}
+        </div>
+      </section>
+
+      <section class="hp-proposal">
+        <div class="hp-proposal__head">
+          <p class="hp-kicker">方案 B</p>
+          <h2>牌桌主牌 · 明显主次</h2>
+          <p>当前牌放大居左为主角，其余三张缩小、压暗、歪斜地散在右后侧，像牌桌上还没收走的牌。层级一眼分明：先读一张，再看其余。交互与现行一致（点任意牌置前）。</p>
+        </div>
+        <div class="hp-stage hp-stage--table">
+          <article class="hp-card" data-suit="1" style="--x:120px; --y:52px; --r:-1.5deg; --z:5; --s:1.06;">
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={cards[0].icon} alt="" /></span>
+                <span class="hp-card__type">{cards[0].type}</span>
+                <span class="hp-card__name"><b>{cards[0].title}</b><i>{cards[0].sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>01</b><img src={cards[0].icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>01</b><img src={cards[0].icon} alt="" /></span>
+          </article>
+          <article class="hp-card" data-suit="3" style="--x:392px; --y:16px; --r:6deg; --z:2; --s:.86; --dim:.94;">
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={cards[2].icon} alt="" /></span>
+                <span class="hp-card__type">{cards[2].type}</span>
+                <span class="hp-card__name"><b>{cards[2].title}</b><i>{cards[2].sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>03</b><img src={cards[2].icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>03</b><img src={cards[2].icon} alt="" /></span>
+          </article>
+          <article class="hp-card" data-suit="2" style="--x:344px; --y:126px; --r:-7deg; --z:3; --s:.9; --dim:.96;">
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={cards[1].icon} alt="" /></span>
+                <span class="hp-card__type">{cards[1].type}</span>
+                <span class="hp-card__name"><b>{cards[1].title}</b><i>{cards[1].sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>02</b><img src={cards[1].icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>02</b><img src={cards[1].icon} alt="" /></span>
+          </article>
+          <article class="hp-card" data-suit="4" style="--x:448px; --y:96px; --r:10deg; --z:1; --s:.84; --dim:.9;">
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={cards[3].icon} alt="" /></span>
+                <span class="hp-card__type">{cards[3].type}</span>
+                <span class="hp-card__name"><b>{cards[3].title}</b><i>{cards[3].sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>04</b><img src={cards[3].icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>04</b><img src={cards[3].icon} alt="" /></span>
+          </article>
+          <span class="hp-table-shadow" aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section class="hp-proposal">
+        <div class="hp-proposal__head">
+          <p class="hp-kicker">方案 C</p>
+          <h2>抽牌堆 · 一次一张</h2>
+          <p>只展示一张当前牌，旁边是一叠牌背（右上角 04 水印示意共四张）。最简洁、聚焦，但牺牲「一眼看到全部四个项目」。交互：点牌堆抽下一张（带翻牌动效的潜力），点当前牌进案例。</p>
+        </div>
+        <div class="hp-stage hp-stage--deck">
+          <div class="hp-deck" aria-hidden="true">
+            <span class="hp-deck__layer" style="--dx:7px; --dy:7px;"></span>
+            <span class="hp-deck__layer" style="--dx:3.5px; --dy:3.5px;"></span>
+            <span class="hp-deck__layer hp-deck__layer--top"><b>04</b></span>
+          </div>
+          <article class="hp-card" data-suit="1" style="--x:318px; --y:36px; --r:1.2deg; --z:5; --s:1.05;">
+            <div class="hp-card__face">
+              <span class="hp-card__body">
+                <span class="hp-card__symbol"><img src={cards[0].icon} alt="" /></span>
+                <span class="hp-card__type">{cards[0].type}</span>
+                <span class="hp-card__name"><b>{cards[0].title}</b><i>{cards[0].sub}</i></span>
+              </span>
+            </div>
+            <span class="hp-corner hp-corner--tl"><b>01</b><img src={cards[0].icon} alt="" /></span>
+            <span class="hp-corner hp-corner--br"><b>01</b><img src={cards[0].icon} alt="" /></span>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  .hp-body { margin: 0; background: #ece4cd; color: #344431; font-family: "MiSans", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .hp-page { max-width: 860px; margin: 0 auto; padding: 46px 24px 90px; }
+  .hp-head h1 { margin: 6px 0 10px; font: 400 36px/48px "FusionPixel", sans-serif; letter-spacing: 0; }
+  .hp-head > p:last-child { margin: 0; max-width: 46em; color: #5b6350; line-height: 1.8; font-size: .88rem; }
+  .hp-kicker { margin: 0; font: 400 12px/18px "FusionPixel", sans-serif; color: #a44c35; letter-spacing: 2px; }
+  .hp-proposal { margin-top: 54px; }
+  .hp-proposal__head h2 { margin: 4px 0 8px; font: 400 24px/36px "FusionPixel", sans-serif; letter-spacing: 0; }
+  .hp-proposal__head p:not(.hp-kicker) { margin: 0 0 18px; max-width: 46em; color: #5b6350; line-height: 1.8; font-size: .85rem; }
+  .hp-stage { position: relative; height: 440px; border: 2px dashed #b3a683; background: repeating-linear-gradient(90deg, #f2ecda 0 24px, #eee6cf 24px 48px); overflow: hidden; }
+  .hp-stage--hand { height: 420px; }
+  .hp-card { --suit: #b94c33; --x: 0px; --y: 0px; --r: 0deg; --z: 1; --s: 1; --dim: 1; position: absolute; top: 0; left: 0; width: 240px; aspect-ratio: 5 / 7; z-index: var(--z); transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(var(--s)); filter: brightness(var(--dim)); }
+  .hp-card[data-suit="1"] { --suit: #b94c33; } .hp-card[data-suit="2"] { --suit: #557c50; } .hp-card[data-suit="3"] { --suit: #427b8b; } .hp-card[data-suit="4"] { --suit: #9a7042; }
+  .hp-card__face { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(52,68,49,.025) 0 2px, transparent 2px 8px), #fffbed; box-shadow: inset 0 0 0 4px var(--suit), inset 0 0 0 5px #fffbed, inset 0 0 0 7px #344431, 5px 6px 0 rgba(34,48,37,.14); }
+  .hp-card__body { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 13px; padding: 34px 16px; }
+  .hp-card__symbol { width: 104px; height: 104px; display: grid; place-items: center; border: 2px solid color-mix(in srgb, var(--suit) 48%, #fffbed); background: color-mix(in srgb, var(--suit) 7%, #fffbed); }
+  .hp-card__symbol img { width: 72px; height: 72px; image-rendering: pixelated; }
+  .hp-card__type { font: 400 24px/24px "FusionPixel", sans-serif; color: #344431; border-bottom: 1px solid color-mix(in srgb, var(--suit) 55%, #fffbed); padding-bottom: 6px; }
+  .hp-card__name { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .hp-card__name b { font-weight: 600; font-size: 13px; color: #55604f; }
+  .hp-card__name i { font-style: normal; font-size: 11px; color: #8a9280; }
+  .hp-corner { position: absolute; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 5px; color: var(--suit); background: color-mix(in srgb, var(--suit) 14%, #fffbed); box-shadow: inset 0 0 0 2px #344431, inset 0 0 0 3px #fffbed; font: 400 13px/1 "FusionPixel", sans-serif; }
+  .hp-corner img { width: 14px; height: 14px; image-rendering: pixelated; }
+  .hp-corner--tl { top: 13px; left: 13px; }
+  .hp-corner--br { bottom: 13px; right: 13px; transform: rotate(180deg); }
+  .hp-table-shadow { position: absolute; left: 90px; top: 300px; width: 520px; height: 60px; z-index: 0; background: radial-gradient(ellipse at center, rgba(52,68,49,.16), transparent 68%); }
+  .hp-deck { position: absolute; left: 96px; top: 92px; width: 240px; aspect-ratio: 5 / 7; transform: rotate(-3deg); z-index: 1; }
+  .hp-deck__layer { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(52,68,49,.04) 0 2px, transparent 2px 8px), #f4ecd6; box-shadow: inset 0 0 0 4px #c9bb96, inset 0 0 0 6px #344431, 5px 6px 0 rgba(34,48,37,.12); transform: translate(var(--dx), var(--dy)); }
+  .hp-deck__layer--top { display: grid; place-items: center; }
+  .hp-deck__layer--top b { font: 400 84px/84px "FusionPixel", sans-serif; color: #344431; opacity: .09; }
+  @media (prefers-reduced-motion: reduce) { .hp-card { transition: none !important; } }
+</style>

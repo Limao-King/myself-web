@@ -1,0 +1,11 @@
+---
+interface Props { variant?: 'game' | 'video' }
+const { variant = 'game' } = Astro.props;
+---
+<div class="pf-battle-backdrop" data-battle-backdrop={variant} aria-hidden="true">
+  <canvas width="256" height="224"></canvas>
+</div>
+<script>
+  import { initBattleBackdrops } from '../scripts/battle-backdrop';
+  initBattleBackdrops();
+</script>

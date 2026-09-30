@@ -1,0 +1,235 @@
+/* Homepage scene treatments. All decoration stays inside the home container. */
+
+/* 章节间距收敛到一个变量：街缘带的负底边距要引用它，才能把「街缘带底边」钉在电视区上缘（v4.11）。 */
+.pf-site .pf-home { --pf-home-gap: 76px; gap: var(--pf-home-gap); }
+/* v4.18.1 探头量收敛（用户实测：电视窗顶都露出来了，与图 2 不一致）——380 → 300：
+   露出量 ~132px＝街角路牌＋街缘带，电视窗不露头。vh 行是 svh 的回退；align-content 让 Hero 内容垂直居中。 */
+.pf-site .pf-home > .pf-hero { min-height: calc(100vh - 300px); min-height: calc(100svh - 300px); align-content: center; }
+
+.pf-site .pf-home .pf-waypoint {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  min-width: 238px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: -39px 0 -28px 9%;
+  color: #344431;
+  text-decoration: none;
+  transform: rotate(-2deg);
+}
+.pf-site .pf-home .pf-waypoint__post {
+  position: absolute;
+  z-index: -1;
+  top: 33px;
+  left: 18px;
+  width: 9px;
+  height: 67px;
+  background: #806044;
+  border: 2px solid #493d2d;
+  box-shadow: 4px 3px 0 rgba(43,48,35,.12);
+  pointer-events: none;
+}
+.pf-site .pf-home .pf-waypoint__board {
+  position: relative;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 14px;
+  padding: 8px 13px 8px 17px;
+  background: #e9cf83;
+  border: 2px solid #514631;
+  box-shadow: 4px 4px 0 rgba(43,48,35,.15);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 5% 50%);
+  transition: transform .16s ease, background-color .16s ease;
+}
+.pf-site .pf-home .pf-waypoint__board b { font-size: .86rem; line-height: 1.3; }
+.pf-site .pf-home .pf-waypoint__board small { grid-column: 1; color: #594f37; font-size: .69rem; line-height: 1.3; }
+.pf-site .pf-home .pf-waypoint__board > span { grid-column: 2; grid-row: 1 / span 2; font-size: 1.2rem; font-weight: 900; }
+.pf-site .pf-home .pf-waypoint:hover .pf-waypoint__board,
+.pf-site .pf-home .pf-waypoint:focus-visible .pf-waypoint__board { background: #f2dda0; transform: translate(2px,-2px); }
+.pf-site .pf-home .pf-waypoint:focus-visible { outline: 3px solid #315238; outline-offset: 5px; }
+.pf-site .pf-home .pf-waypoint__guide { position: absolute; width: 34px; height: 42px; object-fit: contain; image-rendering: pixelated; right: -42px; bottom: -10px; pointer-events: none; }
+.pf-site .pf-home .pf-town-crossing { position: relative; margin: -39px 0 calc(-1 * var(--pf-home-gap)); }
+.pf-site .pf-home .pf-town-crossing > .pf-waypoint--street { z-index: 1; margin: 0 0 0 9%; }
+/* 街缘贯通带（v4.11）：横贯内容区全宽，等比缩放；容器裁掉素材底部 12px 路缘石，
+   使素材的 4px 亮边 #a4b88b 直接压在电视区顶部 4px 路沿上方 → 读成一条 8px 贯通缘线（无缝、无背景色缝）。
+   容器高 = 76/1184 × 宽（= 素材 88px − 裁掉的 12px），底边与负边距配合刚好落在电视区上缘。 */
+.pf-site .pf-home .pf-town-crossing__seam { display: block; position: relative; overflow: hidden; aspect-ratio: 1184 / 76; pointer-events: none; }
+.pf-site .pf-home .pf-town-crossing__seam img { display: block; width: 100%; max-width: 100%; height: auto; }
+/* 「落座」微动：滚入视口时播一次 2 帧（steps(2,end)），160ms ≤ 180ms；无 JS 则保持静态。 */
+.pf-site .pf-home .pf-town-crossing__seam.is-seated { animation: pf-seam-seat 160ms steps(2, end) 1; }
+@keyframes pf-seam-seat { from { transform: translateY(8px); } to { transform: none; } }
+
+.pf-site .pf-home .pf-home-play {
+  grid-template-columns: minmax(0,1fr) 142px minmax(0,1.45fr);
+  gap: clamp(16px,2.6vw,34px);
+  align-items: center;
+  padding: clamp(24px,3.2vw,42px);
+  overflow: hidden;
+  color: #303d31;
+  background: linear-gradient(#a4b88b 0 4px, #d8d9c5 4px 100%);
+  border: 0;
+  box-shadow: inset 0 -15px 0 #96876b, inset 0 -19px 0 #3c4736, 0 5px 0 rgba(42,48,37,.12);
+}
+.pf-site .pf-home .pf-home-play::before,
+.pf-site .pf-home .pf-home-play::after { content: none; display: none; }
+.pf-site .pf-home .pf-home-play__intro { position: relative; z-index: 1; }
+.pf-site .pf-home .pf-home-play__intro .pf-overline { color: #536342; }
+.pf-site .pf-home .pf-home-play__intro h2 { font-size: 36px; line-height: 48px; }
+.pf-site .pf-home .pf-home-play__intro > p:not(.pf-overline) { color: #465342; }
+.pf-site .pf-home .pf-home-play__intro > a { color: #244b31; }
+.pf-site .pf-home .pf-scene-art--street { display: block; width: 100%; max-width: 150px; height: auto; image-rendering: pixelated; pointer-events: none; }
+.pf-site .pf-home .pf-home-tv { position: relative; z-index: 1; min-width: 0; }
+
+/* v4.14 岔路口（替代原工作台两节）：小镇地面往黄昏渐暗，两块木牌各指一条路。
+   两牌刻意不等高、不同旋角、错开基线，避免规则等距的对称排布；
+   「种牌」入场由 data-fork-sign observer 驱动（is-planted），无 JS 时路牌保持静态可见。 */
+.pf-site .pf-home .pf-home-fork {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(230px, .6fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 56px);
+  padding: clamp(30px, 4.4vw, 56px) clamp(20px, 4vw, 48px) clamp(96px, 10vw, 136px);
+  overflow: hidden;
+  color: #303d31;
+  /* v4.14.1 黄昏改离散色带（硬停渐变＝分档色，无平滑过渡），顶部第一档与电视区地面 #d8d9c5 同色相接；
+     视觉评审修正：各档拉深加大档差（原 2/3 档色差过微妙）；暮色氛围由色带承担，小镇剪影由 dusk-town.svg 承担。 */
+  background: linear-gradient(180deg,
+    #d8d9c5 0 24%,
+    #d2c093 24% 48%,
+    #c2a67c 48% 72%,
+    #ab8767 72% 87%,
+    #8a6a63 87% 100%);
+  /* 双级暗路缘：最底深一档，为下一节夜色 #203b2c 做铺垫（评审指出原单级收边入夜太硬） */
+  border: 0;
+  box-shadow: inset 0 -7px 0 #6f574b, inset 0 -11px 0 #5b453c;
+}
+.pf-site .pf-home .pf-home-fork__town {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 0;
+  width: min(100%, 1184px);
+  height: auto;
+  transform: translateX(-50%);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.pf-site .pf-home .pf-home-fork__copy { position: relative; z-index: 1; }
+.pf-site .pf-home .pf-home-fork__copy .pf-overline { color: #536342; }
+.pf-site .pf-home .pf-home-fork__copy h2 { font-size: 36px; line-height: 48px; text-wrap: balance; }
+.pf-site .pf-home .pf-home-fork__signs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 42px);
+  min-height: 196px;
+}
+.pf-site .pf-home .pf-signpost {
+  --tilt: -2deg;
+  position: relative;
+  display: block;
+  color: #344431;
+  text-decoration: none;
+  transform: rotate(var(--tilt));
+  margin-top: 30px;
+}
+.pf-site .pf-home .pf-signpost--docs { --tilt: 1.6deg; margin-top: 78px; }
+.pf-site .pf-home .pf-signpost__post {
+  position: absolute;
+  z-index: -1;
+  top: 56px;
+  left: 22px;
+  width: 11px;
+  height: 150px;
+  background: #806044;
+  border: 2px solid #493d2d;
+  box-shadow: 4px 3px 0 rgba(43,48,35,.12);
+  pointer-events: none;
+}
+/* 着地阴影：桩端一条像素暗杠，让路牌在任何视口宽度都「插进」黄昏地面（评审指出原桩悬空） */
+.pf-site .pf-home .pf-signpost::after {
+  content: "";
+  position: absolute;
+  top: 206px;
+  left: 13px;
+  width: 29px;
+  height: 3px;
+  background: rgba(74,56,46,.38);
+  pointer-events: none;
+}
+.pf-site .pf-home .pf-signpost__board {
+  position: relative;
+  min-height: 98px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  row-gap: 7px;
+  column-gap: 18px;
+  padding: 15px 19px 15px 25px;
+  background: #e9cf83;
+  border: 2px solid #514631;
+  box-shadow: 5px 5px 0 rgba(43,48,35,.16);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 6% 50%);
+  transition: transform .16s ease, background-color .16s ease;
+}
+.pf-site .pf-home .pf-signpost--docs .pf-signpost__board { background: #d4d9aa; }
+.pf-site .pf-home .pf-signpost__board b { font-family: "FusionPixel", var(--font-sans); font-size: 24px; line-height: 24px; font-weight: 400; }
+.pf-site .pf-home .pf-signpost__board small { grid-column: 1; color: #594f37; font-size: .75rem; line-height: 1.4; }
+.pf-site .pf-home .pf-signpost__arrow { grid-column: 2; grid-row: 1 / span 2; font-size: 1.5rem; line-height: 1; color: #315238; transition: transform .14s steps(2, end); }
+.pf-site .pf-home .pf-signpost:hover .pf-signpost__board,
+.pf-site .pf-home .pf-signpost:focus-visible .pf-signpost__board { background: #f2dda0; transform: translate(2px,-2px); }
+.pf-site .pf-home .pf-signpost:focus-visible { outline: 3px solid #315238; outline-offset: 5px; }
+.pf-site .pf-home .pf-signpost:hover .pf-signpost__arrow,
+.pf-site .pf-home .pf-signpost:focus-visible .pf-signpost__arrow { transform: translateX(3px); }
+/* 「种牌」：滚入视口一次 3 帧落进地面；旋角经 --tilt 传进关键帧，避免动画期把 rotate 抹平 */
+.pf-site .pf-home .pf-signpost.is-planted { animation: pf-sign-plant 240ms steps(3, end) 1; }
+@keyframes pf-sign-plant { from { transform: translateY(18px) rotate(var(--tilt)); } to { transform: translateY(0) rotate(var(--tilt)); } }
+
+@media (max-width: 1000px) {
+  .pf-site .pf-home .pf-home-play { grid-template-columns: minmax(0,1fr) 132px; }
+  .pf-site .pf-home .pf-home-play__intro h2 { font-size: 36px; line-height: 48px; }
+  .pf-site .pf-home .pf-home-play__intro { grid-column: 1; }
+  .pf-site .pf-home .pf-home-play > .pf-scene-art--street { grid-column: 2; grid-row: 1; }
+  .pf-site .pf-home .pf-home-tv { grid-column: 1 / -1; }
+  .pf-site .pf-home .pf-home-fork { grid-template-columns: 1fr; gap: 18px; }
+}
+@media (max-width: 720px) {
+  .pf-site .pf-home { --pf-home-gap: 57px; }
+  .pf-site .pf-home .pf-waypoint { min-width: 210px; margin-top: -34px; margin-bottom: -25px; margin-left: 3%; }
+  .pf-site .pf-home .pf-town-crossing { margin-top: -34px; margin-bottom: calc(-1 * var(--pf-home-gap)); }
+  .pf-site .pf-home .pf-town-crossing > .pf-waypoint--street { margin: 0 0 0 3%; }
+  .pf-site .pf-home .pf-home-play { grid-template-columns: minmax(0,1fr) 112px; gap: 14px; padding: 21px 17px 34px; }
+  .pf-site .pf-home .pf-home-play__intro h2,
+  .pf-site .pf-home .pf-home-fork__copy h2 { font-size: 24px; line-height: 36px; text-wrap: balance; }
+  .pf-site .pf-home .pf-home-play > .pf-scene-art--street { max-width: 112px; }
+  .pf-site .pf-home .pf-home-tv { grid-column: 1 / -1; }
+  .pf-site .pf-home .pf-home-fork { padding: 26px 18px 88px; }
+  .pf-site .pf-home .pf-home-fork__signs { gap: 14px; min-height: 178px; }
+  .pf-site .pf-home .pf-signpost { margin-top: 22px; }
+  .pf-site .pf-home .pf-signpost--docs { margin-top: 62px; }
+}
+@media (max-width: 450px) {
+  .pf-site .pf-home .pf-waypoint { min-width: 196px; }
+  .pf-site .pf-home .pf-waypoint__board { min-height: 54px; padding: 7px 11px 7px 15px; }
+  .pf-site .pf-home .pf-waypoint__guide { right: -32px; width: 29px; height: 37px; }
+  .pf-site .pf-home .pf-home-play { grid-template-columns: minmax(0,1fr) 94px; gap: 10px; padding: 19px 13px 31px; }
+  .pf-site .pf-home .pf-home-play > .pf-scene-art--street { max-width: 94px; }
+  .pf-site .pf-home .pf-home-fork { padding: 22px 15px 74px; }
+  .pf-site .pf-home .pf-home-fork__signs { flex-direction: column; align-items: flex-start; gap: 16px; min-height: 0; }
+  .pf-site .pf-home .pf-signpost--docs { margin-top: 0; margin-left: auto; margin-right: 15%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-site .pf-home .pf-waypoint__board { transition: none; }
+  /* v4.11 街缘带「落座」微动：完全禁用（元素保持静态，不残留位移） */
+  .pf-site .pf-home .pf-town-crossing__seam,
+  .pf-site .pf-home .pf-town-crossing__seam.is-seated { animation: none !important; transform: none !important; }
+  /* v4.14 岔路口：种牌入场微动禁用（v4.14.2 向导待机动效已随小人一并移除） */
+  .pf-site .pf-home .pf-signpost.is-planted { animation: none !important; }
+}

@@ -1,645 +1,313 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
-import { siteConfig } from '../site.config';
-import { totalGameCount } from '../data/games';
-import { formatPeriod } from '../utils/format';
+import { caseNotes } from '../data/case-notes';
+import TownMap from '../components/TownMap.astro';
+import BattleBackdrop from '../components/BattleBackdrop.astro';
+import '../styles/home-media.css';
+import '../styles/home-scenes.css';
+import '../styles/town.css';
+import '../styles/home-journey.css';
 
-const projects = (await getCollection('projects')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const docs = await getCollection('docs');
-const feature = projects.find((p) => p.data.featured) ?? projects[0];
-// 任务日志：按开始日期从新到旧排（缺省退回 date）
-const otherProjects = projects
-  .filter((p) => p.id !== feature?.id)
-  .sort((a, b) => (b.data.start ?? b.data.date).valueOf() - (a.data.start ?? a.data.date).valueOf());
-const bvMatch = feature?.data.videoUrl?.match(/BV[0-9A-Za-z]{10}/);
-const playerUrl = bvMatch ? `https://player.bilibili.com/player.html?bvid=${bvMatch[0]}&page=1&high_quality=1&danmaku=0&autoplay=0` : null;
-const pickDoc = (id: string) => docs.find((d) => d.id === id);
-/** Hero 右侧「精品文档」折叠卡：主编精选 3 篇 */
-const featureDocs = ['death-stranding', 'fairytale-plan', 'world-regions'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
-/** 下方「图鉴」区：换另外 3 篇，避免与 Hero 卡同屏重复，并把曝光扩到 6 篇 */
-const codexDocs = ['bg3', 'world-timeline', 'keluomi'].map((id) => pickDoc(id)).filter((d): d is NonNullable<typeof d> => Boolean(d));
-
-const abilities = [
-  { name: '系统设计', ev: '「系统策划案」发挥了效果！→', href: '/docs/fairytale-plan/', value: 86, kind: 'hp' },
-  { name: '叙事设计', ev: '「世界观 · 剧本 · 对白」发挥了效果！→', href: '/docs/', value: 82, kind: 'hp' },
-  { name: '关卡设计', ev: '「游戏的阅历」发挥了效果！→', href: '/game-history/', value: 78, kind: 'pp' },
+const projects = await getCollection('projects');
+const feature = projects.find((p) => p.id === 'fairytale-demo');
+const videoBvid = feature?.data.videoUrl?.match(/\/video\/(BV[\da-zA-Z]+)/)?.[1];
+const videoEmbedUrl = videoBvid ? `https://player.bilibili.com/player.html?bvid=${videoBvid}&danmaku=0` : undefined;
+// The cards carry only a title, a symbol and their kind; detail lives in the case.
+const pokerCards = [
+  { title: '童话冒险', type: '可玩原型', href: '/projects/fairytale-demo/', suit: '/images/poker/poker-suit-choice.svg' },
+  { title: '死亡搁浅', type: '拆解案', href: '/docs/death-stranding/', suit: '/images/poker/poker-suit-connection.svg' },
+  { title: '上元古界', type: '世界与任务', href: '/projects/gujie/', suit: '/images/poker/poker-suit-compass.svg' },
+  { title: '唤她真名', type: '叙事剧本', href: '/projects/huanzhenming/', suit: '/images/poker/poker-suit-double-face.svg' },
 ];
+const selectedWorks = [
+  { id: 'fairytale-demo', title: '童话冒险', image: '/images/projects/fairytale/04-distance.jpg', alt: '童话冒险的距离机制战斗画面', label: '可玩原型' },
+  { id: 'gujie', title: '上元古界', image: '/images/projects/gujie/overview.jpg', alt: '上元古界的黎稷城场景', label: '世界与任务' },
+  { id: 'huanzhenming', title: '唤她真名', image: '/images/projects/huanzhenming/mba.jpg', alt: '唤她真名的幻想之城概念美术', label: '动画剧本' },
+].filter((work) => projects.some((project) => project.id === work.id));
 ---
 
-<Layout panel={false} theme="eb">
-  <!-- 遭遇战开场：非模态提示（无焦点陷阱，故不声明 aria-modal，避免读屏把背景当作不可访问） -->
-  <div id="eb-encounter" class="eb-encounter" role="dialog" aria-labelledby="eb-encounter-title">
-    <p id="eb-encounter-title" class="eb-encounter__line">求职的大学生 出现了！</p>
-    <button id="eb-start" type="button" class="eb-start">▶ PRESS START</button>
-  </div>
-
-  <div class="home-flow flex flex-col gap-7">
-    <!-- Hero：先用招聘方最关心的定位（届别/求职状态）建立第一印象，再给能力陈述与证据 -->
-    <section class="eb-window home-hero">
-      <div class="home-hero__content">
-        <p class="home-eyebrow"><span class="home-eyebrow__dot" aria-hidden="true"></span>2027 届 · 目标岗位：<strong class="home-eyebrow__role">{siteConfig.hero.role}</strong> · 实习 / 校招</p>
-        <h1 class="eb-title">把想象变成设计，<br /><span>再让它落地成可玩的游戏。</span></h1>
-        <p class="eb-body home-lead">{siteConfig.hero.tagline}</p>
-        <ul class="home-proof" aria-label="个人经历摘要">
-          <li><strong><span class="eb-odo" data-odo="4">4</span></strong><span>个项目</span></li>
-          <li><strong><span class="eb-odo" data-odo="1">1</span></strong><span>款可玩 Demo</span></li>
-          <li><strong><span class="eb-odo" data-odo="6000">6000</span>+</strong><span>小时游戏体验</span></li>
-        </ul>
-        <div class="home-actions mt-6 flex flex-wrap gap-3">
-          <a href={`/projects/${feature?.id}/`} class="eb-btn-solid">查看代表项目</a>
-          <a href={siteConfig.resumeUrl} target="_blank" rel="noopener" class="eb-btn-line">下载简历</a>
-          <a href={`mailto:${siteConfig.email}`} class="home-text-link">联系我</a>
+<Layout description="明鑫的游戏系统策划作品集：可玩原型、项目案例与策划文档。">
+  <div class="pf-container pf-home">
+    <div class="pf-home-scene" data-home-scene="intro" data-scene-label="出发">
+    <section class="pf-hero" aria-labelledby="hero-title">
+      <div class="pf-hero__copy">
+        <div class="pf-hero__identity"><span>明鑫 · 游戏系统策划</span></div>
+        <h1 id="hero-title">想象世界，<br /><span>改造世界。</span></h1>
+        <p class="pf-hero__lead">擅长把想象变成完善的设计，<br />再让它落地成可玩的游戏。</p>
+        <div class="pf-actions">
+          <a href="#home-play" class="pf-button pf-button--primary">打一场？ <span aria-hidden="true">↓</span></a>
         </div>
       </div>
-      <aside class="home-docs" aria-label="精品文档">
-        <div class="home-docs__stack">
-          {
-            featureDocs.map((d, i) => (
-              <a
-                href={`/docs/${d.id}/`}
-                class:list={['home-doc', `home-doc--${i + 1}`]}
-              >
-                <span class="home-doc__em">{d.data.category ?? '文档'}</span>
-                <strong class="home-doc__title">{d.data.title}</strong>
-                <span class="home-doc__sum" aria-hidden="true">{d.data.summary}</span>
-                <span class="home-doc__cta">阅读 <b aria-hidden="true">→</b></span>
-              </a>
-            ))
-          }
+      <div class="pf-poker" data-poker role="group" aria-label="冒险扑克作品牌" tabindex="0">
+        <div class="pf-poker__stage" data-poker-swipe>
+          {pokerCards.map((card, i) => <article class="pf-poker-card" data-poker-face data-index={i} data-suit={i + 1} data-active={i === 0} data-stack-slot={['front', 'next', 'opposite', 'prev'][i]} data-mobile-slot={i === 0 ? 'front' : ['mid-near', 'mid-far', 'back'][i - 1]} aria-label={`第 ${String(i + 1).padStart(2, '0')} 张：${card.title}`}>
+            <button class="pf-poker-card__face" type="button" data-poker-select={i} data-href={card.href} data-num={String(i + 1).padStart(2, '0')} aria-label={`打开或选择《${card.title}》：${card.type}`} aria-pressed={i === 0}>
+              <span class="pf-poker-card__body"><span class="pf-poker-card__symbol"><img src={card.suit} alt="" loading={i === 0 ? 'eager' : 'lazy'} /></span><span class="pf-poker-card__name"><span class="pf-poker-card__name-main">{card.title}</span></span><span class="pf-poker-card__type">{card.type}</span></span>
+              <span class="pf-poker-card__sheen" aria-hidden="true"></span>
+            </button>
+            <span class="pf-poker-card__corner pf-poker-card__corner--tl" aria-hidden="true"><b>{String(i + 1).padStart(2, '0')}</b><img src={card.suit} alt="" loading="lazy" /></span>
+            <span class="pf-poker-card__corner pf-poker-card__corner--br" aria-hidden="true"><b>{String(i + 1).padStart(2, '0')}</b><img src={card.suit} alt="" loading="lazy" /></span>
+            <span class="pf-poker-card__enter" aria-hidden="true">↗</span>
+          </article>)}
         </div>
-      </aside>
-    </section>
-
-    <!-- 能力：角色状态栏 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title">◆ 明鑫 的状态栏</h2>
-      <div class="mt-4 grid gap-5 sm:grid-cols-3">
-        {abilities.map((a) => (
-          <a href={a.href} class="eb-stat block">
-            <div class="flex items-baseline justify-between">
-              <span class="eb-stat__name">{a.name}</span>
-              <span class="eb-stat__num"><span class="eb-odo" data-odo={String(a.value)}>{a.value}</span></span>
-            </div>
-            <div class="eb-stat__bar" aria-hidden="true"><span class={`eb-stat__fill ${a.kind}`} style={`width:${a.value}%`}></span></div>
-            <span class="eb-ev">{a.ev}</span>
-          </a>
-        ))}
+        <div class="pf-poker__controls"><button type="button" data-poker-prev aria-label="上一张作品牌">←</button><span data-poker-counter aria-live="polite">01 / 04</span><button type="button" data-poker-next aria-label="下一张作品牌">→</button></div>
       </div>
     </section>
+    </div>
 
-    <!-- 代表项目：像素电视机 -->
-    {
-      feature && (
-        <section class="eb-tv">
-          <div class="eb-tv__top">
-            <span class="eb-tv__brand">童话冒险 DEMO</span>
-            <span id="eb-tv-power" class="eb-tv__power" aria-hidden="true"></span>
-          </div>
-          <div class="eb-tv__screen">
-            <div class="eb-tv__inner">
-              <div id="eb-battle-swap" class="eb-swap">
-                <div class="eb-swap__pane is-active" data-slot="play">
-                  <!-- 雪花屏：电视开机未调台画面（点击开始 → 直启游戏，无中间封面） -->
-                  <div class="eb-tv__static" data-cover>
-                    <canvas class="eb-cover-warp" id="eb-cover-warp" aria-hidden="true"></canvas>
-                    <button id="eb-play-launch" type="button" class="eb-tv__play" aria-label="开始试玩">▶</button>
-                  </div>
-                  <!-- 游戏本体：仅点击后挂 src（惰性，避免首屏加载 40MB） -->
-                  <div class="eb-swap__game" data-game hidden>
-                    <p class="eb-swap__loading" aria-hidden="true">正在召唤试玩…（约 40MB，首次加载 10–30 秒）</p>
-                    <iframe data-src="https://play.limao.site/" title="童话冒险 DEMO 在线试玩" class="eb-video" allow="autoplay; fullscreen; gamepad"></iframe>
-                  </div>
-                </div>
-                {
-                  playerUrl && (
-                    <div class="eb-battle__video eb-swap__pane" data-slot="video">
-                      <p class="eb-swap__loading" aria-hidden="true">正在召唤演示视频…</p>
-                      <iframe data-src={playerUrl} title="童话冒险 DEMO 演示视频" class="eb-video" allow="fullscreen; accelerometer; encrypted-media; picture-in-picture"></iframe>
-                    </div>
-                  )
-                }
-                <div class="eb-swap__flash" aria-hidden="true"></div>
-              </div>
-            </div>
-          </div>
-          <div class="eb-tv__controls">
-            <p class="eb-tv__dialog">野生的 可玩 Demo 跳了出来！—— 要做些什么呢？</p>
-            {
-              (playerUrl || feature.data.demoUrl) && (
-                <div class="eb-hint mt-3" id="eb-hint">
-                  <a href={`/projects/${feature.id}/`} class="eb-btn-line eb-hint__project" data-slot-active="play">查看完整项目</a>
-                  <span class="eb-hint__sep" aria-hidden="true">/</span>
-                  <a
-                    id="eb-play-cta"
-                    class="eb-btn-solid eb-play-main"
-                    href="https://play.limao.site/"
-                    target="_blank"
-                    rel="noopener"
-                    data-slot-active="play"
-                  >
-                    ▶ 直接打一场试试
-                  </a>
-                  {
-                    playerUrl && (
-                      <>
-                        <span class="eb-hint__sep" aria-hidden="true">/</span>
-                        <button id="eb-video-toggle" type="button" class="eb-btn-line eb-hint__watch" data-slot-active="play">
-                          观看演示视频
-                        </button>
-                      </>
-                    )
-                  }
-                </div>
-              )
-            }
-          </div>
-        </section>
-      )
-    }
 
-    <!-- 其他项目：任务日志 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title">◆ 任务日志（其他项目）</h2>
-      <div class="mt-3 space-y-3">
-        {otherProjects.map((p) => (
-          <a href={`/projects/${p.id}/`} class="eb-log-row eb-log-row--thumb">
-            {p.data.cover && (
-              <img src={p.data.cover} alt="" class="eb-log-thumb" loading="lazy" decoding="async" />
-            )}
-            <span class="eb-body">{p.data.title}</span>
-            <span class="eb-log-right">
-              <span class="eb-ev">{p.data.type} · {p.data.role}</span>
-              <span class="eb-log-date">{formatPeriod(p.data.start, p.data.date)}</span>
-            </span>
-          </a>
-        ))}
+
+    {feature && <div id="home-play" class="pf-home-scene pf-home-scene--play" data-home-scene="play" data-scene-label="打一场？"><div class="pf-home-play-scene">
+    <div class="pf-town-crossing">
+      <span class="pf-town-crossing__seam" data-street-seam aria-hidden="true"><img src="/images/scenes/street-seam.svg" alt="" width="1184" height="88" loading="lazy" /></span>
+    </div>
+
+    <section class="pf-home-play" aria-labelledby="home-play-title">
+      <div class="pf-home-play__intro"><p class="pf-overline">街角电视</p><h2 id="home-play-title">打一场？</h2><img class="pf-scene-art pf-scene-art--street" src="/images/scenes/street-audience.svg" alt="" aria-hidden="true" /></div>
+      <div class="pf-home-tv" data-home-play>
+        <div class="pf-home-tv__top"><span>童话冒险 · 媒体频道</span><i aria-hidden="true"></i></div>
+        <div class="pf-home-tv__channels" role="group" aria-label="选择体验频道"><button type="button" data-home-channel="game" aria-pressed="true">试玩游戏</button>{videoEmbedUrl && <button type="button" data-home-channel="video" aria-pressed="false">观看演示</button>}</div>
+        <div class="pf-home-tv__screen" data-home-game-screen><div data-home-poster><BattleBackdrop variant="game" /></div><button class="pf-media-start" type="button" data-home-start aria-label="开始试玩《童话冒险》"><img src="/images/scenes/play.svg" alt="" width="64" height="72" /></button><p data-home-loading role="status" hidden>正在载入游戏，请稍候……</p><iframe title="童话冒险在线试玩" data-home-frame data-src="https://play.limao.site/" allow="autoplay; fullscreen; gamepad" hidden></iframe></div>
+        {videoEmbedUrl && <div class="pf-home-tv__screen" data-home-video-screen hidden><div data-home-video-poster><BattleBackdrop variant="video" /></div><button class="pf-media-start" type="button" data-home-video-start aria-label="播放《童话冒险》演示视频"><img src="/images/scenes/play.svg" alt="" width="64" height="72" /></button><iframe title="童话冒险演示视频（哔哩哔哩）" data-home-video-frame data-src={videoEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" hidden></iframe></div>}
+
+        <details class="pf-home-tv__help" data-home-help hidden><summary>画面没出来？</summary><div><p>嵌入的游戏载入可能受网络影响。</p><button type="button" data-home-retry>重新载入游戏</button></div></details>
+        <div class="pf-home-tv__bottom"><a data-home-game-link href="https://play.limao.site/" target="_blank" rel="noopener noreferrer">新窗口试玩 ↗</a>{feature.data.videoUrl && <a data-home-video-fallback href={feature.data.videoUrl} target="_blank" rel="noopener noreferrer" hidden>在 B 站观看 ↗</a>}</div>
       </div>
     </section>
+    </div></div>}
 
-    <!-- 代表策划文档：图鉴（与上方 Hero 精品卡取不同篇目，避免同屏重复）
-         每条做成独立图块：分类 chip + 「标题 ……… 查看 →」同一行对齐 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title">◆ 图鉴（代表策划文档）</h2>
-      <div class="codex-grid mt-3">
-        {codexDocs.map((d) => (
-          <a href={`/docs/${d.id}/`} class="codex-card">
-            <span class="eb-chip">{d.data.category}</span>
-            <span class="codex-card__row">
-              <span class="codex-card__title">{d.data.title}</span>
-              <span class="codex-card__more">查看 <b aria-hidden="true">→</b></span>
-            </span>
-          </a>
-        ))}
+    <div id="works" class="pf-home-scene" data-home-scene="works" data-scene-label="作品橱窗">
+    <section class="pf-selected" aria-labelledby="selected-title">
+      <div class="pf-selected__heading"><h2 id="selected-title">作品橱窗</h2><a class="pf-text-link" href="/projects/">更多</a></div>
+      <div class="pf-selected__grid">
+        {selectedWorks.map((work, i) => <a class:list={['pf-work', i === 0 && 'pf-work--featured']} href={`/projects/${work.id}/`}>
+          <div class="pf-work__image"><img src={work.image} alt={work.alt} loading="lazy" decoding="async" /><span class="pf-work__number" aria-hidden="true">0{i + 1}</span></div>
+          <div class="pf-work__body"><p class="pf-work__label">{work.label}</p><h3>{work.title}</h3><div class="pf-work__bottom"><span>{caseNotes[work.id].status}</span><strong aria-label="查看案例"><span aria-hidden="true">↗</span></strong></div></div>
+        </a>)}
       </div>
-      <div class="mt-4"><a href="/docs/" class="eb-more-link">打开完整图鉴 →</a></div>
+      <a class="pf-selected__note" href="/docs/fairytale-plan/"><span aria-hidden="true">✎</span><span>《童话冒险》手稿</span><span aria-hidden="true">→</span></a>
     </section>
+    </div>
 
-    <!-- 游戏经历：冒险记录 -->
-    <section class="eb-window">
-      <h2 class="eb-window__title">◆ 至今的冒险（游戏经历）</h2>
-      <p class="eb-dialog mt-2 home-experience">已收集 <span class="home-num"><span class="eb-odo" data-odo={String(totalGameCount)}>{totalGameCount}</span></span> 款游戏、累计 <span class="home-num"><span class="eb-odo" data-odo="6000">6000</span></span>+ 小时。不只于体验，我会保持思考。在回合制游戏中思考地形利用、行动经济与构筑博弈。在叙事驱动游戏中考察结构、人物、世界观和冲突设计。优秀的游戏设计会进入我的灵感库，成为我设计时的辅助。</p>
-      <div class="mt-3 flex flex-wrap gap-2">
-        {['回合制', '叙事驱动', '机制创新', '剧情结构','行动经济'].map((t) => (
-          <span class="rounded px-2 py-1 text-xs" style="background:#1f140d;color:var(--eb-frame)">{t}</span>
-        ))}
-      </div>
-      <div class="mt-4"><a href="/game-history/" class="eb-more-link">查看更多经历 →</a></div>
-    </section>
 
-    <!-- CTA：入队事件 -->
-    <section class="eb-window">
-      <p class="eb-dialog text-center">要让 明鑫 加入队伍吗？</p>
-      <div class="mt-4 flex flex-wrap justify-center gap-3">
-        <a href={siteConfig.resumeUrl} target="_blank" class="eb-btn-solid">▶ 要（下载简历）</a>
-        <button id="eb-no" type="button" class="eb-btn-line">不要</button>
-        <a href={`mailto:${siteConfig.email}`} class="eb-btn-line">直接联系</a>
-      </div>
-      <p id="eb-no-msg" class="eb-dialog mt-3 text-center" role="status" aria-live="polite" hidden>……真是遗憾呢。（那就看看项目吧 → <a href="/projects/" class="eb-link">任务日志</a>）</p>
-    </section>
+
+    <div id="town" class="pf-home-scene pf-home-scene--town" data-home-scene="town" data-scene-label="随便走走"><TownMap /></div>
   </div>
+  <nav class="pf-scene-nav" aria-label="首页章节" data-scene-nav hidden>
+    {['首页', '打一场？', '作品橱窗', '随便走走'].map((label, i) => <button type="button" data-scene-go={i} data-label={label} aria-label={`前往${label}`}><span aria-hidden="true"></span></button>)}
+  </nav>
 </Layout>
 
-<style>
-  .home-flow { padding-block: .25rem 1rem; }
-  .home-hero { display:grid; grid-template-columns:minmax(0,1fr) 15rem; gap:2.7rem; align-items:stretch; padding:clamp(2rem,5vw,3.6rem); overflow:hidden; }  /* 间距来自 gap 与卡片左偏的差值；文字区需 ≥612px 才能保住标题三行 */
-  .home-hero::after { content:""; position:absolute; width:18rem; height:18rem; right:-7rem; top:-9rem; border-radius:50%; border:2px solid rgba(120,80,40,.14); box-shadow:0 0 0 2rem rgba(120,80,40,.035),0 0 0 5rem rgba(120,80,40,.025); pointer-events:none; }
-  .home-hero__content { position:relative; z-index:1; }
-  .home-eyebrow { display:flex; align-items:center; gap:.55rem; color:#50643b; font-size:.78rem; font-weight:700; letter-spacing:.06em; margin-bottom:1.35rem; }
-  .home-eyebrow__dot { width:.55rem; height:.55rem; background:#5f913d; border:2px solid #26311d; border-radius:50%; box-shadow:0 0 0 3px rgba(95,145,61,.16); }
-  .home-eyebrow__role { color:#3d5a24; font-weight:800; }  /* 目标岗位提亮：同色系深绿加粗，不引入新颜色 */
-  .home-greeting { margin-bottom:.25rem; }
-  .home-hero .eb-title { font-size:clamp(2.25rem,5.5vw,4.5rem); line-height:1.08; max-width:13em; letter-spacing:-.025em; text-wrap:balance; } /* 上限 4.5rem=72px=12 网格 ×6，像素颗粒均匀 */
-  .home-hero .eb-title span { color:#9b472c; }
-  .home-lead { max-width:46rem; margin-top:1.35rem; font-size:1rem; line-height:1.9; color:#514535; }
-  .home-proof { display:flex; flex-wrap:wrap; margin-top:1.75rem; }
-  .home-proof li { display:flex; flex-direction:column; min-width:7.5rem; padding:0 1.35rem; border-left:1px solid rgba(42,26,18,.18); }
-  .home-proof li:first-child { padding-left:0; border-left:0; }
-  .home-proof strong { font-family:"FusionPixel",var(--font-sans); color:#262016; font-size:1.45rem; line-height:1; }
-  .home-proof li > span { margin-top:.4rem; color:#6a5b45; font-size:.72rem; }  /* 仅标签 span；.eb-odo 在 strong 内不受影响 */
-  .home-actions { align-items:center; }
-  .home-text-link { min-height:44px; display:inline-flex; align-items:center; padding-inline:.65rem; color:#74411f; font-size:.85rem; font-weight:700; text-decoration:underline; text-underline-offset:.3em; }
-  /* 精品文档：折叠票据堆（3 张层叠错开，悬停抽出，点击跳转） */
-  /* 精品文档：三张修长卡片折叠成一叠（上下交叠露边，悬停抽出，点击跳转） */
-  .home-docs {
-    position:relative; z-index:1; align-self:stretch; display:flex; flex-direction:column;
-    padding:.25rem 0; justify-content:stretch;
-  }
-  /* 纸条叠：相对定位，纸条绝对定位，从顶部开始叠 */
-  .home-docs__stack { position:relative; flex:1; min-height:23rem; }
-  /* 每张纸条：撑满宽度的修长卡片，叠放露顶边+左右边；沿一条轻微弧线排布；颜色逐张变化 */
-  .home-doc {
-    position:absolute; left:0.5rem; right:0.5rem; top:0; height:82%; display:flex; flex-direction:column; gap:.5rem;
-    padding:1.25rem 1.25rem 1rem; border-radius:8px; cursor:pointer; text-decoration:none;
-    border:3px solid var(--doc-edge); outline:2px solid var(--doc-outline);
-    background:var(--doc-bg); color:var(--doc-ink); box-shadow:5px 5px 0 rgba(24,20,16,.2);
-    transform:translateX(var(--arc-x,0px)) rotate(var(--r,0deg));
-    transition:transform .32s cubic-bezier(.2,1,.3,1), box-shadow .3s;
-  }
-  /* 三张叠放：前卡最低、后卡渐高（每张头部露出来，标题可见），沿弧线左右蜿蜒 */
-  .home-doc--1 { --r:.5deg;   top:calc(16%); --arc-x:2.2rem;  z-index:3; }   /* 前：偏右（过轴右侧） */
-  .home-doc--2 { --r:0deg;    top:calc(8%);  --arc-x:-1.2rem; z-index:2; }   /* 中：弧线凸向左（过轴左侧） */
-  .home-doc--3 { --r:-0.5deg; top:calc(0%);  --arc-x:0.5rem;  z-index:1; }   /* 后：回摆到轴右 */
-  /* 逐张换色：深绿 → 米金Beige → 暖米纸（协调于全站色板） */
-  .home-doc--1 {
-    --doc-bg:#27341f; --doc-ink:#f8f4dc; --doc-edge:#f8f4dc; --doc-outline:#1b2117;
-    --doc-em:#a9b98a; --doc-cta:#e0c98a; --doc-sum:#c9d4ae;
-  }
-  .home-doc--2 {
-    --doc-bg:#f5f5dc; --doc-ink:#3a2a10; --doc-edge:#3a2a10; --doc-outline:#262016;
-    --doc-em:#6b4f1c; --doc-cta:#74411f; --doc-sum:#6a5b3e;
-  }
-  .home-doc--3 {
-    --doc-bg:#f6efdb; --doc-ink:#2b2418; --doc-edge:#262016; --doc-outline:#262016;
-    --doc-em:#9b472c; --doc-cta:#74411f; --doc-sum:#6a5b3e;
-  }
-  /* 悬停：抽出当前卡片，浮起 */
-  .home-doc:hover { transform:rotate(0deg) translateY(-14px) scale(1.02); z-index:9; box-shadow:9px 13px 0 rgba(24,20,16,.22); }
-  .home-doc__em { font-family:"FusionPixel",var(--font-sans); font-size:.72rem; letter-spacing:.12em; color:var(--doc-em); }
-  .home-doc__title { font-size:1rem; font-weight:800; line-height:1.4; color:var(--doc-ink); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-  /* 摘要：填满卡片中段，顺便让招聘方多看到一句内容 */
-  .home-doc__sum { font-size:13px; line-height:1.55; color:var(--doc-sum); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .home-doc__cta { margin-top:auto; padding-top:.4rem; color:var(--doc-cta); font-size:.74rem; font-weight:700; }
-  .home-experience { max-width:45em; }  /* 放宽到接近满宽（765px，右侧仅余 17px），行长 45 字 */
-  .home-num { color:#9b472c; font-weight:800; }  /* 关键数字用番茄红加粗强调；不换字体/字号 */
-  /* 滚轮容器是 inline-flex + overflow:hidden，基线落在容器底部，
-     在 16px 正文字号下需比默认 -0.14em 再下移，才能与正文基线齐平 */
-  .home-num .eb-odo { vertical-align: 0.05em; }  /* 基线齐平后微抬（阿拉伯数字视觉高度低于中文），再回调 1px */
-  /* 图鉴：每条独立成块（奶油底 + 棕描边 + 硬阴影），比任务日志的分隔线列表更有"藏品"感；
-     分类 chip 独占一行，标题与「查看 →」在下一行按 baseline 对齐 */
-  .codex-grid { display:grid; gap:.75rem; }
-  .codex-card {
-    display:block;
-    padding:.8rem .95rem .85rem;
-    background:#f4ecd8;
-    border:2px solid #8a6a3a;
-    border-radius:6px;
-    box-shadow:3px 3px 0 rgba(38,32,22,.14);
-    text-decoration:none;
-    transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease;
-  }
-  .codex-card:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 rgba(38,32,22,.2); background:#faf3e2; }
-  .codex-card:active { transform:translate(1px,1px); box-shadow:none; }
-  .codex-card__row { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-top:.45rem; }
-  .codex-card__title {
-    flex:1 1 auto;
-    min-width:0;
-    font-family:"FusionPixel", var(--font-sans);
-    color:#2b2418;
-    font-size:1rem;
-    line-height:1.5;
-    overflow-wrap:anywhere;
-  }
-  .codex-card__more {
-    flex:0 0 auto;
-    font-family:"FusionPixel", var(--font-sans);
-    font-size:.8rem;
-    color:#9a5a1e;
-    white-space:nowrap;
-  }
-  .home-log-title { overflow-wrap:anywhere; }
-  .eb-chip { border-radius:4px; padding:.12rem .5rem; font-size:.68rem; letter-spacing:.05em; background:#1f140d; color:var(--eb-frame); }
-  /* 面板级"更多"入口：与条目级"查看 →"链接拉开层级 */
-  .home-flow .eb-more-link { margin-top:1rem; }
-  @media (max-width:760px) {
-    .home-flow { gap:1.25rem; }
-    .home-hero { grid-template-columns:1fr; gap:1.5rem; padding:1.75rem 1.55rem; }
-    .home-hero .eb-title { font-size:clamp(1.75rem,8.5vw,2.25rem); line-height:1.15; }  /* 原 39px 断 4 行，压到 28–36px */
-    .home-lead { font-size:.92rem; line-height:1.8; }
-    .home-hero__quest { display:none; }
-    .home-docs { display:flex; margin-top:.5rem; }
-    /* 移动端：三张精品文档垂直紧凑列表。
-       字号不再跟着"缩到 50%"——0.58rem(≈9.3px) 低于可读底线；
-       只压缩间距，摘要保住 0.68rem(≈11px) 一档。 */
-    .home-docs__stack { display:flex; flex-direction:column; gap:.4rem; min-height:0; flex:0 0 auto; }
-    .home-doc {
-      position:static; height:auto; width:100%; left:auto; right:auto;
-      transform:none; padding:.65rem .75rem .55rem; gap:.2rem;
-    }
-    .home-doc--1,.home-doc--2,.home-doc--3 { top:auto; transform:none; }
-    .home-doc:hover { transform:none; box-shadow:5px 5px 0 rgba(24,20,16,.2); }
-    .home-doc__em { font-size:.62rem; letter-spacing:.08em; }
-    .home-doc__title { font-size:.82rem; -webkit-line-clamp:2; }
-    .home-doc__sum { font-size:12px; line-height:1.45; -webkit-line-clamp:2; }
-    .home-doc__cta { font-size:.66rem; padding-top:.25rem; }
-    .home-proof { display:grid; grid-template-columns:repeat(3,1fr); }
-    .home-proof li { min-width:0; padding-inline:.75rem; }
-    .home-proof strong { font-size:1.15rem; }
-    .home-proof li > span { font-size:.72rem; white-space:nowrap; }  /* 10.88px→11.5px，标签不再拆出孤字 */
-    .home-actions > * { flex:1 1 auto; }
-    .home-text-link { justify-content:center; flex-basis:100%; }
-    .home-eyebrow { font-size:.72rem; letter-spacing:.02em; flex-wrap:wrap; }  /* 补了岗位后文案变长，允许换行避免横向溢出 */
-  }
-</style>
+<script>
+  import { initHomeJourney } from '../scripts/home-journey';
+  initHomeJourney();
+</script>
 
 <script>
-  // 遭遇战开场：只在首次真正进入站点时出现一次，之后不再出现。
-  // 用 initEncounter() + astro:after-swap 处理客户端平滑导航（点「首页」等）：
-  // 否则切换后覆盖层被重新注入却没有移除/绑定逻辑，会卡住整个首页。
-  function initEncounter() {
-    let el = document.getElementById('eb-encounter');
-    let seen = false;
-    try { seen = localStorage.getItem('eb-seen') === '1'; } catch {}
-    const skip = seen || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    if (el && skip) { el.remove(); el = null; }
-    const start = el && document.getElementById('eb-start');
-    if (el && start && !start.dataset.bound) {
-      start.dataset.bound = '1';
-      let dismissed = false;
-      let timer;
-      const onKey = (event) => {
-        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') dismiss();
-      };
-      const dismiss = () => {
-        if (dismissed) return;
-        dismissed = true;
-        clearTimeout(timer);
-        document.removeEventListener('keydown', onKey);
-        el.classList.add('is-leaving');
-        try { localStorage.setItem('eb-seen', '1'); } catch {}
-        setTimeout(() => el.remove(), 700);
-      };
-      start.addEventListener('click', dismiss, { once: true });
-      // 点击遮罩任意处也可关闭（求职场景下不让人被开场卡住）
-      el.addEventListener('click', dismiss);
-      document.addEventListener('keydown', onKey);
-      // 自动消失兜底：2.2s——文案短、不点也能进，尽量少占用招聘方的首屏时间
-      timer = setTimeout(dismiss, 2200);
-      start.focus();
-    }
-  }
-  initEncounter();
-  document.addEventListener('astro:after-swap', initEncounter);
-
-  // 「不要」反馈：与遭遇战同理，每次页面注入后都要重新绑定（ClientRouter 切回首页会生成新 DOM）
-  function bindNoBtn() {
-    const noBtn = document.getElementById('eb-no');
-    const noMsg = document.getElementById('eb-no-msg');
-    if (noBtn && noMsg && !noBtn.dataset.bound) {
-      noBtn.dataset.bound = '1';
-      noBtn.addEventListener('click', (e) => {
-        noMsg.hidden = false;
-        // 用 aria-disabled 而非原生 disabled：保留键盘焦点不丢到 body，
-        // 并把焦点移到刚出现的消息上，读屏能立即读到（配合 role=status）
-        noBtn.setAttribute('aria-disabled', 'true');
-        noBtn.style.pointerEvents = 'none';
-        noBtn.style.opacity = '0.55';
-        noMsg.setAttribute('tabindex', '-1');
-        noMsg.focus();
-        window.__ebPop?.('silence', e.clientX, e.clientY, noBtn); /* 表情反馈：无语 */
+  const deck = document.querySelector('[data-poker]');
+  if (deck) {
+    const cards = Array.from(deck.querySelectorAll('[data-poker-face]')) as HTMLElement[];
+    const selectors = Array.from(deck.querySelectorAll('[data-poker-select]')) as HTMLButtonElement[];
+    let activeIndex = 0;
+    const show = (index: number) => {
+      activeIndex = (index + cards.length) % cards.length;
+      const resting = cards.map((_, i) => i).filter((i) => i !== activeIndex);
+      const prevIndex = (activeIndex + cards.length - 1) % cards.length;
+      const nextIndex = (activeIndex + 1) % cards.length;
+      const oppositeIndex = (activeIndex + 2) % cards.length;
+      cards.forEach((card, i) => {
+        card.dataset.active = String(i === activeIndex);
+        card.dataset.stackSlot = i === activeIndex ? 'front' : i === prevIndex ? 'prev' : i === nextIndex ? 'next' : 'opposite';
+        card.dataset.mobileSlot = i === activeIndex ? 'front' : ['mid-near', 'mid-far', 'back'][resting.indexOf(i)];
+        const button = card.querySelector('[data-poker-select]');
+        button?.setAttribute('aria-pressed', String(i === activeIndex));
       });
-    }
-  }
-  bindNoBtn();
-  document.addEventListener('astro:after-swap', bindNoBtn);
-
-  // BOSS 战：每次 ClientRouter 回到首页都初始化新 DOM；离开前主动销毁媒体与监听。
-  function initBattleMedia() {
-    const swapBox = document.getElementById('eb-battle-swap');
-    const videoTog = document.getElementById('eb-video-toggle');
-    const playLaunch = document.getElementById('eb-play-launch');
-    const hintBox = document.getElementById('eb-hint');
-    const playCta = document.getElementById('eb-play-cta');
-    if (!swapBox || swapBox.dataset.bound || !(videoTog || playLaunch)) return;
-    swapBox.dataset.bound = '1';
-    const controller = new AbortController();
-    const { signal } = controller;
-    {
-    const video = swapBox.querySelector('[data-slot="video"]');
-    const play = swapBox.querySelector('[data-slot="play"]');
-    const cover = play?.querySelector('[data-cover]');
-    const gameWrap = play?.querySelector('[data-game]');
-    const videoIframe = video?.querySelector('iframe');
-    const playIframe = gameWrap?.querySelector('iframe');
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let busy = false;
-    let started = false; // 游戏是否启动过（惰性：首次点封面才挂 src）
-
-    // 把某个 iframe 的 src 拆掉 → 内嵌的 video/audio 元素随 DOM 一并销毁，音频必停
-    const kill = (f) => { if (f) f.removeAttribute('src'); };
-    const pauseGodot = (f) => { try { f?.contentWindow?.postMessage({ type: 'pause' }, '*'); } catch {} };
-
-    // 启动游戏（惰性触发）：隐藏封面，显示游戏层并挂 src。
-    // 加载反馈：iframe 挂 src 后到游戏就绪有几秒空白（40MB 本体），期间保持
-    // "NOW LOADING"文字可见（iframe 先藏起来），onload 后再亮出来，避免死等白屏。
-    const launch = () => {
-      if (started) return;
-      // 移动端 / 触屏：页内加载 40MB Godot 包基本必然白屏或失败——
-      // 改为新窗口打开游戏，避免把人卡在死等状态。
-      if (window.matchMedia && window.matchMedia('(max-width: 820px), (pointer: coarse)').matches) {
-        window.open('https://play.limao.site/', '_blank', 'noopener');
+      const counter = deck.querySelector('[data-poker-counter]');
+      if (counter) counter.textContent = `${String(activeIndex + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
+    };
+    deck.querySelector('[data-poker-prev]')?.addEventListener('click', () => show(activeIndex - 1));
+    deck.querySelector('[data-poker-next]')?.addEventListener('click', () => show(activeIndex + 1));
+    const isTouchLayout = window.matchMedia('(hover: none), (max-width: 720px)');
+    selectors.forEach((button, i) => button.addEventListener('click', (event) => {
+      if (isTouchLayout.matches) {
+        event.preventDefault();
+        // v4.13：手机端「先选后进」——点后牌先选中，再点已选中的牌直接进入
+        //（入口不再依赖常驻 ↗ 徽记，牌面保持干净）。
+        if (i !== activeIndex) show(i);
+        else window.location.assign(button.dataset.href ?? '');
         return;
       }
-      started = true;
-      // 电视电源灯：开播 → 红变绿
-      const power = document.getElementById('eb-tv-power');
-      if (power) power.classList.add('is-on');
-      if (playIframe && !playIframe.src) {
-        const loading = gameWrap?.querySelector('.eb-swap__loading');
-        if (loading) loading.style.display = ''; // 二次启动时恢复加载层
-        playIframe.style.visibility = 'hidden';
-        playIframe.addEventListener('load', () => {
-          if (loading) loading.style.display = 'none';
-          playIframe.style.visibility = 'visible';
-        }, { once: true });
-        playIframe.src = 'https://play.limao.site/';
-      }
-      if (cover) cover.style.display = 'none';
-      if (gameWrap) gameWrap.hidden = false;
+      const href = button.dataset.href;
+      if (href) window.location.assign(href);
+    }));
+    deck.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      if (event.key === 'ArrowLeft') { show(activeIndex - 1); event.preventDefault(); }
+      if (event.key === 'ArrowRight') { show(activeIndex + 1); event.preventDefault(); }
+    });
+    const swipeArea = deck.querySelector('[data-poker-swipe]');
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerDown = false;
+    let activePointerId: number | null = null;
+    let suppressClickUntil = 0;
+    const resetPointer = () => {
+      pointerDown = false;
+      activePointerId = null;
     };
-
-    // 切换到试玩/视频态。离开试玩即销毁实例；返回时停在封面，必须再次主动点击才加载。
-    // 这样既不会后台残留音乐，也不会因「返回」动作自动创建新的 Godot 音频上下文。
-    const showSlot = (slot) => {
-      if (slot === 'video') {
-        kill(playIframe);
-        started = false;
-        if (gameWrap) gameWrap.hidden = true;
-        document.getElementById('eb-tv-power')?.classList.remove('is-on');
-      } else {
-        kill(videoIframe);
+    swipeArea?.addEventListener('pointerdown', (event) => {
+      if (!(event instanceof PointerEvent) || !event.isPrimary || pointerDown || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      pointerDown = true;
+      activePointerId = event.pointerId;
+    });
+    window.addEventListener('pointerup', (event) => {
+      if (!(event instanceof PointerEvent) || !pointerDown || event.pointerId !== activePointerId) return;
+      const dx = event.clientX - pointerStartX;
+      const dy = event.clientY - pointerStartY;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+        show(activeIndex + (dx < 0 ? 1 : -1));
+        suppressClickUntil = Date.now() + 350;
       }
-      video?.classList.remove('is-active');
-      play?.classList.remove('is-active');
-      if (slot === 'video') {
-        // 切到视频：隐藏雪花屏封面，避免视频缓冲/加载期底下雪花透出或闪现
-        if (cover) cover.style.display = 'none';
-        if (videoIframe && !videoIframe.src) videoIframe.src = videoIframe.dataset.src;
-        video?.classList.add('is-active');
-      } else {
-        play?.classList.add('is-active');
-        if (cover) cover.style.display = '';
-        if (gameWrap) gameWrap.hidden = true;
-      }
-      // 视频态：隐藏主 CTA 与查看完整项目 + 只留返回
-      const isVideo = slot === 'video';
-      if (playCta) playCta.style.display = isVideo ? 'none' : '';
-      const project = document.querySelector('.eb-hint__project');
-      if (project) project.style.display = isVideo ? 'none' : '';
-      if (hintBox) hintBox.classList.toggle('is-video', isVideo);
-      if (videoTog) videoTog.innerHTML = isVideo
-        ? '<span class="eb-hint__back" aria-hidden="true"><span class="eb-hint__back-line"></span><span class="eb-hint__back-tip"></span></span>返回'
-        : '观看演示视频';
-    };
-
-    // 惰性封面点击（含启动按钮）→ 启动游戏
-    cover?.addEventListener('click', launch, { signal });
-    // 视频切换：视频态点它回试玩态，试玩态点它进视频态
-    videoTog?.addEventListener('click', () => {
-      if (busy) return;
-      busy = true;
-      const target = video?.classList.contains('is-active') ? 'play' : 'video';
-      const run = () => { showSlot(target); busy = false; };
-      if (reduce) run();
-      else {
-        swapBox.classList.add('is-swapping');
-        setTimeout(run, 140);
-        setTimeout(() => { swapBox.classList.remove('is-swapping'); busy = false; }, 400);
-      }
-    }, { signal });
-
-    // 离开页面时也清掉音频
-    const killAll = () => { kill(videoIframe); kill(playIframe); };
-    const onVisibility = () => { if (document.hidden) killAll(); };
-    window.addEventListener('pagehide', killAll, { signal });
-    document.addEventListener('visibilitychange', onVisibility, { signal });
-    const interval = window.setInterval(() => {
-      if (videoIframe?.src && video?.classList.contains('is-active')) pauseGodot(videoIframe);
-    }, 800);
-    document.addEventListener('astro:before-swap', () => {
-      killAll();
-      window.clearInterval(interval);
-      controller.abort();
-    }, { once: true, signal });
-    }
+      resetPointer();
+    });
+    window.addEventListener('pointercancel', (event) => {
+      if (event instanceof PointerEvent && event.pointerId === activePointerId) resetPointer();
+    });
+    window.addEventListener('blur', resetPointer);
+    swipeArea?.addEventListener('click', (event) => {
+      if (Date.now() >= suppressClickUntil) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+    show(0);
   }
-  initBattleMedia();
-  document.addEventListener('astro:after-swap', initBattleMedia);
 
-  // ============ 迷幻色带封面（电视开机画面）：低分辨率斜向行波 + 鼠标调相 ============
-  // 替代旧雪花噪点：4 色斜向色带做两层正弦"扭动"，色相随鼠标 X 在洋红↔金↔青间缓移。
-  // 注意：必须是可重入的 initCoverWarp()——ClientRouter 软导航回到首页时
-  // canvas 是全新 DOM 节点，不重新绑定的话封面会变成一块空白。
-  function initCoverWarp() {
-    const warp = document.getElementById('eb-cover-warp');
-    if (!warp || !('getContext' in warp)) return;
-    if (warp._bound) return;
-    warp._bound = true;
-
-    const ctx = warp.getContext('2d');
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const controller = new AbortController();
-    const { signal } = controller;
-    let raf = 0;
-    let running = false;
-    let last = 0;
-    let t = 0;
-
-    // 低分辨率绘制 + CSS 放大：天然像素颗粒
-    let W = 0, H = 0, img = null;
-    const resize = () => {
-      const box = warp.getBoundingClientRect();
-      const cols = Math.max(64, Math.min(144, Math.round(box.width / 7)));
-      const rows = Math.max(36, Math.min(82, Math.round(box.height / 7)));
-      warp.width = cols;
-      warp.height = rows;
-      W = cols; H = rows;
-      img = ctx.createImageData(W, H);
-    };
-    resize();
-    window.addEventListener('resize', resize, { signal });
-    warp.style.width = '100%';
-    warp.style.height = '100%';
-    warp.style.imageRendering = 'pixelated';
-
-    // 鼠标 X（0-1）→ 目标色相；lerp 逼近
-    let mx = 0.5, mxTarget = 0.5;
-    const onMouse = (e) => { mxTarget = e.clientX / Math.max(1, window.innerWidth); };
-    window.addEventListener('pointermove', onMouse, { signal, passive: true });
-
-    const hsl2rgb = (h, s, l) => {
-      s /= 100; l /= 100;
-      const k = (n) => (n + h / 30) % 12;
-      const a = s * Math.min(l, 1 - l);
-      const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-      return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
-    };
-
-    const draw = () => {
-      mx += (mxTarget - mx) * 0.05;
-      t += 1;
-      const hue = (318 + mx * 84 + Math.sin(t * 0.015) * 12) % 360;
-      // 迷幻 4 色：洋红主带 + 金 + 青 + 深底，围绕 hueBase 展开
-      const pal = [
-        hsl2rgb(hue, 72, 52),
-        hsl2rgb((hue + 42) % 360, 78, 60),
-        hsl2rgb((hue + 310) % 360, 58, 40),
-        hsl2rgb((hue + 18) % 360, 70, 28),
-      ];
-      const d = img.data;
-      for (let y = 0; y < H; y++) {
-        // 斜向行波：两层正弦叠加，让每条色带"扭动"
-        const rowWave = Math.sin(y * 0.35 + t * 0.32) * 3 + Math.sin(y * 0.11 - t * 0.17) * 2;
-        for (let x = 0; x < W; x++) {
-          let v = Math.floor((x + rowWave + y * 0.55) / 6) % 4;
-          if (v < 0) v += 4;
-          const [r, g, b] = pal[v];
-          const i = (y * W + x) * 4;
-          d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-    };
-
-    // 节流 ~66ms/帧：色带流动比雪花更"泳"，慢一点反而对味
-    const tick = (now) => {
-      if (now - last >= 66) { draw(); last = now; }
-      if (running) raf = requestAnimationFrame(tick);
-    };
-    const start = () => { if (!running && !reduce) { running = true; raf = requestAnimationFrame(tick); } };
-    const stop = () => { running = false; cancelAnimationFrame(raf); };
-
-    if (reduce) { draw(); }
-    else { start(); }
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-      else if (warp.isConnected && !warp.hidden) start();
-    }, { signal });
-    document.addEventListener('astro:before-swap', () => { stop(); controller.abort(); }, { once: true, signal });
-
-    // ▶ 进视口三帧 pop（EB 战斗切入的登场感）
-    const playBtn = document.getElementById('eb-play-launch');
-    if (playBtn && 'IntersectionObserver' in window && !playBtn.dataset.popBound) {
-      playBtn.dataset.popBound = '1';
-      const io = new IntersectionObserver((es) => {
-        for (const e of es) {
-          if (e.isIntersecting) { playBtn.classList.add('is-armed'); io.disconnect(); }
-        }
-      }, { threshold: 0.4 });
-      io.observe(playBtn);
+  const play = document.querySelector('[data-home-play]');
+  const gameFrame = play?.querySelector('[data-home-frame]');
+  const gameScreen = play?.querySelector('[data-home-game-screen]');
+  const gamePoster = play?.querySelector('[data-home-poster]');
+  const gameStart = play?.querySelector('[data-home-start]');
+  const loading = play?.querySelector('[data-home-loading]');
+  const gameLink = play?.querySelector('[data-home-game-link]');
+  const help = play?.querySelector('[data-home-help]');
+  const videoFrame = play?.querySelector('[data-home-video-frame]');
+  const videoScreen = play?.querySelector('[data-home-video-screen]');
+  const videoPoster = play?.querySelector('[data-home-video-poster]');
+  const videoStart = play?.querySelector('[data-home-video-start]');
+  const videoFallback = play?.querySelector('[data-home-video-fallback]');
+  const channels = Array.from(play?.querySelectorAll('[data-home-channel]') ?? []);
+  let activeChannel = 'game';
+  const setChannelState = (channel: string) => {
+    activeChannel = channel;
+    channels.forEach((button) => button.setAttribute('aria-pressed', String(button.getAttribute('data-home-channel') === channel)));
+  };
+  const releaseGame = () => {
+    if (gameFrame instanceof HTMLIFrameElement) { gameFrame.removeAttribute('src'); gameFrame.hidden = true; }
+    if (gamePoster instanceof HTMLElement) gamePoster.hidden = false;
+    if (gameStart instanceof HTMLElement) gameStart.hidden = false;
+    if (loading instanceof HTMLElement) loading.hidden = true;
+    if (help instanceof HTMLDetailsElement) { help.hidden = true; help.open = false; }
+  };
+  const releaseVideo = () => {
+    if (videoFrame instanceof HTMLIFrameElement) { videoFrame.removeAttribute('src'); videoFrame.hidden = true; }
+    if (videoPoster instanceof HTMLElement) videoPoster.hidden = false;
+    if (videoStart instanceof HTMLElement) videoStart.hidden = false;
+  };
+  channels.forEach((button) => button.addEventListener('click', () => {
+    const channel = button.getAttribute('data-home-channel');
+    if (!channel || channel === activeChannel) return;
+    if (channel === 'video') {
+      releaseGame();
+      if (gameScreen instanceof HTMLElement) gameScreen.hidden = true;
+      if (videoScreen instanceof HTMLElement) videoScreen.hidden = false;
+      if (videoFallback instanceof HTMLElement) videoFallback.hidden = false;
+      if (gameLink instanceof HTMLElement) gameLink.hidden = true;
+      releaseVideo();
+    } else {
+      releaseVideo();
+      if (videoScreen instanceof HTMLElement) videoScreen.hidden = true;
+      if (videoFallback instanceof HTMLElement) videoFallback.hidden = true;
+      if (gameLink instanceof HTMLElement) gameLink.hidden = false;
+      if (gameScreen instanceof HTMLElement) gameScreen.hidden = false;
+      releaseGame();
     }
+    setChannelState(channel);
+  }));
+  play?.querySelector('[data-home-start]')?.addEventListener('click', () => {
+    if (!(gameFrame instanceof HTMLIFrameElement) || activeChannel !== 'game') return;
+    if (gamePoster instanceof HTMLElement) gamePoster.hidden = true;
+    if (gameStart instanceof HTMLElement) gameStart.hidden = true;
+    if (help instanceof HTMLElement) help.hidden = false;
+    if (loading instanceof HTMLElement) loading.hidden = false;
+    gameFrame.hidden = false;
+    gameFrame.addEventListener('load', () => {
+      if (loading instanceof HTMLElement) loading.hidden = true;
+      }, { once: true });
+    gameFrame.src = gameFrame.dataset.src || '';
+  });
+  play?.querySelector('[data-home-retry]')?.addEventListener('click', () => {
+    if (!(gameFrame instanceof HTMLIFrameElement) || activeChannel !== 'game') return;
+    gameFrame.removeAttribute('src');
+    gameFrame.hidden = true;
+    if (gamePoster instanceof HTMLElement) gamePoster.hidden = false;
+    if (loading instanceof HTMLElement) loading.hidden = true;
+    window.requestAnimationFrame(() => {
+      if (!(gameFrame instanceof HTMLIFrameElement) || activeChannel !== 'game') return;
+      if (gamePoster instanceof HTMLElement) gamePoster.hidden = true;
+      if (loading instanceof HTMLElement) loading.hidden = false;
+        gameFrame.addEventListener('load', () => {
+        if (loading instanceof HTMLElement) loading.hidden = true;
+          }, { once: true });
+      gameFrame.hidden = false;
+      gameFrame.src = gameFrame.dataset.src || '';
+    });
+  });
+  play?.querySelector('[data-home-video-start]')?.addEventListener('click', () => {
+    if (!(videoFrame instanceof HTMLIFrameElement) || activeChannel !== 'video') return;
+    if (videoPoster instanceof HTMLElement) videoPoster.hidden = true;
+    if (videoStart instanceof HTMLElement) videoStart.hidden = true;
+    videoFrame.hidden = false;
+    videoFrame.src = videoFrame.dataset.src || '';
+  });
+</script>
+
+<script>
+  // 街缘带「落座」微动：首次滚入视口时加一次 is-seated（2 帧 steps、≤180ms、只播一次）。
+  // 独立于牌堆/媒体逻辑；无 JS 时街缘带保持静态，不影响布局与可点区。
+  // 旧的 Reveal 组件与 .reveal 样式在 v3.0 重构后已无消费者（无人添加 is-revealed / .js），故此处只补最小 observer。
+  const streetSeam = document.querySelector('[data-street-seam]');
+  if (streetSeam && 'IntersectionObserver' in window) {
+    const seatObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-seated');
+        seatObserver.disconnect();
+      }
+    }, { threshold: 0, rootMargin: '0px 0px -48px 0px' });
+    seatObserver.observe(streetSeam);
   }
-  initCoverWarp();
-  document.addEventListener('astro:after-swap', initCoverWarp);
+
+</script>
+
+<script>
+  // 选牌光效：data-active 变化时对新选中的牌播一次扫光＋入口徽记脉冲（初始选中也播一次，示意可点）
+  const pokerStage = document.querySelector('[data-poker-swipe]');
+  if (pokerStage && 'MutationObserver' in window) {
+    const glintObserver = new MutationObserver((records) => {
+      for (const record of records) {
+        const card = record.target;
+        if (!(card instanceof HTMLElement) || card.getAttribute('data-active') !== 'true') continue;
+        card.classList.remove('is-glint');
+        void card.offsetWidth; // 重启动画，连点两张时也能各播一次
+        card.classList.add('is-glint');
+        window.setTimeout(() => card.classList.remove('is-glint'), 1200);
+      }
+    });
+    pokerStage.querySelectorAll('[data-poker-face]').forEach((card) => glintObserver.observe(card, { attributes: true, attributeFilter: ['data-active'] }));
+    // v4.14.2：删除「初始选中牌补播一次闪示」——用户实测刚进首页红牌默认发光观感像 bug；
+    // 闪示只保留在真正的选牌变化（点击/方向键/轻扫）上，初始 show(0) 不再触发。
+  }
 </script>

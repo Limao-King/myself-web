@@ -67,6 +67,8 @@ export const gameCategories: GameCategory[] = [
       {
         subtitle: '回合制 RPG',
         items: [
+          { name: '南方公园：真理之杖' },
+          { name: '南方公园：完整破碎' },
           { name: '古剑奇谭' },
           { name: '传说之下' },
           { name: '吞食天地系列', hours: '50+', comment: 'FC时代经典回合制游戏，剧情流程量大管饱，体验从桃园结义到一统天下' },

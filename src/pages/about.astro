@@ -1,146 +1,23 @@
 ---
+import PageNeighbours from '../components/PageNeighbours.astro';
 import Layout from '../layouts/Layout.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import Reveal from '../components/Reveal.astro';
 import { siteConfig } from '../site.config';
-
-const education = [
-  {
-    school: '集美大学',
-    major: '戏剧影视文学 · 本科',
-    period: '2022.09 – 2027.06',
-    note: '主修课程：戏剧剧本创作、影视剧本创作、电影理论、艺术概论、中外电影史。',
-  },
-];
-
-const skillGroups = [
-  {
-    name: '引擎与工具',
-    skills: ['Godot 基础开发', 'Excel / 配置表 / 数值曲线', '流程图工具（系统与关卡设计）'],
-  },
-  {
-    name: '代码与编程',
-    skills: ['基础代码阅读与调试', 'AI 辅助脚本编写'],
-  },
-  {
-    name: '策划与叙事',
-    skills: ['游戏剧本写作', '过场动画分镜', '系统设计文档撰写', '世界观构建与角色塑造'],
-  },
-];
+import '../styles/portfolio-rooms.css';
+import '../styles/town-residents.css';
 ---
-
-<Layout title="关于我" description="我的个人简介、教育背景与技能栈" theme="eb2">
-  <div class="py-12 about-page">
-    {/* 首屏 hero 直接渲染（Reveal 豁免，避免慢设备上的半透明鬼影） */}
-    <section class="about-hero">
-      <div>
-        <h1>你好，我是明鑫。</h1>
-        <p>只是一名认真的大学生，但是认真地很想当策划。不过此页是策划之外的世界。</p>
-      </div>
+<Layout title="关于我" description="了解明鑫的学习背景、工作方式、游戏经历与联系方式。">
+  <div class="pf-container pf-room pf-resident-room">
+    <header class="pf-room-header"><div><p class="pf-room-kicker">镇上的人 <span>/ 明鑫</span></p><h1>你好，我是明鑫。</h1></div></header>
+    <div class="pf-resident-intro">
+      <div class="pf-resident-desk" aria-hidden="true"><span class="pf-resident-desk__window"></span><span class="pf-resident-desk__shelf"></span><span class="pf-resident-desk__papers"></span><img class="pf-resident-desk__tools" src="/images/scenes/workbench-tools.svg" alt="" width="224" height="112" /><span class="pf-resident-desk__table"></span></div>
+      <section class="pf-resident-letter" aria-label="自我介绍"><span class="pf-resident-letter__stamp" aria-hidden="true">M</span><p>我在集美大学学习戏剧影视文学，想做游戏系统策划。关注规则、人物与故事，怎样一起塑造体验。</p><p>把想法写成流程，把流程做进原型，再回到游戏里检验。《童话冒险》就是这样长成的。</p><a href="/projects/fairytale-demo/">看看这场冒险 <span aria-hidden="true">↗</span></a><span class="pf-resident-letter__signature" aria-hidden="true">明鑫</span></section>
+    </div>
+    <section class="pf-resident-notes" aria-label="背景与实践">
+      <div><p class="pf-room-kicker">01 / 学习</p><h2>集美大学</h2><p>戏剧影视文学 · 本科</p><p class="pf-resident-notes__date">2022.09—2027.06</p></div>
+      <div><p class="pf-room-kicker">02 / 做游戏</p><h2>规则，也要能玩。</h2><p>系统策划、关卡流程与数值配置。<br />用 Godot 原型、Excel 和流程图检验想法。</p><a href="/projects/">项目展厅 <span aria-hidden="true">↗</span></a></div>
+      <div><p class="pf-room-kicker">03 / 写故事</p><h2>给行动一个理由。</h2><p>剧本、对白与世界观。<br />从冲突、节奏与人物动机出发。</p><a href="/projects/huanzhenming/">唤她真名 <span aria-hidden="true">↗</span></a></div>
     </section>
-
-    <!-- 个人简介 -->
-    <Reveal>
-      <section class="mb-12">
-        <div class="about-bio space-y-3 leading-relaxed text-neutral-300">
-          <p>策划之外，我长期保持阅读、观影和写作习惯。它们帮助我理解不同媒介如何组织信息、制造冲突，并塑造人物与世界。</p>
-          <p>我待人真诚，也乐于沟通协作；遇到感兴趣的问题，会持续查资料、做记录，并尝试把理解转化成可执行的方案。</p>
-          <p>我熟悉常见文本写作规范，也理解电影镜头的基本语法与组接原理。因为只要是我想要掌握的，觉得对我有裨益的，我都会尽力去学习。</p>
-        </div>
-      </section>
-    </Reveal>
-
-    <!-- 教育背景 -->
-    <Reveal>
-      <section class="eb-window mb-12">
-        <h2 class="eb-window__title mb-4">◆ 教育背景</h2>
-        <ul class="space-y-4">
-          {
-            education.map((e) => (
-              <li class="about-card">
-                <div class="flex items-baseline justify-between gap-4">
-                  <h3 class="about-card__name">{e.school}</h3>
-                  <p class="about-card__period">{e.period}</p>
-                </div>
-                <p class="about-card__major">{e.major}</p>
-                <p class="about-card__note">{e.note}</p>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
-    </Reveal>
-
-    <!-- 技能栈 + 联系方式：双栏状态窗（STATUS WINDOW），统一 EB 框语言 -->
-    <Reveal delay={80}>
-      <div class="mb-12 grid gap-6 md:grid-cols-2">
-        <section class="eb-window">
-          <h2 class="eb-window__title mb-4">◆ 技能栈</h2>
-          <div class="space-y-5">
-            {
-              skillGroups.map((g) => (
-                <div>
-                  <h3 class="about-skill-group">{g.name}</h3>
-                  <div class="flex flex-wrap gap-2">
-                    {g.skills.map((s) => (
-                      <span class="about-skill">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              ))
-            }
-          </div>
-        </section>
-        <section class="eb-window">
-          <h2 class="eb-window__title mb-4">◆ 联系方式</h2>
-          <ul class="about-contact space-y-3">
-            <li>邮箱：<a href={`mailto:${siteConfig.email}`} class="eb-link">{siteConfig.email}</a></li>
-            <li>GitHub：<a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="eb-link">{siteConfig.github}</a></li>
-            <li>简历（含联系方式）：<a href={siteConfig.resumeUrl} target="_blank" class="eb-link">下载 PDF</a></li>
-            <li>
-              全部文档 / Demo 下载：
-              <a href={siteConfig.downloadUrl} target="_blank" rel="noopener noreferrer" class="eb-link">
-                百度网盘（提取码 {siteConfig.downloadPwd}）
-              </a>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </Reveal>
+    <div class="pf-resident-invitation"><img src="/images/scenes/envelope.svg" alt="" width="32" height="32" /><div><h2>有空，来信。</h2><a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a></div><a class="pf-resident-resume" href={siteConfig.resumeUrl} target="_blank" rel="noopener">带走一份简历 <span aria-hidden="true">↗</span></a></div>
+    <PageNeighbours section="about" />
   </div>
 </Layout>
-
-<style>
-  .about-page { max-width:58rem; margin-inline:auto; }
-  /* Hero：沿用 EB 夹心框语言（奶油底 + 棕粗框 + 外黑描边 + 硬阴影），保留 eb2 的柔和米色背景做区隔 */
-  .about-hero { margin-bottom:3.5rem; padding:clamp(1.75rem,4vw,3rem); background:#f5f5db; border:3px solid #5c3d1e; border-radius:8px; box-shadow:0 0 0 2px #262016, 8px 8px 0 rgba(64,80,84,.14); }
-  .about-kicker { color:#537984; font-family:"FusionPixel",var(--font-sans); font-size:.68rem; letter-spacing:.12em; }
-  .about-hero h1 { margin-top:.6rem; color:#222c2f; font-size:clamp(2.25rem,5vw,3.75rem); font-weight:800; } /* 上限 60px=12 网格 ×5 */
-  .about-hero > div > p:last-of-type { max-width:42rem; margin-top:1rem; color:#536064; line-height:1.9; }
-  .about-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.5rem; }
-  .about-bio { max-width: 42rem; color:#3a2f22; }  /* 与上方对话气泡同宽，右缘对齐 */
-  /* 教育背景条目：浅米卡 + 棕细线 + 硬阴影（EB 面板的"卡片"变体） */
-  .about-card { padding:1.1rem 1.25rem; background:#f4ecd8; border:2px solid #5c3d1e; border-radius:6px; box-shadow:3px 3px 0 rgba(38,32,22,.14); }
-  .about-card__name { font-family:"FusionPixel",var(--font-sans); font-weight:700; color:#262016; }
-  .about-card__period { flex-shrink:0; font-family:"FusionPixel",var(--font-sans); font-size:.75rem; color:#66543c; }
-  .about-card__major { margin-top:.35rem; font-size:.9rem; color:#9a5a1e; font-weight:600; }
-  .about-card__note { margin-top:.5rem; font-size:.9rem; color:#4a3f30; }
-  /* 技能分组标题 + 技能 chip：与全站 chip 同款直角深色方块 */
-  .about-skill-group { margin-bottom:.5rem; font-family:"FusionPixel",var(--font-sans); font-size:.72rem; letter-spacing:.1em; color:#66543c; }
-  .about-skill { display:inline-block; padding:.3rem .65rem; background:#2b2418; color:#f5f5db; border:2px solid #262016; border-radius:4px; font-family:"FusionPixel",var(--font-sans); font-size:.8rem; box-shadow:2px 2px 0 rgba(38,32,22,.2); }
-  .about-contact { font-size:.9rem; color:#3a2f22; }
-  /* eb2 主题：框体半透明 + 毛玻璃（方案 A 定稿），让米色菱格背景透上来，
-     避免"不透明奶油实体块贴在透明板上"的突兀；描边/四角方块仍保留。 */
-  :global(.eb2-theme) .about-hero,
-  :global(.eb2-theme) .about-page :global(.eb-window) {
-    background-color: rgba(245, 245, 219, 0.72);
-    backdrop-filter: blur(6px) saturate(1.05);
-    -webkit-backdrop-filter: blur(6px) saturate(1.05);
-  }
-  :global(.eb2-theme) .about-card {
-    /* 方案 A 定稿：去掉嵌套小背景填充，让条目直接落在父框的磨砂面上 */
-    background-color: transparent;
-    box-shadow: none;
-  }
-  @media (max-width:720px) { .about-page { padding-top:1.25rem; } }
-</style>

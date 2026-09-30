@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" shape-rendering="crispEdges" role="img" aria-label="两张相互映照的面孔">
+  <rect x="6" y="8" width="30" height="48" fill="#7d648e"/><rect x="12" y="2" width="18" height="6" fill="#7d648e"/>
+  <rect x="12" y="56" width="18" height="6" fill="#7d648e"/>
+  <rect x="13" y="24" width="6" height="6" fill="#fff8e7"/><rect x="25" y="24" width="6" height="6" fill="#fff8e7"/>
+  <rect x="18" y="42" width="6" height="4" fill="#fff8e7"/>
+  <rect x="44" y="22" width="30" height="48" fill="#cb5746"/><rect x="50" y="16" width="18" height="6" fill="#cb5746"/>
+  <rect x="50" y="70" width="18" height="6" fill="#cb5746"/>
+  <rect x="51" y="38" width="6" height="6" fill="#fff8e7"/><rect x="63" y="38" width="6" height="6" fill="#fff8e7"/>
+  <rect x="56" y="56" width="6" height="4" fill="#fff8e7"/>
+  <rect x="37" y="37" width="6" height="6" fill="#e7be69"/>
+</svg>

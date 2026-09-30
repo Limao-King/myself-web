@@ -1,127 +1,140 @@
 ---
 import { siteConfig } from '../site.config';
-
-const links = [
-  { href: '/', label: '首页' },
-  { href: '/projects/', label: '项目' },
-  { href: '/game-history/', label: '游戏经历' },
+const path = Astro.url.pathname;
+const items = [
+  { href: '/projects/', label: '项目案例' },
   { href: '/docs/', label: '策划文档' },
+  { href: '/game-history/', label: '游戏经历' },
   { href: '/about/', label: '关于我' },
 ];
-
-const isActive = (href: string) =>
-  href === '/' ? Astro.url.pathname === '/' : Astro.url.pathname.startsWith(href);
+const active = (href: string) => href === '/' ? path === '/' : path.startsWith(href);
 ---
-
-<header class="site-header">
-  <nav class="site-nav">
-    <a href="/" class="nav-brand" aria-label={`${siteConfig.name}作品集首页`}>
-      <span class="nav-brand__char" role="img" aria-label="像素角色头像"></span>
-      <span class="nav-brand__copy">
-        <strong>{siteConfig.name}</strong>
-        <small>GAME DESIGN PORTFOLIO</small>
-      </span>
+<header class="pf-header">
+  <div class="pf-header__inner">
+    <a href="/" class="pf-brand" aria-label={`${siteConfig.name}作品集首页`}>
+      <span class="pf-brand__avatar" aria-hidden="true"><img src="/images/characters/tanuki.svg" alt="" width="36" height="36" /></span>
+      <span class="pf-brand__copy"><strong>{siteConfig.name}</strong><small>游戏系统策划 · 作品集</small></span>
     </a>
-    <ul class="hidden items-center gap-1 md:flex">
-      {
-        links.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              class:list={[
-                'link-underline font-pixel rounded-md px-3 py-1.5 text-sm transition-colors',
-                isActive(link.href) ? 'font-bold' : '',
-              ]}
-              aria-current={isActive(link.href) ? 'page' : undefined}
-            >
-              {link.label}
-            </a>
-          </li>
-        ))
-      }
-      <li class="ml-2 flex items-center">
-        <a
-          href={siteConfig.resumeUrl}
-          target="_blank"
-          class="rpgui-button golden nav-resume"
-        >
-          <p>简历</p>
-        </a>
-      </li>
-    </ul>
-
-    <!-- 移动端菜单按钮 -->
-    <button
-      id="nav-toggle"
-      type="button"
-      class="ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-[var(--nav-ink)] transition-colors hover:bg-[var(--nav-link-active)]/10 md:hidden"
-      aria-label="打开菜单"
-      aria-expanded="false"
-      aria-controls="mobile-menu"
-    >
-      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="4" y1="7" x2="20" y2="7" />
-        <line x1="4" y1="12" x2="20" y2="12" />
-        <line x1="4" y1="17" x2="20" y2="17" />
-      </svg>
-    </button>
-  </nav>
-
-  <!-- 移动端下拉菜单 -->
-  <div id="mobile-menu" class="hidden border-t-2 border-[#262016] bg-[var(--nav-bg,#b4c586)] px-6 py-4 md:hidden">
-    <ul class="flex flex-col gap-1">
-      {
-        links.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              class:list={[
-                'block font-pixel rounded-lg px-3 py-2.5 text-sm transition-colors',
-                isActive(link.href) ? 'bg-[#262016]/10 font-bold' : 'hover:bg-[#262016]/8',
-              ]}
-              aria-current={isActive(link.href) ? 'page' : undefined}
-            >
-              {link.label}
-            </a>
-          </li>
-        ))
-      }
-      <li class="mt-2 flex justify-center">
-        <a
-          href={siteConfig.resumeUrl}
-          target="_blank"
-          class="rpgui-button golden nav-resume"
-        >
-          <p>下载简历</p>
-        </a>
-      </li>
-    </ul>
+    <nav class="pf-nav" aria-label="主导航">
+      <div class="pf-nav__signboard">
+        <a href="/" aria-current={active('/') ? 'page' : undefined}>首页</a>
+        {items.map((item) => <a href={item.href} aria-current={active(item.href) ? 'page' : undefined}>{item.label}</a>)}
+      </div>
+      <a class="pf-nav__resume" href={siteConfig.resumeUrl} target="_blank" rel="noopener">下载简历 <span aria-hidden="true">↗</span></a>
+    </nav>
+    <details class="pf-mobile-menu">
+      <summary aria-label="打开导航菜单"><span></span><span></span><span></span></summary>
+      <nav aria-label="手机导航">
+        <a href="/" aria-current={active('/') ? 'page' : undefined}>首页</a>
+        {items.map((item) => <a href={item.href} aria-current={active(item.href) ? 'page' : undefined}>{item.label}</a>)}
+        <a href={siteConfig.resumeUrl} target="_blank" rel="noopener">下载简历 ↗</a>
+      </nav>
+    </details>
   </div>
 </header>
 
-<script>
-  function initNav() {
-    const toggle = document.getElementById('nav-toggle');
-    const menu = document.getElementById('mobile-menu');
-    if (!toggle || !menu || toggle.dataset.bound) return;
-    toggle.dataset.bound = '1';
-
-    const setOpen = (open) => {
-      menu.classList.toggle('hidden', !open);
-      toggle.setAttribute('aria-expanded', String(open));
-      toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
-      document.body.classList.toggle('nav-open', open);
-    };
-
-    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
-    menu.addEventListener('click', (event) => {
-      if (event.target.closest('a')) setOpen(false);
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') setOpen(false);
-    });
+<style>
+  :global(.pf-site) .pf-header {
+    background: #f5f1dc;
+    border-bottom: 1px solid #344431;
+    box-shadow: 0 3px 0 #a98d58;
+    backdrop-filter: none;
   }
-
-  initNav();
-  document.addEventListener('astro:after-swap', initNav);
-</script>
+  :global(.pf-site) .pf-header__inner { gap: 18px; }
+  :global(.pf-site) .pf-nav { gap: 12px; }
+  :global(.pf-site) .pf-nav__signboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    background: #f7efd3;
+    border: 1px solid #9b8052;
+    box-shadow: 3px 3px 0 rgba(69,57,39,.17);
+  }
+  :global(.pf-site) .pf-nav__signboard a {
+    position: relative;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 0;
+    transition: background-color .15s ease, transform .15s ease;
+  }
+  :global(.pf-site) .pf-nav__signboard a:hover {
+    background: #dfe7c4;
+    transform: translateY(-1px);
+  }
+  :global(.pf-site) .pf-nav__signboard a[href="/about/"] { transform: rotate(1deg); }
+  :global(.pf-site) .pf-nav__signboard a[href="/about/"]:hover { transform: rotate(1deg) translateY(-1px); }
+  :global(.pf-site) .pf-nav__signboard a[aria-current="page"] {
+    padding-left: 22px;
+    background: #dfe7c4;
+    box-shadow: inset 0 -2px #9b5038;
+  }
+  :global(.pf-site) .pf-nav__signboard a[aria-current="page"]::after {
+    content: "›";
+    position: absolute;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 8px;
+    width: auto;
+    height: auto;
+    background: none;
+    color: #a44732;
+    font-size: 1.05rem;
+    line-height: 1;
+    transform: translateY(-55%);
+  }
+  :global(.pf-site) .pf-nav .pf-nav__resume {
+    min-height: 42px;
+    margin-left: 0;
+    padding: 0 15px;
+    border: 1px solid #594a2d;
+    border-radius: 0;
+    background: #e9c95f;
+    box-shadow: 3px 3px 0 rgba(69,57,39,.19);
+    transition: background-color .15s ease, transform .15s ease;
+  }
+  :global(.pf-site) .pf-nav .pf-nav__resume:hover { background: #f1d97f; transform: translateY(-1px); }
+  :global(.pf-site) .pf-header a:focus-visible,
+  :global(.pf-site) .pf-mobile-menu summary:focus-visible { outline-color: #a44732; outline-offset: 3px; }
+  :global(.pf-site) .pf-mobile-menu summary {
+    border: 1px solid #594a2d;
+    border-radius: 0;
+    background: #f7efd3;
+    box-shadow: 3px 3px 0 rgba(69,57,39,.17);
+  }
+  :global(.pf-site) .pf-mobile-menu summary span { height: 3px; background: #344431; }
+  :global(.pf-site) .pf-mobile-menu[open] summary { background: #dfe7c4; }
+  :global(.pf-site) .pf-mobile-menu nav {
+    top: calc(100% + 9px);
+    padding: 8px;
+    background: #f7efd3;
+    border: 1px solid #826c47;
+    box-shadow: 4px 4px 0 rgba(46,53,39,.17);
+  }
+  :global(.pf-site) .pf-mobile-menu nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #d0c29e;
+    transition: background-color .15s ease;
+  }
+  :global(.pf-site) .pf-mobile-menu nav a:last-child {
+    margin-top: 6px;
+    border: 1px solid #594a2d;
+    background: #e9c95f;
+  }
+  :global(.pf-site) .pf-mobile-menu nav a:hover,
+  :global(.pf-site) .pf-mobile-menu nav a[aria-current="page"] { background: #dfe7c4; }
+  :global(.pf-site) .pf-mobile-menu nav a[aria-current="page"] { border-left: 3px solid #a44732; padding-left: 11px; }
+  :global(.pf-site) .pf-mobile-menu nav a:last-child:hover { background: #f1d97f; }
+  @media (max-width: 900px) {
+    :global(.pf-site) .pf-header .pf-nav { display: none; }
+    :global(.pf-site) .pf-header .pf-mobile-menu { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.pf-site) .pf-header *,
+    :global(.pf-site) .pf-header *::before,
+    :global(.pf-site) .pf-header *::after { transition: none; }
+  }
+</style>

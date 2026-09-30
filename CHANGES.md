@@ -317,3 +317,18 @@ Cloudflare Web Analytics 显示 223 次浏览量，同一时刻 `node scripts/vi
 - ⚠️ **验证写链路要挑"能撤回"的方式**：本次排查发的一次 `POST /hit`（`path=/__diag__`）已永久留在 `analytics/days/2026-09-15.jsonl`（写入端只写不读、无删除接口）。**记录写入前先想清楚这条痕迹能不能撤。**
 
 ---
+
+---
+
+## v5.0 大版本采用（2026-09-28 · 副工作区整版迭代合入主仓库）
+
+- **动作**：把副工作区 `个人网站搭建 - 副本` 经长期迭代的整版设计**整体采用**进主仓库——覆盖同步其 `src/`、`public/`、`scripts/`、`worker/`、`.vscode/` 与顶层 `astro.config.mjs`。**主仓库文档类（AGENTS.md / CLAUDE.md / README.md / CHANGES.md / 交接文档/）刻意保留未动**；副本侧交接与账本文档已由用户删除，故本次不引入设计期账本。
+- **覆盖前核对（防运维回退）**：
+  - `worker/` 与主仓库 HEAD 逐字节一致（含 `wrangler.toml` 的 `workers_dev=false` / `preview_urls=false`）；`scripts/` 仅新增 `test-home-scroll.mjs`，既有 5 个运维脚本无差异；
+  - `public/_headers`、`.gitignore`、`package.json`、`package-lock.json`、`tsconfig.json` 与 HEAD 一致；
+  - `src/layouts/Layout.astro` 保留 `/hit` sendBeacon 访问上报；`src/site.config.ts` 无手机号；
+  - `astro.config.mjs` 的 `PREVIEW_ROUTES` 完整，并在原有 5 条外新增 `hero-preview`；
+  - `.cf-token` / `.cf-account` 仍被 `.gitignore` 挡住，未进入提交。
+  - 镜像干跑确认：`src/`、`public/`、`scripts/`、`worker/`、`.vscode/` 均无「主仓库独有」文件 ⇒ 同步只会新增/覆盖，不删除任何既有文件。
+- **验收**：主仓库 `ASTRO_TELEMETRY_DISABLED=1 npx astro build` → **27 页生成、6 个预览页剔除、零错误**。
+- **未验证（交用户）**：push 后 Cloudflare Pages 自动部署结果与线上真机表现。

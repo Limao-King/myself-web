@@ -1,0 +1,19 @@
+/* Shared paper, type and contact details for the little-town portfolio. */
+.pf-site.pf-subpage body {
+  background: linear-gradient(180deg, #e5ead2 0, #f4efdf 380px);
+}
+.pf-site .pf-prose { font-size: 1rem; line-height: 1.95; }
+.pf-site .pf-prose :is(p, li) { text-wrap: pretty; }
+.pf-site .pf-prose img { display: block; height: auto; margin-block: 24px; }
+.pf-site .pf-breadcrumb a { min-height: 44px; display: inline-flex; align-items: center; }
+.pf-site .pf-footer__inner { align-items: start; padding-block: 48px; }
+.pf-site .pf-footer__contact { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 20px; }
+.pf-site .pf-footer__contact a { padding-block: 10px; font-size: .92rem; text-decoration: underline; text-underline-offset: 5px; overflow-wrap: anywhere; }
+.pf-site .pf-footer__contact button { min-height: 44px; padding: 8px 12px; color: #fff9e8; background: transparent; border: 1px solid #8fa78b; cursor: pointer; font-size: .75rem; }
+.pf-site .pf-footer__contact button:hover { background: #3a513e; }
+.pf-site [data-copy-status] { color: #e6d48f; font-size: .75rem; }
+@media (max-width: 720px) {
+  .pf-site .pf-footer__inner { flex-direction: column; padding-block: 36px; gap: 24px; }
+  .pf-site .pf-footer__links { width: 100%; min-width: 0; justify-content: start; flex-direction: row; }
+  .pf-site .pf-footer__contact { gap: 6px 12px; }
+}

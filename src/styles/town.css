@@ -1,0 +1,196 @@
+/* A place to wander: afternoon sky, pocket cards, a map and postcards. */
+.pf-homepage {
+  --town-grass: #b7cb8c;
+  --town-grass-detail: #a7bc7d;
+  --town-tree-dark: #567353;
+  --town-tree-light: #83a265;
+  --town-window: #89b8b4;
+  --town-water: #80b9be;
+  --town-bank: #dace96;
+  --town-road: #b3ad89;
+  --town-sky: #b9dfdf;
+  --town-horizon: #e1e9c8;
+}
+.pf-homepage[data-town-time="dusk"] {
+  --town-grass: #a7ae7b;
+  --town-grass-detail: #939d6a;
+  --town-tree-dark: #4d6856;
+  --town-tree-light: #6d8660;
+  --town-window: #f4d280;
+  --town-water: #8aabab;
+  --town-bank: #ceb283;
+  --town-road: #b19c80;
+  --town-sky: #cdb0a4;
+  --town-horizon: #ead0a8;
+}
+html.pf-homepage body {
+  background: url('/images/scenes/sky-clouds.svg') center 84px / 1280px auto no-repeat,
+    linear-gradient(180deg, var(--town-sky) 0, var(--town-horizon) 850px, #f3ecd6 1500px);
+}
+.pf-homepage .pf-main { padding-top: 32px; }
+.pf-site.pf-homepage .pf-home { --pf-home-gap: 72px; }
+.pf-site.pf-homepage .pf-home .pf-hero {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: 28px 38px;
+  padding: 56px 42px 40px;
+  background: #faf6e6;
+  border: 2px solid #42533d;
+  box-shadow: 7px 7px 0 #8fa084;
+}
+.pf-homepage .pf-hero::before, .pf-homepage .pf-hero::after { display: none; }
+.pf-homepage .pf-hero__copy { min-width: 0; padding-block: 14px 22px; }
+.pf-hero__identity { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; color: #647055; font-size: .75rem; letter-spacing: .08em; }
+.pf-hero__identity img { flex: none; object-fit: contain; image-rendering: pixelated; }
+.pf-homepage .pf-hero h1 { font: 400 72px/84px "FusionPixel", sans-serif; white-space: nowrap; text-wrap: initial; }
+.pf-homepage .pf-hero__lead { max-width: 28em; margin-block: 20px 24px; font-size: .98rem; line-height: 1.9; }
+.pf-homepage .pf-button { border-width: 1px; border-radius: 0; padding-inline: 23px; }
+.pf-homepage .pf-poker { width: 100%; align-self: center; }
+.pf-homepage .pf-poker__stage { height: 390px; }
+.pf-homepage .pf-poker-card { width: min(53%, 225px); }
+.pf-homepage .pf-poker-card__symbol { width: 96px; height: 96px; }
+.pf-homepage .pf-poker-card__symbol img { width: 78px; height: 78px; }
+.pf-homepage .pf-poker-card__body { gap: 13px; padding: 44px 18px; }
+.pf-homepage .pf-poker-card__name-main { color: var(--suit); font: 400 24px/36px "FusionPixel", sans-serif; letter-spacing: 0; }
+.pf-homepage .pf-poker-card__type { padding: 0; border: 0; color: #64705b; font: 400 12px/18px "MiSans", sans-serif; letter-spacing: .08em; }
+.pf-homepage .pf-poker__controls { display: flex; gap: 14px; margin-top: 7px; }
+.pf-homepage .pf-poker__controls > button { width: 44px; height: 44px; border-width: 1px; box-shadow: 2px 2px 0 #d2d0b5; }
+.pf-poker__caption { display: flex; margin-left: 8px; }
+.pf-poker__caption > a { display: inline-flex; width: 44px; min-height: 44px; justify-content: center; align-items: center; border: 1px solid #a9a98a; color: #8f4734; font-size: 1rem; }
+.pf-poker__caption > a:hover { background: #f3e7b8; }
+
+/* The map's links remain real links; the illustration is an original vector. */
+.pf-town-map { margin-inline: 0; }
+.pf-town-map__heading { display: flex; flex-wrap: wrap; align-items: end; gap: 14px 22px; margin-bottom: 24px; }
+.pf-town-map__heading h2 { margin: 0; font: 400 36px/48px "FusionPixel", sans-serif; }
+.pf-weather { display: inline-flex; gap: 10px; align-items: center; min-height: 44px; margin-left: auto; padding: 8px 14px; border: 1px solid #687354; color: #435638; background: #f8f3dc; box-shadow: 3px 3px 0 #a6b088; font-size: .75rem; cursor: pointer; }
+.pf-weather:hover { background: #f5dfad; }
+[data-weather-icon] { color: #a45639; font-size: 1.15rem; }
+.pf-town-map__world { position: relative; overflow: hidden; border: 2px solid #536348; box-shadow: 6px 6px 0 #98a485; }
+.pf-town-map__art { display: block; width: 100%; height: auto; }
+.pf-town-map__car { animation: town-drive 32s linear infinite; }
+@keyframes town-drive {
+  0% { transform: translate(-26px, 129px); }
+  49% { transform: translate(375px, 129px); }
+  50% { transform: translate(375px, 114px) scaleX(-1); }
+  99% { transform: translate(-26px, 114px) scaleX(-1); }
+  100% { transform: translate(-26px, 129px); }
+}
+.pf-town-pin { position: absolute; display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 5px 14px; border: 1px solid #42533d; background: #fff6d9; box-shadow: 3px 3px 0 #70816d; transform: translate(-50%, -50%); font-size: .82rem; font-weight: 700; white-space: nowrap; transition: translate .18s ease, background .18s ease; }
+.pf-town-pin:hover { translate: 0 -4px; background: #f7da8e; }
+.pf-town-pin::after { content: ""; position: absolute; bottom: -5px; left: calc(50% - 5px); width: 8px; height: 8px; transform: rotate(-45deg); background: inherit; border-left: 1px solid #42533d; border-bottom: 1px solid #42533d; }
+.pf-town-pin--works { left: 21%; top: 34%; }
+.pf-town-pin--docs { left: 60%; top: 27%; }
+.pf-town-pin--games { left: 78%; top: 37%; }
+.pf-town-pin--about { left: 24%; top: 82%; }
+.pf-town-pin--mail { left: 73%; top: 84%; }
+.pf-town-map__visitor { position: absolute; left: 47%; top: 64%; width: 4%; height: auto; image-rendering: pixelated; }
+
+/* Postcards on the local noticeboard, with stamps and gently uneven edges. */
+.pf-selected { padding: 34px 30px 24px; border-top: 3px solid #8e9674; background: #ede6cd; }
+.pf-selected__heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.pf-selected__heading h2 { margin: 0; font: 400 36px/48px "FusionPixel", sans-serif; }
+.pf-selected__heading .pf-text-link { font-size: .78rem; gap: 12px; }
+.pf-selected__grid { display: grid; grid-template-columns: 1.16fr 1fr; gap: 22px; align-items: start; margin-top: 30px; }
+.pf-work { position: relative; display: grid; grid-template-columns: 39% 1fr; align-items: stretch; padding: 9px; color: #374732; background: #fff9e8; border: 1px solid #a6997a; box-shadow: 4px 5px 0 #cec4a5; transform: rotate(1deg); transition: transform .22s ease, box-shadow .22s ease; }
+.pf-work::before { content: ""; position: absolute; z-index: 2; left: 42%; top: -10px; width: 65px; height: 21px; background: #d6c79bbf; border-inline: 1px dashed #b5a57b; transform: rotate(-6deg); pointer-events: none; }
+.pf-work:last-child { margin-top: 4px; transform: rotate(-1deg); }
+.pf-work:hover { transform: translateY(-5px) rotate(0deg); box-shadow: 6px 10px 0 #cec4a5; }
+.pf-work--featured { grid-row: span 2; display: block; transform: rotate(-1deg); }
+.pf-work__image { position: relative; min-width: 0; min-height: 180px; overflow: hidden; background: #dfe2c5; }
+.pf-work__image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pf-work--featured .pf-work__image { aspect-ratio: 16 / 9; min-height: 0; background: #253b31; }
+.pf-work--featured .pf-work__image img { object-fit: contain; image-rendering: pixelated; }
+.pf-work__number { position: absolute; left: 9px; top: 9px; padding: 5px 8px; background: #fff8dc; border: 1px solid #9b8860; color: #a34d35; font: 400 12px "FusionPixel", sans-serif; }
+.pf-work__body { min-width: 0; display: flex; flex-direction: column; padding: 16px; }
+.pf-work--featured .pf-work__body { padding: 21px 18px 15px; }
+.pf-work__label { margin: 0; color: #956242; font-size: .64rem; letter-spacing: .07em; }
+.pf-work__body h3 { margin: 10px 0 8px; font: 400 24px/36px "FusionPixel", sans-serif; }
+.pf-work__bottom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: auto; padding-top: 11px; border-top: 1px dashed #d0c5a6; }
+.pf-work__bottom > span { padding: 3px 6px; border: 1px solid #a3ad8a; color: #586951; font-size: .6rem; transform: rotate(-2deg); }
+.pf-work__bottom strong { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: #9c4c35; font-size: .72rem; }
+.pf-selected__note { display: flex; align-items: center; gap: 13px; min-height: 52px; margin-top: 30px; padding: 10px 14px; border-top: 1px dashed #aa9c7c; color: #596549; font-size: .78rem; }
+.pf-selected__note > :last-child { margin-left: auto; }
+.pf-selected__note:hover { color: #9b4b35; }
+.pf-site.pf-homepage .pf-home .pf-home-play__intro h2 { font-size: 36px; line-height: 48px; }
+.pf-homepage .pf-scroll-cue { display: none; }
+
+@media (max-width: 1250px) {
+  .pf-homepage .pf-hero h1 { font-size: 60px; line-height: 72px; }
+  .pf-site.pf-homepage .pf-home .pf-hero { padding-inline: 30px; gap: 20px 24px; }
+  .pf-homepage .pf-poker-card[data-stack-slot="front"] { --stack-x: -82px; }
+  .pf-homepage .pf-poker-card[data-stack-slot="opposite"] { --stack-x: 84px; }
+  .pf-work { grid-template-columns: 36% 1fr; }
+  .pf-work__body { padding: 12px; }
+}
+@media (max-width: 1000px) {
+  .pf-site.pf-homepage .pf-home .pf-hero { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .pf-homepage .pf-hero h1 { font-size: 48px; line-height: 60px; }
+  .pf-homepage .pf-hero__lead { font-size: .88rem; }
+  .pf-homepage .pf-poker__stage { height: 365px; }
+  .pf-homepage .pf-poker-card { width: 59%; }
+  .pf-homepage .pf-poker-card[data-stack-slot="front"] { --stack-x: -62px; }
+  .pf-homepage .pf-poker-card[data-stack-slot="opposite"] { --stack-x: 62px; }
+  .pf-homepage .pf-poker-card[data-stack-slot="prev"] { --stack-x: 22px; }
+  .pf-homepage .pf-poker-card[data-stack-slot="next"] { --stack-x: -20px; }
+  .pf-homepage .pf-poker-card__symbol { width: 80px; height: 80px; }
+  .pf-homepage .pf-poker-card__symbol img { width: 66px; height: 66px; }
+  .pf-work { grid-template-columns: 1fr; }
+  .pf-work__image { aspect-ratio: 16 / 8; min-height: 0; }
+  .pf-work--featured { align-self: center; }
+  .pf-selected__grid { grid-template-columns: 1.1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .pf-site.pf-homepage .pf-home { --pf-home-gap: 52px; }
+  .pf-site.pf-homepage .pf-home .pf-hero { grid-template-columns: 1fr; padding: 30px 24px 24px; gap: 28px; }
+  .pf-homepage .pf-hero__copy { padding: 8px 0 0; }
+  .pf-hero__identity { margin-bottom: 20px; }
+  .pf-homepage .pf-hero h1 { font-size: 48px; line-height: 60px; }
+  .pf-homepage .pf-hero__lead { font-size: .91rem; }
+  .pf-homepage .pf-actions { flex-direction: row; }
+  .pf-homepage .pf-actions .pf-button { width: auto; padding-inline: 22px; }
+  .pf-homepage .pf-poker { width: min(100%, 420px); padding-top: 8px; overflow-x: clip; }
+  .pf-homepage .pf-poker__stage { height: 368px; }
+  .pf-homepage .pf-poker-card { width: min(72%, 204px); }
+  .pf-homepage .pf-poker-card[data-mobile-slot="back"] { --stack-y: 0px; --stack-x: -3px; }
+  .pf-homepage .pf-poker-card[data-mobile-slot="mid-far"] { --stack-y: 23px; --stack-x: 3px; }
+  .pf-homepage .pf-poker-card[data-mobile-slot="mid-near"] { --stack-y: 46px; --stack-x: -2px; }
+  .pf-homepage .pf-poker-card[data-mobile-slot="front"] { --stack-y: 69px; --stack-x: 2px; }
+  .pf-homepage .pf-poker-card__body { padding: 36px 14px; gap: 10px; }
+  .pf-homepage .pf-poker-card__symbol { width: 76px; height: 76px; }
+  .pf-homepage .pf-poker-card__symbol img { width: 60px; height: 60px; }
+  .pf-town-map__heading { align-items: center; margin-bottom: 18px; gap: 5px 12px; }
+  .pf-town-map__heading h2 { font-size: 24px; line-height: 36px; }
+  .pf-weather { gap: 6px; padding-inline: 10px; }
+  .pf-town-pin { gap: 4px; min-height: 44px; padding-inline: 7px; font-size: .64rem; box-shadow: 2px 2px 0 #70816d; }
+  .pf-town-pin--works { top: 28%; }
+  .pf-town-pin--docs { left: 57%; top: 20%; }
+  .pf-town-pin--games { left: 79%; top: 45%; }
+  .pf-town-pin--about { top: 81%; }
+  .pf-town-pin--mail { top: 83%; }
+  .pf-selected { padding: 26px 17px 17px; }
+  .pf-selected__heading { align-items: start; gap: 8px; }
+  .pf-selected__heading h2 { font-size: 24px; line-height: 36px; }
+  .pf-selected__heading .pf-text-link { max-width: 7em; font-size: .7rem; }
+  .pf-selected__grid { grid-template-columns: 1fr; gap: 26px; }
+  .pf-work--featured { grid-row: auto; }
+  .pf-work { grid-template-columns: 36% 1fr; }
+  .pf-work__image { aspect-ratio: auto; min-height: 170px; }
+  .pf-work--featured .pf-work__image { aspect-ratio: 16 / 9; min-height: 0; }
+  .pf-work__body { padding: 14px 10px; }
+  .pf-work__bottom { gap: 8px; }
+  .pf-work__bottom strong { margin-left: 0; }
+  .pf-selected__note { padding-inline: 0; font-size: .72rem; }
+  .pf-site.pf-homepage .pf-home .pf-home-play__intro h2 { font-size: 24px; line-height: 36px; }
+}
+@media (max-width: 420px) {
+  .pf-homepage .pf-hero h1 { font-size: 36px; line-height: 48px; }
+  .pf-work { grid-template-columns: 1fr; }
+  .pf-work__image { aspect-ratio: 16 / 9; min-height: 0; }
+  .pf-work__body { padding-inline: 14px; }
+  .pf-work__bottom strong { margin-left: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-town-map__car { animation: none; transform: translate(145px, 129px); }
+  .pf-town-pin, .pf-work { transition: none; }
+}

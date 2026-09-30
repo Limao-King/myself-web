@@ -1,0 +1,602 @@
+/* Adventure dossier: an original visual system built around the actual work. */
+.pf-site {
+  --pf-ink: #223025;
+  --pf-muted: #53604c;
+  --pf-line: #344431;
+  --pf-paper: #f8f5e6;
+  --pf-paper-bright: #fffbed;
+  --pf-green: #315238;
+  --pf-blue: #bfe8ee;
+  --pf-red: #b94c33;
+  --pf-yellow: #e4c566;
+  --pf-shadow: 7px 7px 0 rgba(30, 53, 43, .16);
+  --eb-frame: #ead48c;
+  --eb-red: #b94c33;
+  color-scheme: light;
+  font-family: "MiSans", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--pf-ink);
+  scroll-padding-top: 92px;
+}
+.pf-site *, .pf-site *::before, .pf-site *::after { box-sizing: border-box; }
+.pf-site body {
+  margin: 0;
+  color: var(--pf-ink);
+  background:
+    url('/images/scenes/sky-clouds.svg') center 84px / min(100%, 1080px) auto no-repeat,
+    linear-gradient(180deg, #9cd9e6 0, #d2efdd 520px, #f3ecd6 1080px, #f3ecd6 100%);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.pf-site a { color: inherit; text-decoration: none; }
+.pf-site button, .pf-site input { font: inherit; }
+.pf-site img { max-width: 100%; }
+.pf-site :focus-visible { outline: 3px solid var(--pf-red); outline-offset: 4px; }
+.pf-site [hidden] { display: none !important; }
+.pf-container { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
+.pf-main { padding: 36px 0 100px; }
+.pf-skip { position: fixed; z-index: 200; top: 8px; left: 8px; transform: translateY(-150%); background: var(--pf-paper-bright); border: 2px solid var(--pf-ink); padding: 8px 14px; }
+.pf-skip:focus { transform: none; }
+
+/* Header */
+.pf-header { position: sticky; top: 0; z-index: 80; background: rgba(245, 245, 221, .94); border-bottom: 3px solid var(--pf-line); backdrop-filter: blur(14px); }
+.pf-header__inner { width: min(1180px, calc(100% - 48px)); min-height: 72px; margin-inline: auto; display: flex; align-items: center; gap: 24px; }
+.pf-brand { display: inline-flex; align-items: center; gap: 11px; flex: none; }
+.pf-brand__avatar { display: grid; place-items: center; width: 42px; height: 42px; border: 2px solid var(--pf-line); background: #f1d777; box-shadow: 3px 3px 0 rgba(30,53,43,.15); }
+.pf-brand__avatar img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; }
+.pf-brand__copy { display: flex; flex-direction: column; line-height: 1.2; }
+.pf-brand__copy strong { font-size: 1.05rem; font-weight: 850; letter-spacing: .06em; }
+.pf-brand__copy small { margin-top: 4px; font-size: .69rem; letter-spacing: .08em; color: #53604c; font-weight: 700; }
+.pf-nav { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.pf-nav a { min-height: 42px; display: inline-flex; align-items: center; padding: 0 16px; font-size: .9rem; font-weight: 750; border-radius: 4px; }
+.pf-nav a { position: relative; }
+.pf-nav a:hover, .pf-nav a[aria-current="page"] { background: #dbe4bc; }
+.pf-nav a[aria-current="page"] { box-shadow: inset 0 -3px #b94c33; }
+.pf-nav a[aria-current="page"]::after { content: ""; position: absolute; width: 6px; height: 6px; bottom: 6px; right: 6px; background: #b94c33; }
+.pf-nav .pf-nav__resume { margin-left: 14px; border: 2px solid var(--pf-line); background: var(--pf-yellow); box-shadow: 3px 3px 0 rgba(30,53,43,.18); }
+.pf-nav .pf-nav__resume:hover { background: #f2d578; }
+.pf-nav__resume span { margin-left: 8px; }
+.pf-mobile-menu { display: none; margin-left: auto; position: relative; }
+.pf-mobile-menu summary { width: 44px; height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; list-style: none; border: 2px solid var(--pf-line); background: var(--pf-paper); }
+.pf-mobile-menu summary::-webkit-details-marker { display: none; }
+.pf-mobile-menu summary span { width: 19px; height: 2px; background: var(--pf-ink); }
+.pf-mobile-menu nav { position: absolute; right: 0; top: calc(100% + 13px); width: min(280px, calc(100vw - 32px)); padding: 9px; display: flex; flex-direction: column; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); box-shadow: var(--pf-shadow); }
+.pf-mobile-menu nav a { display: block; padding: 12px 14px; font-weight: 750; }
+.pf-mobile-menu nav a:hover, .pf-mobile-menu nav a[aria-current="page"] { background: #dbe4bc; }
+.pf-mobile-menu nav a[aria-current="page"] { border-left: 4px solid #b94c33; padding-left: 10px; }
+
+/* Shared text and controls */
+.pf-overline, .pf-kicker, .pf-case-label, .pf-footer__eyebrow { font-family: "FusionPixel", "MiSans", sans-serif; font-size: .78rem; letter-spacing: .08em; font-weight: 400; }
+.pf-overline { color: #4b6644; margin: 0 0 12px; }
+.pf-kicker { color: #4b6644; margin: 0 0 20px; display: flex; gap: 9px; align-items: center; }
+.pf-live-dot { display: inline-block; width: 11px; height: 11px; flex: none; background: #78a159; border: 2px solid #365039; box-shadow: 0 0 0 3px #dcebc2; }
+.pf-button { min-height: 46px; display: inline-flex; justify-content: center; align-items: center; gap: 12px; padding: 10px 19px; border: 2px solid var(--pf-line); border-radius: 4px; font-size: .9rem; font-weight: 800; line-height: 1.25; box-shadow: 3px 3px 0 rgba(34,48,37,.22); transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
+.pf-button:hover { transform: translateY(-2px); box-shadow: 5px 5px 0 rgba(34,48,37,.2); }
+.pf-button:active { transform: translateY(1px); box-shadow: 2px 2px 0 rgba(34,48,37,.22); transition-duration: .09s; }  /* v4.13：按压即落，松手回弹，与牌面按压语言一致 */
+.pf-button--primary { background: var(--pf-red); color: #fffbee !important; }
+.pf-button--primary:hover { background: #a9432d; }
+.pf-button--outline { background: var(--pf-paper-bright); }
+.pf-button--outline:hover { background: #f1efd6; }
+.pf-button--dark { background: var(--pf-green); color: #fffbee !important; }
+.pf-button--dark:hover { background: #223f2a; }
+.pf-button--cream { background: #f5e6ac; color: var(--pf-ink) !important; }
+.pf-button--transparent { background: transparent; border-color: #d5e0c0; color: #fffbee !important; }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.pf-text-link { display: inline-flex; align-items: center; min-height: 44px; color: #315238 !important; font-weight: 800; text-decoration: underline !important; text-underline-offset: 5px; }
+.pf-text-link:hover { color: var(--pf-red) !important; }
+.pf-breadcrumb { margin-bottom: 24px; }
+.pf-breadcrumb a { font-weight: 750; color: #425b3d; text-decoration: underline; text-underline-offset: 5px; }
+.pf-page-note { margin: 42px 0 0; text-align: center; color: var(--pf-muted); }
+.pf-page-note a { color: #315238; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
+
+/* Home */
+.pf-home { display: flex; flex-direction: column; gap: 76px; }
+.pf-hero { display: grid; grid-template-columns: minmax(min-content,1fr) minmax(0,.94fr); gap: clamp(28px,4vw,60px); align-items: center; position: relative; padding: clamp(28px,4vw,54px); background: var(--pf-paper); border: 3px solid var(--pf-line); box-shadow: 10px 10px 0 rgba(34,48,37,.2); }
+.pf-hero::before, .pf-hero::after { content: ""; position: absolute; width: 11px; height: 11px; border: 2px solid #855e32; pointer-events: none; }
+.pf-hero::before { left: 8px; top: 8px; }.pf-hero::after { right: 8px; bottom: 8px; }
+/* Pixel headings stay on the 12px grid: integer font sizes (24/36/48/60/72) and
+   12px-multiple line heights keep FusionPixel glyphs crisp; letter-spacing is 0. */
+.pf-hero h1 { margin: 0; font-size: 72px; line-height: 84px; letter-spacing: 0; font-weight: 400; color: #202b22; text-wrap: balance; }
+/* 两短句逐句不可断：配合标记里的硬断 <br>，标题在任何视口都恰好两行，不会出现"半句换行"。
+   480px 以下不加 nowrap —— 该区间字号 36px、单句 252px 本就窄于可用宽度，加了反而会在 ~335px 以下溢出。
+   左栏用 minmax(min-content,1fr)：文字列永不被压到比最长整句更窄（余量不足时由右侧牌堆让位，不溢出）。 */
+@media (min-width: 480px) { .pf-hero h1 { white-space: nowrap; } }
+.pf-hero h1 span { color: #ae4932; }
+@media (max-width: 1199px) { .pf-hero h1 { font-size: 60px; line-height: 72px; } }
+@media (max-width: 899px) { .pf-hero h1 { font-size: 48px; line-height: 60px; } }
+@media (max-width: 599px) { .pf-hero h1 { font-size: 36px; line-height: 48px; } }
+.pf-hero__lead { max-width: 34em; margin: 23px 0 25px; font-size: 1.04rem; line-height: 1.85; color: #41503c; }
+.pf-hero__aside { margin: 20px 0 0; font-size: .83rem; line-height: 1.6; color: #56644d; }
+.pf-hero__aside a { margin-left: 4px; color: #315238; font-weight: 850; text-decoration: underline; text-underline-offset: 4px; }
+.pf-hero-deck { min-width: 0; position: relative; padding: 13px 13px 10px; background: #bfe8ee; border: 3px solid #344431; box-shadow: 8px 8px 0 rgba(34,48,37,.2); }
+.pf-hero-deck::before, .pf-hero-deck::after { content: ""; position: absolute; z-index: 2; width: 12px; height: 12px; background: #e4c566; border: 2px solid #344431; pointer-events: none; }
+.pf-hero-deck::before { top: -7px; left: 20px; }.pf-hero-deck::after { right: 20px; bottom: -7px; background: #b94c33; }
+.pf-hero-deck__cards { min-width: 0; }
+.pf-hero-card { background: #fffbed; border: 2px solid #344431; box-shadow: 4px 4px 0 rgba(34,48,37,.18); animation: pf-card-arrive .24s steps(4,end) both; }
+.pf-hero-card__top { display: flex; justify-content: space-between; gap: 8px; padding: 9px 11px; background: #e4c566; border-bottom: 2px solid #344431; font: 400 .66rem "FusionPixel", sans-serif; color: #344431; }
+.pf-hero-card__image { height: clamp(180px,22vw,260px); display: grid; place-items: center; overflow: hidden; background: #18251d; border-bottom: 2px solid #344431; }
+.pf-hero-card__image img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.pf-hero-card__body { padding: 17px 19px 19px; }
+.pf-hero-card__body > p:first-child { margin: 0; color: #9f4931; font: 400 .68rem "FusionPixel", sans-serif; }
+.pf-hero-card__body h2 { margin: 7px 0 5px; font-size: clamp(1.25rem,2vw,1.75rem); font-weight: 900; line-height: 1.35; }
+.pf-hero-card__body p:nth-of-type(2) { margin: 0; color: #53604c; font-size: .8rem; line-height: 1.65; }
+.pf-hero-card__body > a { display: inline-flex; min-height: 42px; align-items: center; gap: 7px; margin-top: 12px; color: #315238; font-weight: 850; font-size: .81rem; text-decoration: underline; text-underline-offset: 4px; }
+.pf-hero-deck__controls { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 1px 4px; }
+.pf-hero-deck__controls > button, .pf-hero-deck__controls > div button { min-width: 42px; min-height: 42px; border: 2px solid #344431; background: #fffbed; color: #223025; font-weight: 850; cursor: pointer; }
+.pf-hero-deck__controls > div { min-width: 0; display: flex; flex: 1; justify-content: flex-start; gap: 6px; overflow-x: auto; scrollbar-width: thin; scroll-snap-type: x proximity; }
+.pf-hero-deck__controls > div button { min-width: max-content; padding-inline: 9px; font: 400 .61rem "FusionPixel", sans-serif; white-space: nowrap; scroll-snap-align: start; }
+.pf-hero-deck__controls button[aria-pressed="true"] { background: #315238; color: #fffbed; }
+.pf-hero-deck__all { display: block; padding: 3px 2px 0; color: #315238; font-size: .76rem; font-weight: 850; text-align: right; text-decoration: underline; text-underline-offset: 3px; }
+@keyframes pf-card-arrive { from { opacity: .35; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+.pf-home-play { display: grid; grid-template-columns: minmax(220px,.68fr) minmax(0,1.32fr); align-items: center; gap: clamp(24px,4vw,54px); padding: clamp(22px,3vw,34px); background: #f8f5e6; border: 3px solid #344431; box-shadow: 8px 8px 0 rgba(34,48,37,.17); }
+.pf-home-play__intro h2 { margin: 0; font-size: 36px; line-height: 48px; letter-spacing: 0; font-weight: 400; }
+.pf-home-play__intro > p:not(.pf-overline) { margin: 12px 0 8px; color: #53604c; font-size: .83rem; line-height: 1.7; }
+.pf-home-play__intro > a { display: inline-flex; min-height: 42px; align-items: center; color: #315238; font-size: .8rem; font-weight: 850; text-decoration: underline; text-underline-offset: 4px; }
+.pf-home-tv { min-width: 0; padding: 12px; background: #d9be83; border: 3px solid #384535; box-shadow: inset 0 0 0 3px #f0dfad, 5px 5px 0 rgba(34,48,37,.16); }
+.pf-home-tv__top, .pf-home-tv__bottom { display: flex; justify-content: space-between; align-items: center; gap: 9px; font: 400 .7rem "FusionPixel", sans-serif; color: #2d3d2e; }
+.pf-home-tv__top { padding: 0 4px 9px; }.pf-home-tv__top i { width: 9px; height: 9px; border-radius: 50%; background: #bc4a35; box-shadow: 0 0 0 3px #f3e0b0; }
+.pf-home-tv__channels { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin-bottom: 9px; }
+.pf-home-tv__channels button { min-height: 44px; border: 2px solid #344431; background: #fffbed; color: #344431; font-size: .82rem; font-weight: 850; cursor: pointer; }
+.pf-home-tv__channels button[aria-pressed="true"] { background: #315238; color: #fffbed; box-shadow: inset 0 -3px #e4c566; }
+.pf-home-tv__channels button:hover { background: #e4c566; color: #223025; }
+.pf-home-tv__channels button:focus-visible { outline: 3px solid #b94c33; outline-offset: 3px; }
+.pf-home-tv__screen { position: relative; aspect-ratio: 16/9; display: grid; place-items: center; overflow: hidden; background: #121714; border: 6px solid #273429; }
+.pf-home-tv__screen > img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.pf-home-tv__screen > button { position: absolute; z-index: 2; min-height: 48px; padding: 9px 17px; border: 2px solid #f6e7bc; background: #ad4933; color: #fff8e5; font-weight: 850; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,.4); }
+.pf-home-tv__screen > button:hover { background: #913923; transform: translate(-2px,-2px); }
+.pf-home-tv__screen > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.pf-home-tv__screen > p { position: absolute; z-index: 3; inset: auto 0 0; margin: 0; padding: 8px 12px; background: rgba(20,31,22,.9); color: #fff8e5; text-align: center; font-size: .8rem; }
+.pf-home-tv__video-fallback { margin-top: 8px; }
+.pf-home-tv__video-fallback a { display: flex; min-height: 44px; align-items: center; justify-content: center; padding: 7px 12px; border: 2px solid #344431; background: #fffbed; color: #9c3f2c; font-size: .8rem; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
+.pf-home-tv__video-fallback a:hover { background: #e4c566; }
+.pf-home-tv__help { margin-top: 8px; color: #344431; }
+.pf-home-tv__help summary { display: inline-flex; min-height: 40px; align-items: center; padding: 3px 7px; color: #394c37; cursor: pointer; font-size: .72rem; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+.pf-home-tv__help > div { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 8px; border: 2px dashed #52684c; background: #fffbed; }
+.pf-home-tv__help p { flex: 1 1 100%; margin: 0; color: #53604c; font-size: .76rem; line-height: 1.5; }
+.pf-home-tv__help button, .pf-home-tv__help a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 7px 10px; border: 2px solid #344431; background: #e4c566; color: #223025; font-size: .74rem; font-weight: 850; cursor: pointer; }
+.pf-home-tv__help a { background: #315238; color: #fffbed; text-decoration: underline; text-underline-offset: 3px; }
+.pf-home-tv__help button:hover, .pf-home-tv__help a:hover { filter: brightness(.94); }
+.pf-home-tv__bottom { padding: 9px 3px 0; }.pf-home-tv__bottom a { text-decoration: underline; text-underline-offset: 3px; }
+.pf-hero__media { margin: 0; padding: 10px; border: 2px solid var(--pf-line); background: #f4e5b5; box-shadow: 5px 5px 0 rgba(34,48,37,.16); transform: rotate(1.1deg); }
+.pf-hero__media-top { display: flex; justify-content: space-between; gap: 8px; padding: 5px 5px 10px; font: 400 .66rem "FusionPixel", sans-serif; letter-spacing: .04em; color: #3d5638; }
+.pf-hero__image { aspect-ratio: 16 / 9; display: grid; place-items: center; overflow: hidden; border: 2px solid #24352b; background: #161b19; }
+.pf-hero__image img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.pf-hero__media figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 13px 5px 4px; font-size: .81rem; }
+.pf-hero__media figcaption strong { font-weight: 850; }.pf-hero__media figcaption span { color: #5a634e; }
+.pf-proof { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: -36px; }
+.pf-proof a { position: relative; min-height: 126px; display: flex; flex-direction: column; padding: 17px 42px 17px 18px; background: #fbf7e8; border: 2px solid var(--pf-line); box-shadow: 4px 4px 0 rgba(34,48,37,.14); transition: transform .18s ease; }
+.pf-proof a:hover { transform: translateY(-3px); }
+.pf-proof__number { font: 400 .71rem "FusionPixel", sans-serif; color: #ad5138; }
+.pf-proof strong { margin-top: 7px; font-size: 1.04rem; font-weight: 850; }
+.pf-proof a > span:nth-of-type(2) { margin-top: 3px; color: #5a654f; font-size: .79rem; line-height: 1.5; }
+.pf-proof b { position: absolute; right: 17px; top: 16px; color: #315238; }
+.pf-section__head { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 23px; }
+.pf-section__head h2 { margin: 0; max-width: 26em; font-size: 36px; line-height: 48px; letter-spacing: 0; font-weight: 400; }
+.pf-feature-case { display: grid; grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); overflow: hidden; background: var(--pf-paper-bright); border: 3px solid var(--pf-line); box-shadow: var(--pf-shadow); }
+.pf-feature-case__image { min-height: 330px; display: grid; place-items: center; background: #111814; }
+.pf-feature-case__image img { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.pf-feature-case__body { padding: clamp(25px,4vw,48px); }
+.pf-case-label { margin: 0; color: #9f4931; }
+.pf-feature-case h3 { margin: 11px 0 0; font-size: clamp(1.6rem,2.3vw,2.2rem); font-weight: 900; }
+.pf-feature-case__question { margin: 18px 0 8px; font-size: 1.13rem; font-weight: 850; line-height: 1.5; }
+.pf-feature-case__body > p:not(.pf-case-label):not(.pf-feature-case__question) { margin: 0; color: #4b5844; line-height: 1.85; }
+.pf-feature-case__facts { display: flex; flex-wrap: wrap; gap: 7px; margin: 22px 0; }
+.pf-feature-case__facts span { display: inline-block; padding: 5px 9px; background: #e6eccf; border: 1px solid #b5c4a1; color: #3a5635; font-size: .75rem; font-weight: 750; }
+.pf-project-grid, .pf-doc-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.pf-project-card { display: flex; flex-direction: column; min-width: 0; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); box-shadow: 4px 4px 0 rgba(34,48,37,.14); transition: transform .18s ease; }
+.pf-project-card:hover, .pf-doc-card:hover { transform: translateY(-4px); }
+.pf-project-card__image { height: 180px; background: #243b2f; overflow: hidden; }
+.pf-project-card__image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pf-project-card__body { display: flex; flex: 1; flex-direction: column; padding: 20px; }
+.pf-project-card h3 { margin: 9px 0; font-size: 1.15rem; line-height: 1.35; font-weight: 850; }
+.pf-project-card__body > p:not(.pf-case-label) { margin: 0 0 24px; font-size: .84rem; color: #53604c; line-height: 1.75; }
+.pf-project-card__body > span { margin-top: auto; color: #315238; font-weight: 850; font-size: .82rem; }
+.pf-doc-card { display: flex; flex-direction: column; min-height: 285px; padding: 20px; border: 2px solid var(--pf-line); background: #f8f3db; box-shadow: 4px 4px 0 rgba(34,48,37,.14); transition: transform .18s ease; }
+.pf-doc-card:nth-child(2) { background: #e5eddb; }.pf-doc-card:nth-child(3) { background: #edf3e9; }
+.pf-doc-card__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font: 400 .75rem "FusionPixel", sans-serif; }
+.pf-doc-card__top b { color: #a64c34; font-size: 1.2rem; font-weight: 400; }.pf-doc-card__top em { color: #4f684a; font-style: normal; }
+.pf-doc-card h3 { margin: 22px 0 9px; font-size: 1.14rem; line-height: 1.5; font-weight: 850; }
+.pf-doc-card p { margin: 0 0 22px; font-size: .84rem; line-height: 1.7; color: #59634f; }
+.pf-doc-card__action { margin-top: auto; color: #315238; font-weight: 850; font-size: .83rem; }
+
+/* Inner pages and project cases */
+.pf-inner-page { padding-top: 12px; }
+.pf-page-hero { margin: 0 0 52px; max-width: 900px; padding: clamp(26px,4vw,48px); background: rgba(255,251,236,.96); border: 3px solid var(--pf-line); box-shadow: var(--pf-shadow); }
+.pf-page-hero h1 { margin: 0; font-size: 60px; line-height: 72px; letter-spacing: 0; font-weight: 400; }
+.pf-page-hero h1 span { color: #a84732; }.pf-page-hero > p:last-child { max-width: 44em; margin: 20px 0 0; color: #4c5947; line-height: 1.85; }
+.pf-project-list { display: flex; flex-direction: column; gap: 20px; }
+.pf-project-row { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.15fr); min-height: 305px; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); box-shadow: 5px 5px 0 rgba(34,48,37,.15); transition: transform .18s ease; }
+.pf-project-row:hover { transform: translateY(-3px); }.pf-project-row--lead { border-width: 3px; }
+.pf-project-row__image { display: grid; place-items: center; overflow: hidden; background: #1e2d25; }.pf-project-row__image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pf-project-row--lead .pf-project-row__image img { object-fit: contain; }
+.pf-project-row__body { display: flex; flex-direction: column; padding: clamp(22px,3vw,36px); }
+.pf-project-row__meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font: 400 .73rem "FusionPixel", sans-serif; color: #8e5138; }
+.pf-project-row h2 { margin: 14px 0 8px; font-size: 36px; line-height: 48px; letter-spacing: 0; font-weight: 400; }
+.pf-project-row__lead { margin: 0 0 8px !important; color: var(--pf-ink) !important; font-weight: 750; }
+.pf-project-row__body > p { margin: 0; color: #56614d; line-height: 1.7; font-size: .88rem; }
+.pf-project-row__bottom { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-top: auto; padding-top: 22px; font-size: .8rem; }
+.pf-project-row__bottom span { color: #53604c; }.pf-project-row__bottom strong { color: #315238; }
+.pf-case-hero { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.92fr); gap: clamp(24px,3vw,42px); align-items: center; padding: clamp(26px,4vw,48px); background: var(--pf-paper-bright); border: 3px solid var(--pf-line); box-shadow: var(--pf-shadow); }
+.pf-case-hero h1 { margin: 0; font-size: 48px; line-height: 60px; letter-spacing: 0; font-weight: 400; }
+.pf-case-hero__summary { margin: 20px 0 0; color: #4c5947; line-height: 1.85; }
+.pf-case-hero__tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0; }
+.pf-case-hero__tags span { padding: 5px 9px; background: #e2ebcf; border: 1px solid #acc09c; color: #335139; font-size: .77rem; font-weight: 750; }
+.pf-case-hero__links { display: flex; flex-wrap: wrap; gap: 9px; }
+.pf-case-hero__visual { margin: 0; padding: 8px; border: 2px solid var(--pf-line); background: #e6d9a9; }
+.pf-case-hero__visual img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: contain; background: #121613; image-rendering: pixelated; }
+.pf-case-hero__visual figcaption { padding: 8px 3px 0; font-size: .72rem; color: #53604c; }
+.pf-case-analysis, .pf-play-section, .pf-gallery-section { margin-top: 72px; }
+.pf-decision-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
+.pf-decision-grid article { padding: 25px; background: #fbf8ea; border: 2px solid var(--pf-line); box-shadow: 4px 4px 0 rgba(34,48,37,.12); }
+.pf-decision-grid article:nth-child(2) { background: #e7efdc; }.pf-decision-grid article:nth-child(3) { background: #f2ebd4; }
+.pf-decision-grid article > span { font: 400 .73rem "FusionPixel", sans-serif; color: #a44c35; }
+.pf-decision-grid h3 { margin: 18px 0 10px; font-size: 1.16rem; font-weight: 850; }.pf-decision-grid p { margin: 0; color: #4e5a48; font-size: .88rem; line-height: 1.8; }
+.pf-case-evidence { display: flex; justify-content: space-between; gap: 25px; margin-top: 34px; padding: 26px 30px; background: #2e4d35; color: #fff9e8; }
+.pf-case-evidence .pf-overline { color: #d5dfae; }.pf-case-evidence h2 { margin: 0; font-size: 24px; line-height: 36px; letter-spacing: 0; font-weight: 400; }.pf-case-evidence p { margin: 8px 0 0; color: #e0ead6; font-size: .83rem; }
+.pf-evidence-links { display: flex; flex-wrap: wrap; align-content: center; justify-content: flex-end; gap: 8px; max-width: 48%; }
+.pf-evidence-links a { padding: 9px 11px; border: 1px solid #d3e2bc; color: #fff9e8; font-size: .8rem; font-weight: 750; }
+.pf-evidence-links a:hover { background: rgba(255,255,255,.12); }
+.pf-play-section > p { margin: -5px 0 20px; color: #53604c; font-size: .85rem; }
+.pf-longform { margin-top: 65px; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); box-shadow: 4px 4px 0 rgba(34,48,37,.13); }
+.pf-longform > summary { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 20px 24px; cursor: pointer; list-style: none; }
+.pf-longform > summary::-webkit-details-marker { display: none; }.pf-longform > summary span { display: flex; flex-direction: column; gap: 3px; }.pf-longform small { font: 400 .68rem "FusionPixel", sans-serif; color: #a44c35; }.pf-longform strong { font-size: 1.12rem; font-weight: 850; }.pf-longform > summary b { font-size: 1.6rem; font-weight: 400; }
+.pf-longform[open] > summary b { transform: rotate(45deg); }.pf-longform .pf-prose { padding: 0 26px 30px; border-top: 1px solid #d6d7c3; }
+.pf-case-next { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 42px; padding-top: 20px; border-top: 2px solid #bac5aa; color: #315238; font-size: .85rem; font-weight: 850; }
+
+/* Document index and reading pages */
+.pf-catalog { margin-top: 72px; }
+.pf-catalog__tools { margin-bottom: 24px; padding: 20px; background: #f9f6e7; border: 2px solid var(--pf-line); }
+.pf-catalog__tools label { display: block; margin-bottom: 7px; font-size: .79rem; font-weight: 800; }
+.pf-catalog__tools input { width: min(420px,100%); min-height: 46px; padding: 9px 12px; border: 2px solid #52684c; border-radius: 3px; background: #fffdf4; color: var(--pf-ink); }
+.pf-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 13px; }
+.pf-filters button { min-height: 40px; padding: 6px 13px; border: 1px solid #597050; border-radius: 3px; background: transparent; color: #344b35; font-size: .8rem; font-weight: 750; cursor: pointer; }
+.pf-filters button[aria-pressed="true"] { background: #315238; color: #fffbed; }
+.pf-catalog__tools p { margin: 12px 0 0; color: #56614f; font-size: .78rem; }
+.pf-catalog__grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.pf-catalog-card { display: flex; flex-direction: column; min-height: 215px; padding: 21px; background: var(--pf-paper-bright); border: 2px solid #56694d; transition: border-color .18s ease, transform .18s ease; }
+.pf-catalog-card:hover { border-color: #b94c33; transform: translateY(-2px); }
+.pf-catalog-card > span { font: 400 .72rem "FusionPixel", sans-serif; color: #9b4b35; }
+.pf-catalog-card h3 { margin: 11px 0 8px; font-size: 1.03rem; line-height: 1.45; font-weight: 850; }
+.pf-catalog-card p { margin: 0 0 18px; color: #53604c; font-size: .83rem; line-height: 1.65; }
+.pf-catalog-card b { margin-top: auto; color: #315238; font-size: .78rem; }
+.pf-empty { margin: 24px 0; color: #53604c; }
+.pf-doc-page { max-width: 1180px; }
+.pf-doc-hero { padding: clamp(25px,4vw,45px); background: var(--pf-paper-bright); border: 3px solid var(--pf-line); box-shadow: var(--pf-shadow); }
+.pf-doc-hero h1 { margin: 0; max-width: 20em; font-size: 36px; line-height: 48px; letter-spacing: 0; font-weight: 400; }
+.pf-doc-hero > p:not(.pf-overline) { margin: 17px 0 0; max-width: 49em; color: #4f5d4b; line-height: 1.8; }
+.pf-doc-hero__meta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
+.pf-doc-hero__meta span { padding: 4px 9px; border: 1px solid #b8c5a0; background: #e5ecd5; font-size: .75rem; color: #3f5a3e; }
+.pf-doc-hero__meta a { margin-left: 8px; font-size: .78rem; font-weight: 800; color: #315238; text-decoration: underline; }
+.pf-doc-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; align-items: start; gap: 22px; margin-top: 24px; }
+.pf-doc-layout > .pf-prose { min-width: 0; padding: clamp(24px,4vw,48px); background: #fffdf2; border: 2px solid #718267; }
+.pf-doc-toc { position: sticky; top: 100px; padding: 18px; background: #e8efde; border: 2px solid #677c61; }
+.pf-doc-toc summary { font-weight: 850; cursor: pointer; }.pf-doc-toc nav { max-height: calc(100vh - 190px); overflow: auto; display: flex; flex-direction: column; gap: 5px; margin-top: 13px; }
+.pf-doc-toc nav a { display: block; padding: 5px 2px; font-size: .78rem; color: #425743; line-height: 1.45; }.pf-doc-toc nav a:hover { color: #a74732; text-decoration: underline; }.pf-doc-toc nav a.is-sub { padding-left: 13px; }
+.pf-prose { overflow-wrap: anywhere; line-height: 1.9; color: #334031; font-size: .96rem; }
+.pf-prose > :first-child { margin-top: 0; }
+.pf-prose :is(p,li,blockquote) { max-width: 45em; }
+.pf-prose h2 { margin: 2em 0 .75em; padding-bottom: .35em; border-bottom: 2px solid #b9c8ad; font-size: 24px; line-height: 36px; letter-spacing: 0; font-weight: 400; color: #233528; }
+.pf-prose h3 { margin: 1.7em 0 .6em; font-size: 1.15rem; font-weight: 850; color: #2c4230; }.pf-prose h4 { margin: 1.4em 0 .5em; font-weight: 850; }
+.pf-prose p { margin: 1em 0; }.pf-prose ul { list-style: disc; }.pf-prose ol { list-style: decimal; }.pf-prose ul, .pf-prose ol { padding-left: 1.5em; margin: 1em 0; }.pf-prose li { margin: .4em 0; }
+.pf-prose strong { color: #203b29; font-weight: 850; }.pf-prose a { color: #a74732; text-decoration: underline; text-underline-offset: 3px; }
+.pf-prose blockquote { margin: 1.3em 0; padding: .3em 1.1em; border-left: 4px solid #9bab7e; background: #eff2df; color: #4a5c43; }
+.pf-prose img { max-width: 100%; height: auto; display: block; margin: 1.4em 0; }
+.pf-prose pre { max-width: 100%; overflow-x: auto; padding: 17px; border: 2px solid #27382b; background: #1d2922; color: #f1f4e5; font-size: .81rem; line-height: 1.55; }.pf-prose pre code { color: inherit; background: transparent; padding: 0; }
+.pf-prose :not(pre) > code { padding: 1px 4px; background: #e8ead9; color: #384832; font-size: .9em; }
+.pf-prose table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .84rem; }.pf-prose th, .pf-prose td { padding: 8px 10px; border: 1px solid #b9c8ad; }.pf-prose th { background: #e8efdc; }
+.pf-prose hr { border: 0; border-top: 2px solid #b9c8ad; margin: 2em 0; }
+
+/* About, play notes, 404 */
+.pf-about-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: -13px 0 40px; }
+.pf-about-card { display: flex; flex-direction: column; padding: 28px; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); box-shadow: 4px 4px 0 rgba(34,48,37,.13); }
+.pf-about-card:nth-child(2) { background: #e8efdf; }.pf-about-card h2, .pf-about-section h2 { margin: 0 0 13px; font-size: 24px; line-height: 36px; letter-spacing: 0; font-weight: 400; }
+.pf-about-card > p:not(.pf-overline), .pf-about-section p:not(.pf-overline) { margin: 0; max-width: 35em; color: #53604c; line-height: 1.85; }.pf-about-card a { margin-top: auto; padding-top: 23px; color: #315238; font-size: .84rem; font-weight: 850; }
+.pf-about-section { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px; padding: 34px 0; border-top: 2px solid #829778; }.pf-about-section > div { min-width: 0; }.pf-about-section ul { margin: 0; padding-left: 1.3em; color: #53604c; line-height: 1.9; list-style: disc; }.pf-about-section .pf-button { margin-top: 18px; }
+.pf-contact-list { display: flex; flex-direction: column; gap: 6px; margin-top: 17px; }.pf-contact-list a { color: #315238; font-size: .85rem; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; overflow-wrap: anywhere; }
+.pf-review-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }.pf-review-card { padding: 25px; background: var(--pf-paper-bright); border: 2px solid var(--pf-line); }.pf-review-card > div { display: flex; justify-content: space-between; gap: 10px; font: 400 .72rem "FusionPixel", sans-serif; color: #9b4b35; }.pf-review-card em { font-style: normal; color: #51644b; }.pf-review-card h3 { margin: 12px 0; font-size: 1.23rem; font-weight: 850; }.pf-review-card p { margin: 0 0 11px; color: #52604d; font-size: .87rem; line-height: 1.8; }
+.pf-game-archive { margin-top: 70px; }
+/* v4.16 图鉴抽屉行：轻档案行替代厚框卡片，摘除全站角钉（用户：图钉密密麻麻太丑；审查提示词：避免每层重复装角钉）。
+   收起态在标题行内预览前 5 款（peek 胶囊）＋▸ 旋转箭头，让「可展开」可被读懂。 */
+.pf-game-groups { display: grid; gap: 0; }
+.pf-game-groups details { background: transparent; border: 0; border-top: 2px solid var(--pf-line); box-shadow: none; }
+.pf-game-groups details:last-child { border-bottom: 2px solid var(--pf-line); }
+.pf-game-groups summary { display: flex; align-items: center; gap: 12px; padding: 15px 4px; cursor: pointer; font-weight: 850; }
+.pf-game-groups summary > b { font-size: .95rem; }
+.pf-game-groups__peek { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; min-width: 0; }
+.pf-game-groups__peek i { font-style: normal; font-size: .68rem; color: #4d5a47; padding: 3px 8px; background: #e8efdc; border: 1px solid #c9d4b8; }
+/* v4.17 修：meta 恒右——展开态 peek 隐藏后失撑，计数与 ▸ 会跑向左边 */
+.pf-game-groups__meta { margin-left: auto; font-size: .78rem; font-weight: 400; color: #5b6854; white-space: nowrap; }
+.pf-game-groups__chevron { font-size: .8rem; color: var(--pf-red); transition: transform .16s steps(2, end); }
+.pf-game-groups details[open] .pf-game-groups__chevron { transform: rotate(90deg); }
+.pf-game-groups details[open] .pf-game-groups__peek { display: none; }
+.pf-game-groups details[open] summary { border-bottom: 1px dashed #b9a985; }
+.pf-game-groups details > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; padding: 4px 4px 20px; }
+.pf-game-groups h3 { margin: 12px 0 7px; font-size: .9rem; }
+.pf-game-groups ul { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; }
+.pf-game-groups li { display: inline-flex; gap: 4px; padding: 5px 8px; background: #e8efdc; border: 1px solid #c9d4b8; font-size: .75rem; }
+.pf-game-groups li small { color: #786638; }
+/* v4.16 内页「落座」入场（配 data-seat）：默认静态可见，加 is-seated 才播一次。
+   v4.17 顺滑化：steps(2) 两帧观感＝「卡了一下」，改连续缓动（用户实测反馈）。 */
+[data-seat].is-seated { animation: pf-item-seat 280ms cubic-bezier(.25, .6, .35, 1) 1; }
+@keyframes pf-item-seat { from { transform: translateY(8px); opacity: .55; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { [data-seat].is-seated { animation: none !important; } }
+.pf-not-found { margin-top: 80px; max-width: 760px; padding: 45px; background: var(--pf-paper-bright); border: 3px solid var(--pf-line); box-shadow: var(--pf-shadow); }.pf-not-found h1 { margin: 0; font-size: 48px; line-height: 60px; letter-spacing: 0; font-weight: 400; }.pf-not-found p:not(.pf-overline) { color: #53604c; margin: 12px 0 25px; }
+
+/* Footer */
+.pf-footer { background: #213b2b; color: #fff9e8; border-top: 4px solid #132a1d; }
+/* v4.16 页脚地平线：全站统一的像素地面条（由首页 CTA 底部那条迁来，全站收尾语言统一） */
+.pf-footer::before { content: ""; display: block; height: 16px; background: repeating-linear-gradient(90deg, #c7b384 0 20px, #948562 20px 40px); }
+.pf-footer__inner { display: flex; justify-content: space-between; gap: 30px; padding-top: 45px; padding-bottom: 40px; }.pf-footer__eyebrow { color: #d6dd9a; margin: 0 0 8px; }.pf-footer__inner strong { display: block; font-size: 1.24rem; line-height: 1.45; font-weight: 850; }.pf-footer__inner p:not(.pf-footer__eyebrow) { margin: 9px 0 0; color: #c7d8bc; font-size: .82rem; }
+.pf-footer__links { display: flex; flex-wrap: wrap; align-content: start; justify-content: flex-end; gap: 8px; min-width: 290px; }.pf-footer__links a { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border: 1px solid #a8c49b; color: #fff9e8; font-size: .79rem; font-weight: 750; }.pf-footer__links a:hover { background: rgba(255,255,255,.1); }
+.pf-footer__bottom { display: flex; justify-content: space-between; gap: 15px; padding-top: 17px; padding-bottom: 20px; border-top: 1px solid #78917c; color: #b5c7ab; font-size: .72rem; }.pf-footer__bottom a { text-decoration: underline; text-underline-offset: 4px; }
+
+@media (max-width: 1000px) {
+  .pf-hero { grid-template-columns: 1fr; }.pf-hero__media { max-width: 690px; transform: rotate(.5deg); }
+  .pf-page-hero h1 { font-size: 48px; line-height: 60px; }
+  .pf-project-grid, .pf-doc-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .pf-doc-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .pf-case-hero { grid-template-columns: 1fr; }.pf-case-hero__visual { max-width: 750px; }
+}
+@media (max-width: 720px) {
+  .pf-container, .pf-header__inner { width: min(100% - 32px, 1180px); }
+  .pf-header__inner { min-height: 62px; }.pf-nav { display: none; }.pf-mobile-menu { display: block; }
+  .pf-main { padding: 22px 0 75px; }
+  .pf-home { gap: 57px; }.pf-hero { padding: 24px; gap: 24px; box-shadow: 6px 6px 0 rgba(34,48,37,.18); }
+  .pf-hero-deck { max-width: 620px; width: 100%; justify-self: center; }.pf-hero-card__image { height: clamp(170px,52vw,250px); }
+  .pf-home-play { grid-template-columns: 1fr; gap: 17px; padding: 21px; }
+  .pf-hero__lead { margin: 16px 0 19px; font-size: .92rem; line-height: 1.75; }.pf-hero__aside { margin-top: 15px; }
+  .pf-hero__media-top { font-size: .58rem; }.pf-hero__media figcaption { font-size: .72rem; }
+  .pf-proof { grid-template-columns: 1fr; margin-top: -31px; gap: 8px; }.pf-proof a { min-height: 0; padding: 12px 36px 12px 14px; }.pf-proof strong { margin-top: 2px; }.pf-proof a > span:nth-of-type(2) { margin-top: 0; }
+  .pf-section__head { align-items: start; flex-direction: column; gap: 5px; }.pf-section__head h2 { font-size: 24px; line-height: 36px; text-wrap: balance; }
+  .pf-feature-case { grid-template-columns: 1fr; }.pf-feature-case__image { min-height: 0; aspect-ratio: 16/9; }.pf-feature-case__body { padding: 23px; }
+  .pf-project-grid, .pf-doc-grid, .pf-catalog__grid, .pf-about-grid, .pf-review-grid, .pf-decision-grid { grid-template-columns: 1fr; }.pf-doc-grid > :last-child:nth-child(odd) { grid-column: auto; }
+  .pf-project-card { flex-direction: row; }.pf-project-card__image { width: 37%; height: auto; min-height: 165px; flex: none; }.pf-project-card__body { padding: 16px; }.pf-project-card h3 { font-size: 1rem; }
+  .pf-doc-card { min-height: 0; }.pf-case-evidence { flex-direction: column; align-items: stretch; }.pf-evidence-links { justify-content: flex-start; max-width: none; }
+  .pf-page-hero { margin-bottom: 35px; }.pf-page-hero h1 { font-size: 36px; line-height: 48px; }
+  .pf-project-row { grid-template-columns: 1fr; }.pf-project-row__image { min-height: 0; aspect-ratio: 16/9; }.pf-project-row__body { padding: 23px; }
+  .pf-case-analysis, .pf-gallery-section { margin-top: 55px; }.pf-case-hero h1 { font-size: 36px; line-height: 48px; }.pf-case-evidence { margin-top: 22px; }
+  .pf-doc-layout { grid-template-columns: 1fr; }.pf-doc-toc { grid-row: 1; position: static; }.pf-doc-toc nav { max-height: 220px; }.pf-doc-layout > .pf-prose { padding: 24px; }
+  .pf-about-grid { margin-top: 0; }.pf-about-section { grid-template-columns: 1fr; }.pf-game-groups details > div { grid-template-columns: 1fr; }
+  .pf-footer__inner { flex-direction: column; }.pf-footer__links { min-width: 0; justify-content: flex-start; }
+  /* 触控目标 ≥44px：只补 padding/min-height，字号与配色不变（视觉尺寸不变） */
+  .pf-hero__aside a { display: inline-flex; align-items: center; min-height: 44px; }
+  .pf-home-play__intro > a { min-height: 44px; }
+  .pf-home-tv__bottom a { display: inline-flex; align-items: center; min-height: 44px; }
+  .pf-home-tv__help summary { min-height: 44px; }
+  .pf-home-tv__help button, .pf-home-tv__help a { min-height: 44px; }
+  .pf-evidence-links a { display: inline-flex; align-items: center; min-height: 44px; }
+  .pf-case-next a { display: inline-flex; align-items: center; min-height: 44px; }
+  .pf-footer__bottom a { display: inline-flex; align-items: center; min-height: 44px; }
+  .pf-not-found h1 { font-size: 36px; line-height: 48px; }
+}
+@media (min-width: 721px) {
+  .pf-hero-deck__controls > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); overflow: visible; }
+  .pf-hero-deck__controls > div button { min-width: 0; width: 100%; }
+}
+@media (max-width: 450px) {
+  .pf-brand__copy small { font-size: .59rem; }.pf-brand__avatar { width: 37px; height: 37px; }.pf-brand__avatar img { width: 30px; height: 30px; }
+  .pf-hero { padding: 21px; }.pf-kicker { flex-wrap: wrap; font-size: .69rem; }
+  .pf-hero-deck { padding: 10px; }.pf-hero-card__top { font-size: .58rem; }.pf-hero-card__body { padding: 14px; }.pf-hero-card__image { height: 165px; }
+  .pf-home-play { padding: 17px; }.pf-home-tv { padding: 8px; }.pf-home-tv__screen { border-width: 4px; }.pf-home-tv__screen > button { min-height: 44px; padding: 7px 12px; font-size: .78rem; }
+  .pf-home-tv__channels { gap: 5px; }.pf-home-tv__channels button { min-height: 44px; padding-inline: 5px; font-size: .78rem; }
+  .pf-home-tv__help > div { align-items: stretch; }.pf-home-tv__help button, .pf-home-tv__help a { flex: 1 1 auto; }
+  .pf-actions { flex-direction: column; align-items: stretch; }.pf-button { width: 100%; }.pf-hero__media { padding: 6px; }.pf-hero__media-top span:last-child { display: none; }
+  .pf-project-card { flex-direction: column; }.pf-project-card__image { width: 100%; height: 165px; }.pf-case-hero { padding: 22px; }
+  .pf-longform > summary { padding: 17px; }.pf-longform .pf-prose { padding: 0 18px 22px; }
+  .pf-footer__links { flex-direction: column; align-items: stretch; }.pf-footer__links a { justify-content: center; }
+}
+
+/* One shared portrait deck (v4.12)：一张扑克牌的正面 —— 花色包边 + 角指数 + 中央图符 + 类型 + 短题名。
+   牌面元素随整卡一起运动（无内部渐变）；包边加宽与整牌动效同步 400ms。 */
+.pf-poker { --poker-ink:#344431; --poker-paper:#fffbed; min-width:0; position:relative; isolation:isolate; background:transparent; }
+.pf-poker__stage { position:relative; height:450px; min-height:0; touch-action:pan-y; user-select:none; }
+.pf-poker__stage::after { content:""; position:absolute; z-index:0; left:16%; right:12%; bottom:4px; height:20px; border-radius:50%; background:rgba(34,48,37,.19); filter:blur(7px); }
+.pf-poker-card { --stack-x:0px; position:absolute; top:0; left:50%; width:min(56%,260px); aspect-ratio:5 / 7; overflow:visible; border:0; border-radius:3px; background:var(--poker-paper); box-shadow:4px 5px 0 rgba(34,48,37,.13); transform:translateX(calc(-50% + var(--stack-x))) translateY(var(--stack-y,0px)) rotate(var(--stack-rot,0deg)) scale(var(--press-scale,1)); transition:transform 280ms cubic-bezier(.22,.85,.3,1.06),box-shadow 280ms ease; }
+/* v4.18 手牌队形（方案 A 紧凑版，用户终审选定）：当前牌向左前方抽出完整可读，其余三张向右收拢成牌列，
+   各露 ~74px 右牌边＋右下角指数；z 序沿牌列向右递减（next > prev > opposite）。 */
+.pf-poker-card[data-stack-slot="opposite"] { --stack-y:54px; --stack-x:114px; --stack-rot:3.5deg; z-index:1; }
+.pf-poker-card[data-stack-slot="prev"] { --stack-y:68px; --stack-x:40px; --stack-rot:-1deg; z-index:2; }
+.pf-poker-card[data-stack-slot="next"] { --stack-y:60px; --stack-x:-34px; --stack-rot:2deg; z-index:3; }
+.pf-poker-card[data-stack-slot="front"] { --stack-y:0px; --stack-x:-108px; --stack-rot:-2.5deg; z-index:4; }
+.pf-poker-card[data-suit="1"] { --suit:#b94c33; }.pf-poker-card[data-suit="2"] { --suit:#557c50; }.pf-poker-card[data-suit="3"] { --suit:#427b8b; }.pf-poker-card[data-suit="4"] { --suit:#9a7042; }
+/* 牌面：花色包边 4px ＋ 1px 纸色细线 ＋ 2px 墨线（＝原「纸边双线」的墨线，合并为同一条内框线，避免三线堆叠）。
+   全部画在牌面自身的 inset box-shadow 上：不占布局，加宽只改数值、不挤占内部坐标。 */
+.pf-poker-card__face { position:absolute; inset:0; display:block; width:100%; height:100%; padding:0; border:0; color:var(--poker-ink); text-align:left; cursor:pointer; background:repeating-linear-gradient(135deg,rgba(52,68,49,.025) 0 2px,transparent 2px 8px),var(--poker-paper); box-shadow:inset 0 0 0 4px var(--suit),inset 0 0 0 5px var(--poker-paper),inset 0 0 0 7px var(--poker-ink); transition:box-shadow 400ms cubic-bezier(.22,.85,.3,1.06); }
+/* 选中/悬停：包边 4px → 6px（纸色细线与墨线整体内移 2px），与整牌动效同步 400ms。
+   v4.13.2：「指针热态」＝ hover 或键盘 :focus-visible —— 用 :has(> __face:focus-visible) 取代「元素内任意后代获得焦点」
+   这一类选择器，鼠标点击牌面后残留的按钮焦点不再让包边/抽牌/扫光/徽记持续停留在热态（键盘 Tab 聚焦仍有完整反馈）。 */
+.pf-poker-card[data-active="true"] .pf-poker-card__face,
+.pf-poker-card:hover .pf-poker-card__face,
+.pf-poker-card:has(> .pf-poker-card__face:focus-visible) .pf-poker-card__face { box-shadow:inset 0 0 0 6px var(--suit),inset 0 0 0 7px var(--poker-paper),inset 0 0 0 9px var(--poker-ink); }
+/* 命中区扩展：把后牌露边的可点热区扩到牌面全幅。前牌 z-index 更高（front=4 > next=3 > prev=2 > opposite=1），
+   重叠处仍由前牌接管，因此前牌可点区不受影响。透明、不参与绘制。 */
+.pf-poker-card__face::before { content:""; position:absolute; inset:-6px; z-index:0; }
+/* 牌背水印：大号像素序号（84px = 12px 网格 ×7，opacity ≤ .08，无动画）。 */
+.pf-poker-card__face::after { content:attr(data-num); position:absolute; z-index:0; left:50%; top:52%; transform:translate(-50%,-50%); color:var(--suit); opacity:.07; letter-spacing:0; font:400 84px/84px "FusionPixel",sans-serif; pointer-events:none; }
+.pf-poker-card__face:focus-visible { outline:3px solid #b94c33; outline-offset:-7px; }
+/* 扑克角指数：左上正立、右下旋转 180°（真实扑克惯例）。竖排＝编号 + 小花色图符。
+   常态印章式双描边（设计官 v4.12 裁定 a）：2px 深墨边 + 1px 内白线（inset box-shadow），
+   盒内底取花色淡染——纸色底上白线读不出来，淡染后白线才成形；12px 小字与边线之间还隔 1px 白线 + 3px 内边距，不糊。 */
+.pf-poker-card__corner { position:absolute; z-index:3; display:flex; flex-direction:column; align-items:center; gap:2px; padding:2px 3px; color:var(--suit); background:color-mix(in srgb,var(--suit) 14%,var(--poker-paper)); box-shadow:inset 0 0 0 2px var(--poker-ink),inset 0 0 0 3px var(--poker-paper); font:400 13px/1 "FusionPixel",sans-serif; pointer-events:none; }
+.pf-poker-card__corner--tl { top:15px; left:15px; }
+.pf-poker-card__corner--br { right:15px; bottom:15px; transform:rotate(180deg); }
+/* 角指数序号用 <b>，浏览器默认请求 bolder；像素字只有 400 实体面，这里显式 400。 */
+.pf-poker-card__corner b { font-weight:400; }
+.pf-poker-card__corner img { width:13px; height:13px; image-rendering:pixelated; }
+/* 牌面内容（居中，随整卡一起动）：中央图符 + 类型 + 短题名 */
+.pf-poker-card__body { position:absolute; z-index:1; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:54px 26px; pointer-events:none; }
+.pf-poker-card__symbol { width:116px; height:116px; flex:none; display:grid; place-items:center; border:2px solid color-mix(in srgb,var(--suit) 48%,var(--poker-paper)); background:color-mix(in srgb,var(--suit) 7%,var(--poker-paper)); }
+.pf-poker-card__symbol img { width:95px; height:95px; image-rendering:pixelated; }
+/* v4.13 牌面信息层级：类型短词＝主级（24px 像素字＝12 网格 ×2）；名＋副题＝灰次级（更小、更具体内容）。 */
+.pf-poker-card__type { padding-bottom:7px; border-bottom:2px solid color-mix(in srgb,var(--suit) 55%,var(--poker-paper)); color:var(--suit); font:400 24px/24px "FusionPixel",sans-serif; letter-spacing:.1em; white-space:nowrap; }
+.pf-poker-card__name { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.pf-poker-card__name-main { color:#55604f; font-family:"MiSans","Noto Sans SC",sans-serif; font-size:13px; font-weight:400; line-height:1.35; letter-spacing:.08em; white-space:nowrap; }
+.pf-poker-card__name-sub { color:#8a9280; font-family:"MiSans","Noto Sans SC",sans-serif; font-size:11px; font-weight:400; line-height:1.35; letter-spacing:.12em; white-space:nowrap; }
+/* v4.13 扫光（丝滑光泽）：悬停/聚焦/选中时一道花色微光扫过牌面，模拟卡牌的覆膜反光。只在动效允许时出现。 */
+.pf-poker-card__sheen { position:absolute; z-index:2; inset:0; overflow:hidden; pointer-events:none; opacity:0; }
+.pf-poker-card__sheen::before { content:""; position:absolute; inset:-30% -60%; background:linear-gradient(105deg,transparent 40%,color-mix(in srgb,var(--suit) 26%,#fff) 50%,transparent 60%); mix-blend-mode:soft-light; transform:translateX(-85%); }
+.pf-poker-card:hover .pf-poker-card__sheen,
+.pf-poker-card:has(> .pf-poker-card__face:focus-visible) .pf-poker-card__sheen,
+.pf-poker-card.is-glint .pf-poker-card__sheen { opacity:1; animation:pf-sheen-sweep .9s cubic-bezier(.3,.7,.3,1) both; }
+@keyframes pf-sheen-sweep { from { transform:translateX(-85%); } to { transform:translateX(85%); } }
+/* v4.13 入口徽记（示意可点击跳转）：印章式小方牌，常态不出现（不再有破坏牌面的常驻箭头）；
+   悬停/键盘聚焦/选中闪示时以弹性缩放浮现。点击区域是整张牌面，徽记纯装饰。
+   v4.13.1：bottom 由 36/30/28px 抬到 52/46/44px —— 原值会被压住右下角指数（实测重叠 15.8×14.9px / 18×15.8px）。 */
+.pf-poker-card__enter { position:absolute; z-index:6; right:-12px; bottom:52px; width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; color:var(--poker-paper); background:var(--suit); border:2px solid var(--poker-ink); box-shadow:3px 3px 0 rgba(34,48,37,.22),0 0 16px 3px color-mix(in srgb,var(--suit) 42%,transparent); font-size:17px; line-height:1; opacity:0; transform:scale(.72) rotate(-8deg); pointer-events:none; transition:opacity 240ms ease,transform 280ms cubic-bezier(.22,.85,.3,1.06); }
+/* v4.13.2（用户实测反馈）：选中态不再常驻光晕 —— 顶牌就是选中的 01 号红花色牌（--suit #b94c33），
+   光晕挂在 [data-active="true"] 上导致「鼠标放开后红光不消」。选中态只保留硬阴影（＝v4.12 原样），
+   包边 4→6px 的选中语言不变。三层光晕（硬环 3px/9px ＋ 柔光 34px，强度沿用桌面 hover 值）
+   只出现在三个触发态：桌面 :hover（见下方 721px 媒体查询，含抽牌抬升）／键盘 :focus-visible／is-glint 选中闪示。
+   硬阴影仍取常态 7px 9px（不跟随抬升，抬升态由 hover 规则接管）。 */
+.pf-poker-card[data-active="true"] { box-shadow:7px 9px 0 rgba(34,48,37,.22); }
+.pf-poker-card:has(> .pf-poker-card__face:focus-visible),
+.pf-poker-card.is-glint { box-shadow:7px 9px 0 rgba(34,48,37,.22),0 0 0 3px color-mix(in srgb,var(--suit) 30%,transparent),0 0 0 9px color-mix(in srgb,var(--suit) 14%,transparent),0 0 34px 12px color-mix(in srgb,var(--suit) 34%,transparent); }
+.pf-poker-card.is-glint .pf-poker-card__enter { opacity:1; transform:scale(1) rotate(-8deg); animation:pf-enter-pulse 1.2s cubic-bezier(.22,.85,.3,1.06) both; }
+@keyframes pf-enter-pulse { 0% { transform:scale(.72) rotate(-8deg); } 36% { transform:scale(1.06) rotate(-8deg); } 62% { transform:scale(1) rotate(-8deg); } 100% { transform:scale(1) rotate(-8deg); } }
+/* 按压反馈：按牌面时整张牌下压（:has 渐进增强，不支持则无反馈、不影响点击）。 */
+.pf-poker-card:has(> .pf-poker-card__face:active) { --press-scale:.97; box-shadow:2px 2px 0 rgba(34,48,37,.16); transition:transform 140ms linear,box-shadow 140ms linear; }
+.pf-poker__controls { position:relative; z-index:10; display:flex; justify-content:center; align-items:center; gap:9px; padding-top:2px; color:var(--poker-ink); }
+.pf-poker__controls > button { width:44px; height:44px; flex:none; border:2px solid var(--poker-ink); background:var(--poker-paper); box-shadow:3px 3px 0 rgba(34,48,37,.18); font-weight:900; cursor:pointer; }
+.pf-poker__controls > button:hover { background:#e4c566; }
+.pf-poker__controls [data-poker-counter] { min-width:54px; text-align:center; font:400 .65rem "FusionPixel",sans-serif; }
+@media (hover:hover) and (pointer:fine) { .pf-poker__controls { display:none; } }
+@media (min-width:721px) and (hover:hover) and (pointer:fine) {
+  /* 抽牌：整牌抬升 400ms（回弹减弱）；回位 280ms（基态 transition）。
+     v4.13：选中光效强化——花色光晕（硬环＋柔光）随抽牌一起加深，扫光掠过牌面，入口徽记弹性浮现。
+     v4.13.2：热态触发条件由「元素内任意后代获得焦点」改为只认指针 hover 与键盘 :focus-visible，
+     鼠标点击后的残留焦点不再维持抽牌/包边/扫光/徽记（光晕强度与 v4.13 抽牌态一致：30%/14%/34%＋11px 16px 硬阴影）。 */
+  .pf-poker-card:hover,.pf-poker-card:has(> .pf-poker-card__face:focus-visible) { z-index:10!important; transform:translateX(calc(-50% + var(--stack-x))) translateY(calc(var(--stack-y) - 18px)) rotate(0deg) scale(calc(1.025 * var(--press-scale,1))); box-shadow:11px 16px 0 rgba(34,48,37,.25),0 0 0 3px color-mix(in srgb,var(--suit) 30%,transparent),0 0 0 9px color-mix(in srgb,var(--suit) 14%,transparent),0 0 34px 12px color-mix(in srgb,var(--suit) 34%,transparent); transition:transform 400ms cubic-bezier(.22,.85,.3,1.06),box-shadow 400ms ease; }
+  .pf-poker-card:hover .pf-poker-card__enter,.pf-poker-card:has(> .pf-poker-card__face:focus-visible) .pf-poker-card__enter { opacity:1; transform:scale(1) rotate(-8deg); }
+}
+@media (max-width:1000px) { .pf-poker { width:min(100%,510px); justify-self:center; }.pf-poker__stage { height:450px; }.pf-poker-card { width:min(56%,260px); }
+  /* ≤1000 牌堆列更窄：牌距再收一档（露边 ~64px），右缘越界量须 ≤ 旧松散队形（约 246px） */
+  .pf-poker-card[data-stack-slot="opposite"] { --stack-x:96px; --stack-rot:3deg; }
+  .pf-poker-card[data-stack-slot="prev"] { --stack-x:30px; }
+  .pf-poker-card[data-stack-slot="next"] { --stack-x:-38px; }
+  .pf-poker-card[data-stack-slot="front"] { --stack-x:-104px; } }
+@media (max-width:720px) {
+  /* 收边：消除手机端切牌动画瞬态的横向溢出（实测瞬态 ~436px → 静置 375px）。
+     只在窄屏加：桌面松散牌位故意超出牌堆列（最多约 133px），裁切会把侧牌切断。 */
+  .pf-poker { overflow-x: clip; }
+  .pf-poker__controls { display:flex; }
+  .pf-poker__stage { height:520px; }
+  .pf-poker-card { width:min(78%,270px); transition:transform 340ms cubic-bezier(.22,.85,.3,1.06),box-shadow 340ms ease; }
+  /* 手机露边 36 → 42px：让竖排角指数在露边里完整可读（角指数是后牌唯一的信息）。 */
+  .pf-poker-card[data-mobile-slot="back"] { --stack-y:0px; --stack-x:-3px; --stack-rot:0deg; z-index:1; }
+  .pf-poker-card[data-mobile-slot="mid-far"] { --stack-y:42px; --stack-x:3px; --stack-rot:0deg; z-index:2; }
+  .pf-poker-card[data-mobile-slot="mid-near"] { --stack-y:84px; --stack-x:-2px; --stack-rot:0deg; z-index:3; }
+  .pf-poker-card[data-mobile-slot="front"] { --stack-y:126px; --stack-x:2px; --stack-rot:0deg; z-index:4; }
+  .pf-poker-card__symbol { width:98px; height:98px; }.pf-poker-card__symbol img { width:82px; height:82px; }
+  .pf-poker-card__body { padding:48px 20px; gap:12px; }
+  .pf-poker-card__corner { gap:2px; padding:1px 3px; font-size:12px; }.pf-poker-card__corner img { width:12px; height:12px; }
+  .pf-poker-card__corner--tl { top:12px; left:12px; }.pf-poker-card__corner--br { right:12px; bottom:12px; }
+  .pf-poker-card__enter { right:-10px; bottom:46px; }
+  .pf-road::before { left:20%; top:90px; }.pf-road::after { right:21%; top:202px; }
+}
+@media (max-width:450px) {
+  .pf-poker__stage { height:500px; }
+  .pf-poker-card { width:min(78%,260px); }
+  .pf-poker-card__symbol { width:82px; height:82px; }.pf-poker-card__symbol img { width:70px; height:70px; }
+  .pf-poker-card__body { padding:42px 18px; gap:10px; }
+  .pf-poker-card__corner--tl { top:12px; left:12px; }.pf-poker-card__corner--br { right:12px; bottom:12px; }
+  .pf-poker-card__enter { right:-10px; bottom:44px; }
+  .pf-poker__controls { gap:7px; }
+}
+.pf-road { isolation:isolate; }
+.pf-road::before { content:""; position:absolute; z-index:0; left:28%; top:36px; width:12px; height:11px; background:#b94c33; border:2px solid #344431; box-shadow:0 -7px 0 -2px #e4c566,0 4px 0 2px #7b5935,8px 6px 0 -1px #344431; image-rendering:pixelated; }
+.pf-road::after { content:""; position:absolute; z-index:0; right:26%; top:24px; width:10px; height:14px; background:#557c50; box-shadow:-6px 5px #557c50,6px 5px #557c50,0 11px #8a6840; image-rendering:pixelated; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-site *, .pf-site *::before, .pf-site *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  /* v4.10.2 / v4.12 动效：减少动态偏好下彻底关闭（抽牌/回位、按压、包边加宽、入口箭头 hover） */
+  .pf-poker-card, .pf-poker-card:has(> .pf-poker-card__face:active) { transition: none !important; }
+  .pf-poker-card__face, .pf-poker-card__enter { transition: none !important; }
+  /* v4.13 动效：扫光与徽记脉冲不播（徽记仍随 hover/聚焦即时显示），下滑提示箭头静止 */
+  .pf-poker-card__sheen { display: none !important; }
+  .pf-poker-card__enter, .pf-scroll-cue__arrow { animation: none !important; }
+}
+
+/* Remaining road and design evidence presentation. */
+.pf-road { position: relative; min-height: 118px; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); align-items: start; padding: 5px 0 0; }
+.pf-road > svg { position: absolute; inset: 0; width: 100%; height: 80px; overflow: visible; pointer-events: none; }
+.pf-road > svg path { fill: none; stroke: #557047; stroke-width: 3; stroke-dasharray: 5 6; vector-effect: non-scaling-stroke; }
+.pf-road__mobile { display: none; }
+.pf-road > a { z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+.pf-road__marker { width: 32px; height: 32px; display: grid; place-items: center; border: 2px solid #344431; background: #f8f5e6; box-shadow: 3px 3px 0 rgba(34,48,37,.16); color: #b94c33; font: 400 .62rem "FusionPixel", sans-serif; }
+.pf-road > a b { font-size: .78rem; font-weight: 850; }.pf-road > a small { color: #53604c; font-size: .65rem; }
+.pf-road__guide { position: absolute; width: 34px; height: 42px; object-fit: contain; image-rendering: pixelated; transform: translate(43px,-25px); }
+.pf-design-section .pf-proof { margin-top: 18px; }
+.pf-design-card { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.05fr); overflow: hidden; background: #fbf7e8; border: 3px double var(--pf-line); box-shadow: 6px 6px 0 rgba(34,48,37,.16); }
+.pf-design-card__image { margin: 0; min-width: 0; display: flex; flex-direction: column; background: #1d2a21; }
+.pf-design-card__image img { display: block; width: 100%; height: 100%; min-height: 270px; object-fit: cover; }
+.pf-design-card__image figcaption { padding: 9px 12px; color: #fffbed; background: #253c2c; font-size: .68rem; }
+.pf-design-card__body { padding: clamp(20px,3vw,34px); }
+.pf-design-card__body h3 { margin: 4px 0 10px; font-size: clamp(1.25rem,2vw,1.75rem); line-height: 1.3; font-weight: 900; }
+.pf-design-card__body > p:not(.pf-case-label) { margin: 0; color: #53604c; font-size: .84rem; line-height: 1.75; }
+.pf-design-card__facts { display: grid; gap: 7px; margin: 14px 0; color: #475742; font-size: .72rem; line-height: 1.6; }
+@media (max-width: 1000px) {
+  .pf-road { min-height: 112px; }
+}
+@media (max-width: 720px) {
+  .pf-road { min-height: 310px; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2,1fr); row-gap: 10px; padding-top: 0; }
+  .pf-road__desktop { display: none; }.pf-road__mobile { display: block; inset: 0 20% !important; width: 60% !important; height: 100% !important; }
+  .pf-road > a { align-self: center; }.pf-road > a:nth-of-type(odd) { transform: translateX(-4px); }.pf-road > a:nth-of-type(even) { transform: translateX(4px); }
+  .pf-road__guide { transform: translate(39px,-23px); }
+  .pf-design-card { grid-template-columns: 1fr; }.pf-design-card__image img { min-height: 0; aspect-ratio: 16 / 9; }
+  .pf-design-card__body { padding: 20px; }.pf-design-card__body .pf-button { width: 100%; }
+}
+@media (max-width: 450px) {
+  .pf-design-card__facts { font-size: .68rem; }
+}
+
+/* A shared pixel frame: an outer line, a quieter inner line, and two stepped rivets. */
+.pf-hero, .pf-page-hero, .pf-home-play, .pf-design-card, .pf-doc-card, .pf-home-cta,
+.pf-project-row, .pf-case-hero, .pf-longform, .pf-doc-hero,
+.pf-doc-layout > .pf-prose, .pf-about-card, .pf-catalog-card,
+.pf-review-card, .pf-proof a {
+  position: relative;
+  border: 3px solid var(--pf-line);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--pf-line) 30%, transparent), 7px 7px 0 rgba(34,48,37,.18);
+}
+.pf-hero::before, .pf-hero::after, .pf-page-hero::before, .pf-page-hero::after,
+.pf-home-play::before, .pf-home-play::after,
+.pf-design-card::before, .pf-design-card::after,
+.pf-doc-card::before, .pf-doc-card::after,
+.pf-home-cta::before, .pf-home-cta::after,
+.pf-project-row::before, .pf-project-row::after,
+.pf-case-hero::before, .pf-case-hero::after,
+.pf-longform::before, .pf-longform::after,
+.pf-doc-hero::before, .pf-doc-hero::after,
+.pf-doc-layout > .pf-prose::before, .pf-doc-layout > .pf-prose::after,
+.pf-about-card::before, .pf-about-card::after,
+.pf-catalog-card::before, .pf-catalog-card::after,
+.pf-proof a::before, .pf-proof a::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 6px;
+  height: 6px;
+  border: 0;
+  pointer-events: none;
+}
+.pf-hero::before, .pf-page-hero::before, .pf-home-play::before, .pf-design-card::before, .pf-doc-card::before,
+.pf-home-cta::before, .pf-project-row::before, .pf-case-hero::before,
+.pf-longform::before, .pf-doc-hero::before, .pf-doc-layout > .pf-prose::before,
+.pf-about-card::before, .pf-catalog-card::before,
+.pf-proof a::before {
+  top: 8px;
+  left: 8px;
+  background: var(--pf-red);
+  box-shadow: 6px 0 0 var(--pf-red), 0 6px 0 var(--pf-red), 6px 6px 0 var(--pf-yellow);
+}
+.pf-hero::after, .pf-page-hero::after, .pf-home-play::after, .pf-design-card::after, .pf-doc-card::after,
+.pf-home-cta::after, .pf-project-row::after, .pf-case-hero::after,
+.pf-longform::after, .pf-doc-hero::after, .pf-doc-layout > .pf-prose::after,
+.pf-about-card::after, .pf-catalog-card::after,
+.pf-proof a::after {
+  right: 8px;
+  bottom: 8px;
+  background: var(--pf-yellow);
+  box-shadow: -6px 0 0 var(--pf-yellow), 0 -6px 0 var(--pf-yellow), -6px -6px 0 var(--pf-red);
+}
+.pf-doc-card, .pf-about-card, .pf-doc-layout > .pf-prose { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--pf-line) 24%, transparent), 4px 4px 0 rgba(34,48,37,.14); }
