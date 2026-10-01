@@ -39,11 +39,11 @@ html.pf-homepage body {
   box-shadow: 7px 7px 0 #8fa084;
 }
 .pf-homepage .pf-hero::before, .pf-homepage .pf-hero::after { display: none; }
-.pf-homepage .pf-hero__copy { min-width: 0; padding-block: 14px 22px; }
+.pf-homepage .pf-hero__copy { min-width: 0; padding-block: 14px 22px; display: flex; flex-direction: column; justify-content: center; }
 .pf-hero__identity { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; color: #647055; font-size: .75rem; letter-spacing: .08em; }
 .pf-hero__identity img { flex: none; object-fit: contain; image-rendering: pixelated; }
 .pf-homepage .pf-hero h1 { font: 400 72px/84px "FusionPixel", sans-serif; white-space: nowrap; text-wrap: initial; }
-.pf-homepage .pf-hero__lead { max-width: 28em; margin-block: 20px 24px; font-size: .98rem; line-height: 1.9; }
+.pf-homepage .pf-hero__lead { max-width: 28em; margin-block: 20px 0; font-size: .98rem; line-height: 1.9; }
 .pf-homepage .pf-button { border-width: 1px; border-radius: 0; padding-inline: 23px; }
 .pf-homepage .pf-poker { width: 100%; align-self: center; }
 .pf-homepage .pf-poker__stage { height: 390px; }
@@ -69,12 +69,14 @@ html.pf-homepage body {
 .pf-town-map__world { position: relative; overflow: hidden; border: 2px solid #536348; box-shadow: 6px 6px 0 #98a485; }
 .pf-town-map__art { display: block; width: 100%; height: auto; }
 .pf-town-map__car { animation: town-drive 32s linear infinite; }
+/* 下方车道原本 y=129，车轮底边（+16）=145 已越过马路下沿（y=142）3px，观感是「压到马路边」；
+   上移到 y=125 后车体占 125–141，完整落在马路内且留 1px 余量。上方车道（y=114）不变。 */
 @keyframes town-drive {
-  0% { transform: translate(-26px, 129px); }
-  49% { transform: translate(375px, 129px); }
+  0% { transform: translate(-26px, 125px); }
+  49% { transform: translate(375px, 125px); }
   50% { transform: translate(375px, 114px) scaleX(-1); }
   99% { transform: translate(-26px, 114px) scaleX(-1); }
-  100% { transform: translate(-26px, 129px); }
+  100% { transform: translate(-26px, 125px); }
 }
 .pf-town-pin { position: absolute; display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 5px 14px; border: 1px solid #42533d; background: #fff6d9; box-shadow: 3px 3px 0 #70816d; transform: translate(-50%, -50%); font-size: .82rem; font-weight: 700; white-space: nowrap; transition: translate .18s ease, background .18s ease; }
 .pf-town-pin:hover { translate: 0 -4px; background: #f7da8e; }
@@ -113,7 +115,31 @@ html.pf-homepage body {
 .pf-selected__note > :last-child { margin-left: auto; }
 .pf-selected__note:hover { color: #9b4b35; }
 .pf-site.pf-homepage .pf-home .pf-home-play__intro h2 { font-size: 36px; line-height: 48px; }
+/* Hero 的下滑提示（原「打一场？」按钮位，2026-09-28 由按钮改为提示）：
+   像素鼠标＋下箭头、无文案；点击＝进入下一屏（真实锚点 #home-play，分页脚本会接管，无 JS 时原生跳转）。
+   离开首屏后淡出：home-journey 会写 data-home-current；未写时（首屏 / 无 JS）保持可见。 */
+/* Hero 的下滑提示（原「打一场？」按钮位，2026-09-28）：
+   像素鼠标＋下箭头、无文案；点击＝进入下一屏（真实锚点 #home-play，分页脚本按 hash 映射）。
+   仅分页模式显示（≥901px 且各屏装得进视口时 home-journey 会写 data-home-paging="on"），
+   绝对定位于 Hero 场景内、卡片下方居中 ⇒ 不参与场景高度计算，不会把分页判定挤掉；
+   离开首屏淡出；触屏 / 移动端一律不出现；reduced-motion 下箭头静止（见 portfolio.css 的引用）。 */
+.pf-homepage .pf-home-scene[data-home-scene="intro"] { position: relative; }
 .pf-homepage .pf-scroll-cue { display: none; }
+.pf-homepage[data-home-paging="on"] .pf-scroll-cue {
+  display: inline-flex; align-items: center; justify-content: center;
+  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+  width: 56px; height: 76px; transition: opacity .4s ease, transform .18s ease;
+}
+.pf-homepage[data-home-paging="on"] .pf-scroll-cue svg { overflow: visible; }
+.pf-homepage[data-home-paging="on"] .pf-scroll-cue:hover { transform: translateX(-50%) translateY(2px); }
+.pf-homepage .pf-scroll-cue:focus-visible { outline: 3px solid #b94c33; outline-offset: 3px; }
+.pf-homepage[data-home-paging="on"][data-home-current]:not([data-home-current="intro"]) .pf-scroll-cue { opacity: 0; pointer-events: none; }
+.pf-scroll-cue__arrow { animation: pf-cue-bob 1.9s cubic-bezier(.45,0,.35,1) infinite; }
+@keyframes pf-cue-bob { 0%, 100% { transform: translateY(0); opacity: .55; } 50% { transform: translateY(3px); opacity: 1; } }
+/* 移动端 / 触屏不出现下滑提示：那里是自由滚动，且提示本身是「鼠标」语义。 */
+@media (max-width: 720px), (hover: none), (pointer: coarse) {
+  .pf-homepage[data-home-paging="on"] .pf-scroll-cue { display: none; }
+}
 
 @media (max-width: 1250px) {
   .pf-homepage .pf-hero h1 { font-size: 60px; line-height: 72px; }
@@ -125,7 +151,8 @@ html.pf-homepage body {
 }
 @media (max-width: 1000px) {
   .pf-site.pf-homepage .pf-home .pf-hero { grid-template-columns: 1fr 1fr; gap: 18px; }
-  .pf-homepage .pf-hero h1 { font-size: 48px; line-height: 60px; }
+  /* 721–900px 是「双列 + 窄文字列（约 295–380px）」，7 字行需要 ≤ 42px；由 48px 降到 36px。 */
+  .pf-homepage .pf-hero h1 { font-size: 36px; line-height: 48px; }
   .pf-homepage .pf-hero__lead { font-size: .88rem; }
   .pf-homepage .pf-poker__stage { height: 365px; }
   .pf-homepage .pf-poker-card { width: 59%; }
@@ -190,7 +217,16 @@ html.pf-homepage body {
   .pf-work__body { padding-inline: 14px; }
   .pf-work__bottom strong { margin-left: auto; }
 }
+/* slogan 由 5 字/行改为 7 字/行（现为「勇敢想象世界，/ 认真改造世界。」），
+   72/60/48 档沿用原值仍能放下；窄屏按「可用内宽 ≥ 行宽 + 余量」重新分两档，
+   全部为 12px 整数倍，`white-space:nowrap` 下不产生横向溢出。 */
+@media (max-width: 460px) {
+  .pf-homepage .pf-hero h1 { font-size: 36px; line-height: 48px; }
+}
+@media (max-width: 380px) {
+  .pf-homepage .pf-hero h1 { font-size: 24px; line-height: 36px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .pf-town-map__car { animation: none; transform: translate(145px, 129px); }
+  .pf-town-map__car { animation: none; transform: translate(145px, 125px); }
   .pf-town-pin, .pf-work { transition: none; }
 }

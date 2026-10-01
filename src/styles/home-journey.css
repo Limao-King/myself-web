@@ -19,7 +19,10 @@
   .pf-site.pf-homepage .pf-home { width: min(1800px,92%); gap: 0; }
   .pf-home-scene { display: grid; align-content: center; min-height: calc(100svh - var(--home-header-height,75px)); padding: 24px 0; }
   .pf-site.pf-homepage .pf-home .pf-home-scene .pf-hero { min-height: 0; grid-template-columns: minmax(0,580px) minmax(0,680px); justify-content: center; gap: 28px 38px; padding: clamp(24px,4svh,60px) clamp(32px,3vw,64px); }
-  .pf-homepage .pf-home-scene .pf-hero h1 { font-size: clamp(60px,5.2vw,96px); line-height: 1.2; }
+  /* slogan 改为 7 字/行后，下限 60px 会在 901–1150px 的窄文字列（约 370–460px）里放不下
+     （7×60=420px）；上限 96px 会在 ≥1593px 的宽屏超出 580px 文字列（7×96=672px）而折断成
+     「尽情想象世 / 界，」；故收敛为 clamp(48px,5.2vw,80px)：列内恒为一行（7×80=560 ≤ 580）。 */
+  .pf-homepage .pf-home-scene .pf-hero h1 { font-size: clamp(48px,5.2vw,80px); line-height: 1.2; }
   .pf-homepage .pf-home-scene .pf-hero__lead { font-size: clamp(15px,1.1vw,20px); }
   .pf-homepage .pf-home-scene .pf-poker { width: 100%; max-width: none; }
   .pf-homepage .pf-home-scene .pf-poker__stage { height: clamp(350px,49svh,620px); }

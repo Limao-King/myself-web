@@ -19,6 +19,11 @@
       <path fill="#e7dfb5" d="M0 126h14v2H0zM31 126h14v2H31zM63 126h14v2H63zM94 126h14v2H94zM126 126h14v2h-14zM156 126h14v2h-14zM230 126h14v2h-14zM262 126h14v2h-14zM294 126h14v2h-14zM326 126h14v2h-14zM358 126h14v2h-14z"/>
       <g fill="#f6edce"><path d="M186 106h28v3h-28zM186 112h28v3h-28zM186 118h28v3h-28zM186 124h28v3h-28zM186 130h28v3h-28zM186 136h28v3h-28zM186 142h28v3h-28z"/></g>
       <g opacity=".18" fill="#263b2e"><path d="M46 87h112v10H46zM240 76h98v9h-98zM83 200h61v8H83zM307 199h91v9h-91z"/></g>
+      <!-- 树木先于房舍绘制（正确遮挡关系）：原先树排在建筑之后，(39,1) 的树干压在小影院红屋顶上、
+           (383,1) 的树冠压在游戏俱乐部门檐上。移到建筑之前后，房舍遮住树木，其余树都在草地上、不受影响。 -->
+      <use href="#town-tree" x="12" y="11"/><use href="#town-tree" x="39" y="1"/><use href="#town-tree" x="6" y="58"/><use href="#town-tree" x="156" y="41"/>
+      <use href="#town-tree" x="350" y="1"/><use href="#town-tree" x="383" y="16"/><use href="#town-tree" x="18" y="161"/><use href="#town-tree" x="48" y="182"/>
+      <use href="#town-tree" x="151" y="169"/><use href="#town-tree" x="244" y="165"/><use href="#town-tree" x="392" y="174"/>
       <!-- The little cinema. -->
       <path fill="#ddc489" d="M49 42h101v48H49z"/><path fill="#fff0ba" d="M55 45h90v42H55z"/><path fill="#883f36" d="M44 32h111v13H44z"/><path fill="#c56946" d="M48 30h103v9H48z"/>
       <path fill="#55715e" d="M66 49h66v18H66z"/><path fill="#fbdf86" d="M70 53h58v10H70z"/>
@@ -33,6 +38,9 @@
       <!-- Games club. -->
       <path fill="#e2d7a8" d="M347 52h51v42h-51z"/><path fill="#777660" d="M343 43h59v12h-59z"/><path fill="#b2b27f" d="M347 44h51v6h-51z"/>
       <use href="#town-window" x="353" y="61"/><use href="#town-window" x="380" y="61"/><path fill="#71674d" d="M368 74h11v20h-11z"/>
+      <!-- 车在「关于我」房子之前绘制：那栋房子的屋顶向北上探到 y=135，压进马路的南侧条带（112–142），
+           而下方车道的车体占 125–141 ⇒ 车经过 x 76–151 时应被房顶遮住（原先车排在整个 SVG 最后，压住了房子）。 -->
+      <g class="pf-town-map__car"><path fill="#476954" d="M0 0h19v12H0zM-4 5h27v9H-4z"/><path fill="#e6cf7e" d="M3 2h13v4H3z"/><path fill="#364637" d="M-1 12h5v4h-5zM15 12h5v4h-5z"/><path fill="#edd8a6" d="M-3 7h3v3h-3zM19 7h3v3h-3z"/></g>
       <!-- A house and a red post office. -->
       <path fill="#f3d7a4" d="M82 158h63v43H82z"/><path fill="#705749" d="M76 151h75v9H76zM85 142h57v9H85zM93 135h41v8H93z"/>
       <path fill="#b96a4b" d="M83 152h61v3H83z"/><use href="#town-window" x="91" y="166"/><use href="#town-window" x="125" y="166"/><path fill="#647054" d="M109 176h12v25h-12z"/>
@@ -41,13 +49,9 @@
       <use href="#town-window" x="327" y="173"/><path fill="#6c6143" d="M357 173h15v27h-15z"/>
       <path fill="#c45745" d="M293 174h13v13h-13zM291 180h17v5h-17z"/><path fill="#705f44" d="M298 187h3v13h-3z"/>
       <path fill="#f4d895" d="M295 177h9v2h-9z"/>
-      <use href="#town-tree" x="12" y="11"/><use href="#town-tree" x="39" y="1"/><use href="#town-tree" x="6" y="58"/><use href="#town-tree" x="156" y="41"/>
-      <use href="#town-tree" x="350" y="1"/><use href="#town-tree" x="383" y="16"/><use href="#town-tree" x="18" y="161"/><use href="#town-tree" x="48" y="182"/>
-      <use href="#town-tree" x="151" y="169"/><use href="#town-tree" x="244" y="165"/><use href="#town-tree" x="392" y="174"/>
       <use href="#town-bush" x="113" y="6"/><use href="#town-bush" x="136" y="7"/><use href="#town-bush" x="224" y="95"/><use href="#town-bush" x="247" y="96"/>
       <use href="#town-fence" x="62" y="99"/><use href="#town-fence" x="95" y="99"/><use href="#town-fence" x="128" y="99"/><use href="#town-fence" x="77" y="214"/><use href="#town-fence" x="110" y="214"/>
-      <use href="#town-flower" x="40" y="151"/><use href="#town-flower" x="52" y="156"/><use href="#town-flower" x="278" y="195"/><use href="#town-flower" x="399" y="96"/>
-      <g class="pf-town-map__car"><path fill="#476954" d="M0 0h19v12H0zM-4 5h27v9H-4z"/><path fill="#e6cf7e" d="M3 2h13v4H3z"/><path fill="#364637" d="M-1 12h5v4h-5zM15 12h5v4h-5z"/><path fill="#edd8a6" d="M-3 7h3v3h-3zM19 7h3v3h-3z"/></g>
+      <use href="#town-flower" x="40" y="151"/><use href="#town-flower" x="52" y="156"/><use href="#town-flower" x="278" y="195"/><use href="#town-flower" x="388" y="96"/>
     </svg>
     <a class="pf-town-pin pf-town-pin--works" href="/projects/" title="项目案例">项目案例 <span aria-hidden="true">↗</span></a>
     <a class="pf-town-pin pf-town-pin--docs" href="/docs/" title="策划文档">策划文档 <span aria-hidden="true">↗</span></a>
