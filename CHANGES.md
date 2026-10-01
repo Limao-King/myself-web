@@ -332,3 +332,64 @@ Cloudflare Web Analytics 显示 223 次浏览量，同一时刻 `node scripts/vi
   - 镜像干跑确认：`src/`、`public/`、`scripts/`、`worker/`、`.vscode/` 均无「主仓库独有」文件 ⇒ 同步只会新增/覆盖，不删除任何既有文件。
 - **验收**：主仓库 `ASTRO_TELEMETRY_DISABLED=1 npx astro build` → **27 页生成、6 个预览页剔除、零错误**。
 - **未验证（交用户）**：push 后 Cloudflare Pages 自动部署结果与线上真机表现。
+
+## v5.0.1 轻量审查与三处修正（未提交，待用户确认）
+
+- **Hero slogan 改文案并重排分档**：`想象世界，/改造世界。` → `尽情想象世界，/勇敢改造世界。`（`src/pages/index.astro`）。每行由 5 字变 7 字，按新行宽重算各档：
+  - `home-journey.css`（≥901px 的流体档）`clamp(60px,5.2vw,96px)` → **`clamp(48px,5.2vw,80px)`**：下限 60px 会在 901–1150px 的窄文字列（370–460px）放不下（7×60=420px）；上限 96px 会在 ≥1593px 宽屏超出 580px 列（7×96=672px）而折断成「尽情想象世 / 界，」。
+  - `town.css` ≤1000px 档 48px → **36px**（721–900px 是双列 + 295–380px 窄列，7 字行需 ≤42px）；新增 ≤460px=36px、≤380px=24px 两档（<901px 的空档）。
+  - 无头 Edge 实测 23 档宽度（320–2560px）：横向溢出恒为 0；行宽恒等于 7×字号（无折行）；最紧处 901px 余量 25px（修正前为 −59px 溢出）、宽屏 80px 处余量 20px。
+- **「随便走走」区块的车不再压马路边**：`town.css` 的 `town-drive` 关键帧下方车道 `translateY(129px)` → **125px**（含 reduced-motion 静态位）。车体占 125–141，马路为 112–142 ⇒ 车轮底边从「压出下沿 3 单位（约 9.4px）」变为「内侧留 1 单位（约 3.1px）」。无头实测 `overhang=-3.13px`。
+- **代码健壮性修复**：`home-journey.ts` 两处 `window.scrollTo({behavior:'instant'})` 收敛为 `setScrollTop()`（try/catch + `scrollingElement.scrollTop` 兜底）。旧引擎 ScrollBehavior 枚举无 'instant' 时会在 rAF 回调里抛 TypeError，`frame` 残留非 0 ⇒ 分页逻辑卡死。
+- **轻量审查：移除死样式 `eb.css` 的无条件引入**（`src/layouts/Layout.astro`）。依据：全站无页面传 `theme="eb"/"eb2"`（⇒ `.eb-theme/.eb2-theme` 作用域的 251 条规则永不匹配）；主页面与预览页 `eb-` 类命中 0（仅 3 个零引用组件仍写 .eb-*）；外部消费的 `--eb-frame/--eb-red` 由 `portfolio.css` 提供、`--eb-frame-w` 有同值兜底 3px。产物 Layout CSS **243,168 → 214,374 B（−28.8KB）**；项目页画廊回归（`.gal` 渲染、7 张缩略图、变量取值不变、零报错）。文件保留在 `src/styles/eb.css`，加回一行 import 即可复原。
+- **全站扫描**（15 条路由 × 1440/390）：零控制台错误、零失败请求、零横向溢出。「破图」计数为懒加载未进视口所致（首页延长等待后归零，且无 404）。
+- **仅报告未改（交用户决定）**：①`misans-fontfaces.css` 产物 301KB（240 个 @font-face 子集）为最大单项体积；②零引用组件 `Card/Toc/SectionHeading/Reveal/Achievements`；③死选择器 `.pf-hero-deck*`（portfolio.css）、`.pf-weather`/`[data-weather-icon]`/`.pf-poker__caption`/`.pf-scroll-cue*`（town.css、portfolio.css）。
+
+## v5.0.2 图鉴数据与小镇地图修正（未提交，待用户确认）
+
+- **游戏图鉴**（`src/data/games.ts`）：
+  - 删除「蓝盒人」条目（用户判定为疑似误导入）——产物 `dist/game-history/index.html` 命中 0；
+  - 「地球冒险系列」补 `hours: '50+'`（该字段口径为「仅 >50 小时才填」）——产物渲染为 `<small>50+ h</small>`。
+- **小镇地图（`src/components/TownMap.astro`）绘制顺序**：把 11 个 `#town-tree` 由「房舍之后」移到「房舍之前」⇒ **房舍遮挡树木**。原顺序下有两处树压房顶（也正是用户圈出的两处）：`(39,1)` 的树干压在小影院红屋顶上、`(383,16)` 的树冠压在游戏俱乐部门檐上；其余 9 棵树均落在草地上，改变顺序无副作用（灌木/花/栅栏仍在建筑之后，且与建筑无重叠）。
+- **花的位置**：`#town-flower` 由 `(399,96)` 移到 `(388,96)`。沙地（bank）在该高度的左边界为 `x=401`，花原本占 `x 399–406`（5px 长在沙地上）；现在占 `x 388–395`，完整落在草地内。
+- **验证**：`ASTRO_TELEMETRY_DISABLED=1 npx astro build` → 27 页、6 预览页剔除、零错误；无头 Edge 截图放大复核（房顶截断树干、花在草地、车仍在马路内）。
+### v5.0.2 追加：车与「关于我」房子的前后关系（用户第二轮实看反馈）
+
+- **问题**：车 `<g class="pf-town-map__car">` 原本排在整个 SVG 的最后 ⇒ 压住一切；而「关于我」那栋房子的屋顶向北上探到 `y=135`，压进马路南侧条带（路面 112–142），下方车道的车体占 `125–141` ⇒ 车经过 `x 76–151` 时应当被房顶遮住，实际却是车压房子。
+- **修法**：把车移到「A house and a red post office」之前（`src/components/TownMap.astro` L43，房子在 L44）。车仍排在路上方（公路 112–142 与车道标线之前已绘制），因此只在经过该房时被遮挡；其余建筑（影院/图书馆/俱乐部/邮局）与车的高度区间无重叠，不受影响。
+- **验证**：构建 27 页零错误；无头 Edge 定格车于 `x≈110`（`animation-delay:-5.3s`）放大截图 ⇒ 车身可见、车轮与下半部分隐入房顶之后；再取全景（`-10.8s`，车在 `x≈250`）确认车在无遮挡处仍完整可见、其余绘制关系不变。
+
+## v5.0.3 Hero：删「打一场？」按钮 + 重排 + 补下滑提示（未提交，待用户确认）
+
+- **删除** Hero 里唯一的按钮「打一场？ ↓」（`src/pages/index.astro` 的 `.pf-actions` 块整块移除；`.pf-actions` 样式仍被其它页面使用，未删）。
+- **重排**（`src/styles/town.css`）：
+  - `.pf-homepage .pf-hero__copy` 增 `display:flex; flex-direction:column; justify-content:center` ⇒ 文案列相对牌堆垂直居中。实测 1440×900：hero 1325×575、文案列 top=82 / 底留白=82（对称），牌堆 top=38 h=499；
+  - `.pf-homepage .pf-hero__lead` 的 `margin-block: 20px 24px` → `20px 0`，间距交给提示自身 `margin-top:26px`，避免删除按钮后中段塌陷。
+- **下滑提示**（库里只找到两条残留钩子：`town.css` 的 `.pf-homepage .pf-scroll-cue{display:none}` 与 `portfolio.css` 的 reduced-motion 引用；完整实现已在大改中被删，故按同一像素语言重建）：
+  - 结构：`<a class="pf-scroll-cue" href="#home-play" aria-label="向下浏览：打一场？">` ＋ 内联 SVG（像素鼠标轮廓＋滚轮线＋红色下箭头）；无文案（沿用「提示能不写就不写」）。
+  - 用**真实锚点**而非无 JS 装饰：有 JS 时由 `home-journey` 的 `a[href^="#"]` → `sceneForHash` 接管为整屏翻页；无 JS 时原生锚点＋CSS 平滑滚动仍可用。
+  - 可见性：默认可见；`home-journey` 写 `data-home-current` 后，`.pf-homepage[data-home-current]:not([data-home-current="intro"]) .pf-scroll-cue{opacity:0;pointer-events:none}` ⇒ 离开首屏自动淡出。
+  - 细节：44×44 触控目标、hover 下沉 2px、`:focus-visible` 3px 描边、箭头 `pf-cue-bob` 1.9s 轻浮；reduced-motion 下箭头静止（复用既有引用钩子）。
+- **验证**：构建 27 页零错误。无头 Edge：①两档截图（1440 / 390）排布协调；②交互测试——点击提示后 `data-home-current: intro → play`、`scrollY 0 → 827`（第 2 屏吸附位 825）、提示 `opacity 1 → 0`、`pointer-events none`、零 JS 异常。
+### v5.0.3 追加：下滑提示的三轮修正（用户实看反馈）
+
+1. **像素语言对齐现版本**：初版鼠标用「圆角矩形＋描边」（`rx=7` / `stroke`），是旧版画法。改为与站内图符一致的做法——`shape-rendering="crispEdges"` ＋ 纯矩形色块（无描边、无圆角，阶梯切角）：深墨 `#344431` 外框 ＋ `#fffdf1` 内胆 ＋ 墨色滚轮槽；箭头改 4 级阶梯 `#b94c33` 色块。
+2. **箭头末端不再被裁**：初版 viewBox 高 34，箭头下浮 3px 后超出 ⇒ 末端消失。现 viewBox `0 0 32 66`，箭头底 `y=58` ＋ 下浮 3px ＝ 61 < 66；另加 `overflow: visible` 双保险。实测 `overflowPastSvg = −5.1`（负值＝在框内）。
+3. **鼠标与箭头拉开距离**：两者间距由 ≈2px 提到 **14.9px**（SVG 内部 8 单位 ＋ 箭头下浮相位）。
+4. **略微放大**：图标由 24×44 → **32×66**（宽 +33%、高 +50%），触控框 56×76（≥44 ✓）。
+5. **移到 Hero 卡片下方居中**（用户图示位置）：由 `.pf-hero__copy` 内挪到 Hero 场景内、卡片之后；**仅分页模式显示**并绝对定位（`data-home-paging="on"` 时 `position:absolute; left:50%; bottom:24px`）⇒ 不参与场景高度计算，不会把「各屏装得进视口」的分页判定挤掉。实测 1440×900：提示横向居中（720 = Hero 中心 720）、位于卡片下沿之下 **31–97px**、分页仍为 `on`。
+6. **移动端 / 触屏一律不出现**：`@media (max-width: 720px), (hover: none), (pointer: coarse)` 下 `display:none`；390×844 移动仿真实测 `display:none`。
+7. 保留：点击＝进入第 2 屏（真实锚点 `#home-play`，分页脚本按 hash 映射）、离开首屏淡出、`:focus-visible` 描边、reduced-motion 下箭头静止。
+
+## v5.0.4 文案修订与提交前隐私审计
+
+- **Hero slogan**：`尽情想象世界，/勇敢改造世界。` → **`勇敢想象世界，/认真改造世界。`**（仍 7 字/行 ⇒ 字号分档与余量实测不变：1440 行宽 524 / 列 580；901px 余量 25px；320–2560px 零横向溢出）。
+- **首页电视区链接**：`新窗口试玩 ↗` → **`在新窗口试玩 ↗`**（全站仅此 1 处）。
+- **提交前隐私/密钥审计（本次改动 + 全部提交历史 + 构建产物）**：
+  - 本轮改动文件：**0 命中**（凭据值 / token 形态串 / 本机路径 / 手机号）。
+  - 全部 **41 次提交历史**（`git log --all -p`，含已删除文件内容）：**Cloudflare API Token 值 0 命中**；从无凭据类文件名进入版本控制（`.cf-token`/`.cf-account`/`.cf-zone`/`.env`/`*.pem`/`*.key`/私钥）。
+  - **构建产物 `dist/`**（27 页 + CSS/JS）：0 命中。
+  - 唯一「值级」命中：`交接文档/CURRENT.md` 含 Cloudflare **Account ID**（32 字符）——该文档明确标注其为「非密钥」的账号标识，属既定公开决策，非泄露。
+  - 轻微卫生项（**非密钥**）：5 个已跟踪交接文档各含 1 处本机绝对路径 `D:\WORK\...`；**无** `C:\Users`、无用户名、无手机号。历史中同样存在；本轮未擅自改写，建议后续统一替换为相对表述。
+  - 简历 PDF 含手机号＝既定决策（HR/ATS 需要，配 `public/_headers` 的 `X-Robots-Tag: noindex`），非疏漏。
+  - `.cf-token`/`.cf-account` 均被 `.gitignore` 覆盖，待提交区无任何凭据类文件。

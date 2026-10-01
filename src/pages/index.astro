@@ -33,11 +33,8 @@ const selectedWorks = [
     <section class="pf-hero" aria-labelledby="hero-title">
       <div class="pf-hero__copy">
         <div class="pf-hero__identity"><span>明鑫 · 游戏系统策划</span></div>
-        <h1 id="hero-title">想象世界，<br /><span>改造世界。</span></h1>
+        <h1 id="hero-title">勇敢想象世界，<br /><span>认真改造世界。</span></h1>
         <p class="pf-hero__lead">擅长把想象变成完善的设计，<br />再让它落地成可玩的游戏。</p>
-        <div class="pf-actions">
-          <a href="#home-play" class="pf-button pf-button--primary">打一场？ <span aria-hidden="true">↓</span></a>
-        </div>
       </div>
       <div class="pf-poker" data-poker role="group" aria-label="冒险扑克作品牌" tabindex="0">
         <div class="pf-poker__stage" data-poker-swipe>
@@ -54,6 +51,24 @@ const selectedWorks = [
         <div class="pf-poker__controls"><button type="button" data-poker-prev aria-label="上一张作品牌">←</button><span data-poker-counter aria-live="polite">01 / 04</span><button type="button" data-poker-next aria-label="下一张作品牌">→</button></div>
       </div>
     </section>
+    <!-- 下滑提示：像素鼠标＋下箭头，无文案；点击＝进入下一屏（真实锚点 #home-play，
+         分页脚本按 hash 映射为第 2 屏，无 JS 时原生平滑跳转）。
+         放在 Hero 场景内、卡片之下居中；仅分页模式显示、绝对定位 ⇒ 不参与场景高度，
+         不会把「各屏装得进视口」的分页判定挤掉。画法对齐站内图符：crispEdges ＋ 纯矩形色块。 -->
+    <a class="pf-scroll-cue" href="#home-play" aria-label="向下浏览：打一场？">
+      <svg viewBox="0 0 32 66" width="32" height="66" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <g fill="#344431">
+          <rect x="8" y="2" width="16" height="2" /><rect x="6" y="4" width="20" height="2" /><rect x="5" y="6" width="22" height="22" />
+          <rect x="6" y="28" width="20" height="2" /><rect x="8" y="30" width="16" height="2" />
+        </g>
+        <rect x="7" y="6" width="18" height="22" fill="#fffdf1" />
+        <rect x="14" y="10" width="4" height="8" fill="#344431" />
+        <g class="pf-scroll-cue__arrow" fill="#b94c33">
+          <rect x="14" y="40" width="4" height="6" />
+          <rect x="9" y="46" width="14" height="3" /><rect x="11" y="49" width="10" height="3" /><rect x="13" y="52" width="6" height="3" /><rect x="15" y="55" width="2" height="3" />
+        </g>
+      </svg>
+    </a>
     </div>
 
 
@@ -72,7 +87,7 @@ const selectedWorks = [
         {videoEmbedUrl && <div class="pf-home-tv__screen" data-home-video-screen hidden><div data-home-video-poster><BattleBackdrop variant="video" /></div><button class="pf-media-start" type="button" data-home-video-start aria-label="播放《童话冒险》演示视频"><img src="/images/scenes/play.svg" alt="" width="64" height="72" /></button><iframe title="童话冒险演示视频（哔哩哔哩）" data-home-video-frame data-src={videoEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" hidden></iframe></div>}
 
         <details class="pf-home-tv__help" data-home-help hidden><summary>画面没出来？</summary><div><p>嵌入的游戏载入可能受网络影响。</p><button type="button" data-home-retry>重新载入游戏</button></div></details>
-        <div class="pf-home-tv__bottom"><a data-home-game-link href="https://play.limao.site/" target="_blank" rel="noopener noreferrer">新窗口试玩 ↗</a>{feature.data.videoUrl && <a data-home-video-fallback href={feature.data.videoUrl} target="_blank" rel="noopener noreferrer" hidden>在 B 站观看 ↗</a>}</div>
+        <div class="pf-home-tv__bottom"><a data-home-game-link href="https://play.limao.site/" target="_blank" rel="noopener noreferrer">在新窗口试玩 ↗</a>{feature.data.videoUrl && <a data-home-video-fallback href={feature.data.videoUrl} target="_blank" rel="noopener noreferrer" hidden>在 B 站观看 ↗</a>}</div>
       </div>
     </section>
     </div></div>}

@@ -19,6 +19,18 @@ export function initHomeJourney() {
   let pendingDirection = 0;
 
   const nearest = () => points.reduce((best, point, i) => Math.abs(point - scrollY) < Math.abs(points[best] - scrollY) ? i : best, 0);
+  // 瞬时定位：分页模式下 CSS `scroll-behavior` 已置 auto，这里再显式要求 instant。
+  // 少数旧引擎的 ScrollBehavior 枚举没有 'instant'（会抛 TypeError），一旦抛在 rAF 回调里，
+  // frame 会残留为非 0 ⇒ 分页逻辑卡死；故给一次性兜底。
+  const setScrollTop = (top: number) => {
+    try {
+      window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+    } catch {
+      const scroller = document.scrollingElement;
+      if (scroller) scroller.scrollTop = top;
+      else window.scrollTo(0, top);
+    }
+  };
   const paint = (index: number) => {
     active = index;
     root.dataset.homeCurrent = scenes[index].dataset.homeScene;
@@ -39,7 +51,7 @@ export function initHomeJourney() {
     const from = scrollY;
     const to = points[targetIndex];
     if (immediate || reduced.matches || Math.abs(to - from) < 1) {
-      window.scrollTo({ top: to, behavior: 'instant' });
+      setScrollTop(to);
       paint(targetIndex);
       return;
     }
@@ -49,7 +61,7 @@ export function initHomeJourney() {
     const step = (now: number) => {
       const t = Math.min(1, (now - started) / duration);
       // A single animation owns the scroll; browser CSS smoothing is disabled in paging mode.
-      window.scrollTo({ top: from + (to - from) * (1 - (1 - t) ** 3), behavior: 'instant' });
+      setScrollTop(from + (to - from) * (1 - (1 - t) ** 3));
       if (t < 1) frame = requestAnimationFrame(step);
       else {
         frame = 0;

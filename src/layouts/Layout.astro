@@ -1,7 +1,11 @@
 ---
 import '../styles/misans-fontfaces.css';
 import '../styles/global.css';
-import '../styles/eb.css';
+/* 已移除 `import '../styles/eb.css'`（51KB EB 主题样式，轻量审查结论：全域死代码）。
+   依据：没有任何页面传 theme="eb"/"eb2" ⇒ `.eb-theme/.eb2-theme` 作用域的 251 条规则永不匹配；
+   主页面/预览页 `eb-` 类命中为 0（仅 3 个零引用组件还写着 .eb-*）；外部仍在消费的变量由
+   portfolio.css 提供（--eb-frame/--eb-red）或已有同值兜底（--eb-frame-w 默认 3px）。
+   文件保留在 src/styles/eb.css，若要启用 EB 主题页面，把上面这行 import 加回即可。 */
 import '../styles/portfolio.css';
 import '../styles/portfolio-refinements.css';
 import Nav from '../components/Nav.astro';
