@@ -1,4 +1,4 @@
-# build output
+﻿# build output
 dist/
 
 # 构建临时资源
@@ -58,3 +58,13 @@ scripts/query-cf-http-analytics.mjs
 scripts/test-hit-endpoint.mjs
 scripts/make-resume-placeholder.mjs
 scripts/test-home-scroll.mjs
+
+# 设计草稿预览页与草稿图（仅本地开发用，不随公开仓库发布；生产构建另有 PREVIEW_ROUTES 兜底）
+src/pages/*-preview.astro
+src/pages/color-preview.astro
+src/pages/gpt-preview.astro
+src/pages/hero-preview.astro
+src/pages/paper-note-preview.astro
+src/pages/project-paper-layout.astro
+src/pages/roadtrip-preview.astro
+public/images/journey/walker_preview.png
