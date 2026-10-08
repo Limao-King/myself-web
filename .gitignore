@@ -43,3 +43,18 @@ public/fonts/misans/
 .cf-token
 .cf-zone
 .cf-account
+
+# AI 协作说明与交接文档（仅本地使用，不随公开仓库发布）
+AGENTS.md
+CLAUDE.md
+交接文档/
+
+# 内部工程账本 / 本地运维脚本 / Worker 源码（仅本地使用，不随公开仓库发布）
+CHANGES.md
+.vscode/
+worker/
+scripts/view-visits.mjs
+scripts/query-cf-http-analytics.mjs
+scripts/test-hit-endpoint.mjs
+scripts/make-resume-placeholder.mjs
+scripts/test-home-scroll.mjs
