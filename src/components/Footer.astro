@@ -6,7 +6,7 @@ import { siteConfig } from '../site.config';
     <div>
       <p class="pf-footer__eyebrow">小镇邮局</p>
       <strong>有些冒险，始于一句「你好」。</strong>
-      <div class="pf-footer__contact"><a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a><button type="button" data-copy-email data-email={siteConfig.email} hidden>复制邮箱</button><span data-copy-status role="status"></span></div>
+      <div class="pf-footer__contact"><a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a><button type="button" data-copy-email data-email-local="Limao233666" data-email-domain="outlook.com" hidden>复制邮箱</button><span data-copy-status role="status"></span></div>
     </div>
     <div class="pf-footer__links">
       <a href={`mailto:${siteConfig.email}`}>发邮件 ↗</a>
@@ -23,7 +23,8 @@ import { siteConfig } from '../site.config';
     copyButton.hidden = false;
     copyButton.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(copyButton.dataset.email ?? '');
+        const email = `${copyButton.dataset.emailLocal}@${copyButton.dataset.emailDomain}`;
+        await navigator.clipboard.writeText(email);
         if (copyStatus) copyStatus.textContent = '邮箱已复制';
       } catch {
         if (copyStatus) copyStatus.textContent = '请选中邮箱地址手动复制';
