@@ -66,3 +66,48 @@
   .pf-town-pin--games { left: 85%; top: 43%; }
 }
 @media (prefers-reduced-motion: reduce) { .pf-scene-nav button > span { transition: none; } }
+
+/* 矮视口适配（分页存活条件）：home-journey 的 measure() 要求四个场景全部装进
+   「视口高 − 页头 + 2」才启用分页吸附。实测 1366×768 下作品橱窗区 699px > 695px
+   （差 4px）→ 整套分页被全局关闭，用户视口不同则随机「分页消失」。
+   以下两档只在矮桌面视口（≥901px 宽、高度不足）收 padding/margin/gap 与装饰图高度，
+   让各场景内容留出 ≥8px 余量；不改 JS、不改字号（大号像素字保持 12 的倍数规则不被打破）、
+   不用 overflow 截内容。必须放在本文件末尾：@901px 基准尺寸规则在上面，
+   同特异性下后者才覆盖（home-journey.css 在 index.astro 中最后导入）。 */
+
+/* 第一档：781–850px 高的桌面视口（如 1440×800 / 1536×820）。轻度压缩，
+   目标 800px 高视口下每场景内容 ≤ 视口 − 页头(73) − 12。 */
+@media (min-width: 901px) and (max-height: 850px) {
+  /* 「打一场」区：电视卡上下内边距 28/36 → 24/30，省 10px（电视宽公式不动，
+     多出的余量直接成为场景余量）。 */
+  .pf-site.pf-homepage .pf-home .pf-home-play { padding-block: 24px 30px; }
+  /* 作品橱窗区：区内上下内边距 28/22 → 24/18，网格上距 24 → 20，共省 12px。 */
+  .pf-home-scene .pf-selected { padding: 24px 32px 18px; }
+  .pf-home-scene .pf-selected__grid { margin-top: 20px; }
+  /* 「随便走走」区：地图标题下距 24 → 16（省 8px），并把地图高度公式的预留量
+     124 → 132（地图最多矮 8px），双保险抵掉宽视口下地图贴着公式上限的增长。 */
+  .pf-home-scene--town .pf-town-map__heading { margin-bottom: 16px; }
+  .pf-home-scene--town .pf-town-map__world { max-width: min(100%, calc((100svh - var(--home-header-height,75px) - 132px) * 480 / 224)); }
+}
+
+/* 第二档：730–780px 高的桌面视口（如 1366×768）。再收一档：
+   作品橱窗区在 768 视口需至少压掉 8px（实测超 4px），实际压 ~60px；
+   「打一场」区压掉电视卡上下内边距 18px 保证街景带 + 电视卡整体装下。
+   与上面 (max-height: 850px) 档叠加生效（更严者胜：本档在文件更靠后）。 */
+@media (min-width: 901px) and (max-height: 780px) {
+  /* 场景上下留白 24 → 16（与既有 max-height:740 档一致）；Hero 上下内边距收至 20。 */
+  .pf-home-scene { padding-block: 16px; }
+  .pf-site.pf-homepage .pf-home .pf-home-scene .pf-hero { padding-block: 20px; }
+  /* 「打一场」区：电视卡上下内边距 28/36 → 20/26，省 18px。 */
+  .pf-site.pf-homepage .pf-home .pf-home-play { padding: 20px clamp(28px,3vw,54px) 26px; }
+  /* 作品橱窗区：区内边距 24/18 → 20/14（−8），网格上距 20 → 14（−6）、列距 22 → 16，
+   * 主图 38svh → 34svh（768 视口省 31px），副图 24svh → 21svh（省 23px），
+   * 手稿条上距 18 → 12（−6）：合计约省 74px，768 视口下内容 ~592px ≪ 647px 预算。 */
+  .pf-home-scene .pf-selected { padding: 20px 32px 14px; }
+  .pf-home-scene .pf-selected__grid { margin-top: 14px; gap: 16px; }
+  .pf-home-scene .pf-work--featured .pf-work__image { height: clamp(180px,34svh,480px); }
+  .pf-home-scene .pf-work:not(.pf-work--featured) .pf-work__image { min-height: clamp(140px,21svh,300px); }
+  .pf-home-scene .pf-selected__note { margin-top: 12px; }
+  /* 「随便走走」区：标题下距 16 → 14，地图预留量沿用第一档的 132。 */
+  .pf-home-scene--town .pf-town-map__heading { margin-bottom: 14px; }
+}
